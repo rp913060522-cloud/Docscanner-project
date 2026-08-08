@@ -1,0 +1,176 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   StudyGen AI — Responsive Styles
+   Mobile-first breakpoints. Base = 375px (small mobile)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Base: 375px – 429px (Small Mobile) ──────────────────────────────────── */
+
+.quick-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.quick-card { padding: 10px 8px; }
+.quick-card__icon { width: 42px; height: 42px; }
+.quick-card__icon .material-icons-round { font-size: 22px; }
+.quick-card__label { font-size: 11px; }
+
+.stats-grid  { gap: 10px; }
+.stat-card   { padding: 10px; }
+
+.ai-output-grid { gap: 10px; }
+.ai-output-card { padding: 12px; }
+
+
+/* ── 430px – 767px (Standard Mobile) ─────────────────────────────────────── */
+@media (min-width: 430px) {
+  :root {
+    --screen-pad: 20px;
+  }
+
+  .quick-card { padding: var(--sp-md); }
+  .quick-card__icon { width: 48px; height: 48px; }
+  .quick-card__label { font-size: 12px; }
+
+  .stat-card { padding: var(--sp-md); }
+
+  .ai-output-card { padding: var(--sp-lg); }
+}
+
+
+/* ── 768px – 1023px (Tablet / Desktop Small) ─────────────────────────────── */
+@media (min-width: 768px) {
+  :root {
+    --screen-max: 430px;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background: var(--surface);
+    min-height: 100vh;
+    padding: 24px 0;
+  }
+
+  .screen {
+    height: 840px;
+    max-height: calc(100vh - 48px);
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.18), 0 8px 32px rgba(0,0,0,0.1);
+    position: relative;
+  }
+
+  .app-bar,
+  .bottom-nav {
+    border-radius: 0;
+  }
+
+  /* Show desktop sidebar hint */
+  .desktop-only { display: flex; }
+  .mobile-only  { display: block; }
+}
+
+
+/* ── 1024px+ (Large Desktop) ─────────────────────────────────────────────── */
+@media (min-width: 1024px) {
+  body {
+    padding: 32px 0;
+  }
+
+  .screen {
+    min-height: calc(100vh - 64px);
+  }
+}
+
+
+/* ── Touch & Interaction Improvements ────────────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch target sizes on touch devices */
+  .btn { min-height: 52px; }
+  .btn-sm { min-height: 42px; }
+  .bottom-nav__item { min-height: 60px; }
+  .settings-item { min-height: 52px; }
+  .list-item { min-height: 60px; }
+  .quiz-option { min-height: 52px; }
+
+  /* Remove hover effects that look wrong on touch */
+  .card:hover { box-shadow: var(--shadow-sm); transform: none; }
+  .quick-card:hover { transform: none; }
+  .ai-output-card:hover { transform: none; }
+}
+
+
+/* ── Dark Mode Body Background ────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  /* Only apply system dark if user hasn't set a preference */
+  :root:not([data-theme]) {
+    color-scheme: dark;
+  }
+}
+
+
+/* ── Landscape Phone ─────────────────────────────────────────────────────── */
+@media (max-height: 500px) and (orientation: landscape) {
+  .splash-screen {
+    flex-direction: row;
+    gap: 40px;
+  }
+
+  .splash-logo-container {
+    width: 72px;
+    height: 72px;
+  }
+
+  .splash-bottom {
+    bottom: 24px;
+  }
+}
+
+
+/* ── Print (Hide nav, keep content) ──────────────────────────────────────── */
+@media print {
+  .bottom-nav,
+  .app-bar,
+  .btn,
+  .toast { display: none !important; }
+
+  .screen { max-width: 100%; box-shadow: none; }
+}
+
+
+/* ── Reduced Motion ───────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* ── High Contrast ────────────────────────────────────────────────────────── */
+@media (forced-colors: active) {
+  .btn-primary  { forced-color-adjust: none; }
+  .bottom-nav   { border-top: 2px solid ButtonText; }
+}
+
+
+/* ── Safe Area Insets (iPhone notch / home bar) ───────────────────────────── */
+@supports (padding: max(0px)) {
+  .bottom-nav {
+    padding-bottom: max(var(--sp-xs), env(safe-area-inset-bottom));
+    height: calc(var(--bottom-nav-h) + max(0px, env(safe-area-inset-bottom)));
+  }
+
+  .screen--with-nav {
+    padding-bottom: calc(var(--bottom-nav-h) + max(8px, env(safe-area-inset-bottom)));
+  }
+
+  .app-bar {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+}

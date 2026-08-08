@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Scan Preview & Crop — StudyGen AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <style>
+    .preview-container {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      background: #1e1e2d;
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--sp-lg);
+    }
+
+    .scanned-img-sim {
+      width: 82%;
+      height: 88%;
+      background: #ffffff;
+      border-radius: 4px;
+      padding: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      transition: filter 0.3s ease, transform 0.3s ease;
+    }
+
+    /* Filter simulation classes */
+    .filter-magic { filter: contrast(1.25) brightness(1.05) saturate(1.1); }
+    .filter-color { filter: saturate(1.4); }
+    .filter-bw    { filter: grayscale(1) contrast(1.5); }
+
+    /* Crop Corner Handles */
+    .crop-handle {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 3px solid white;
+      position: absolute;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      cursor: grab;
+      z-index: 10;
+    }
+    .crop-handle-tl { top: -10px; left: -10px; }
+    .crop-handle-tr { top: -10px; right: -10px; }
+    .crop-handle-bl { bottom: -10px; left: -10px; }
+    .crop-handle-br { bottom: -10px; right: -10px; }
+
+    /* Page Badge Overlay */
+    .page-badge-overlay {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(8px);
+      color: white;
+      padding: 4px 14px;
+      border-radius: var(--r-full);
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 15;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-md);
+    }
+    .slider-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="screen screen--with-bar" style="padding-bottom:100px;">
+    
+    <!-- Top App Bar -->
+    <header class="app-bar">
+      <button class="app-bar__back" onclick="history.back()" aria-label="Back">
+        <span class="material-icons-round">arrow_back_ios_new</span>
+      </button>
+      <span class="app-bar__center">Scan Preview</span>
+      <div class="app-bar__actions">
+        <button class="app-bar__action-btn" id="saveDoneBtn" title="Save preview">
+          <span class="material-icons-round" style="color:var(--primary)">check</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="page-scroll page-scroll--no-nav">
+      
+      <!-- Image Preview Window -->
+      <div class="preview-container">
+        <div class="page-badge-overlay" id="pageBadge">Page 1 of 1</div>
+
+        <!-- Scanned Document View -->
+        <div class="scanned-img-sim filter-magic" id="scannedImage">
+          <div class="crop-handle crop-handle-tl"></div>
+          <div class="crop-handle crop-handle-tr"></div>
+          <div class="crop-handle crop-handle-bl"></div>
+          <div class="crop-handle crop-handle-br"></div>
+
+          <div style="font-size:14px;font-weight:700;color:#1e293b;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">
+            LECTURE 4: CELLULAR RESPIRATION
+          </div>
+          <div style="height:6px;background:#94a3b8;border-radius:3px;width:95%"></div>
+          <div style="height:6px;background:#cbd5e1;border-radius:3px;width:88%"></div>
+          <div style="height:6px;background:#cbd5e1;border-radius:3px;width:92%"></div>
+          <div style="display:flex;gap:8px;margin:8px 0;">
+            <div style="flex:1;height:50px;background:#e2e8f0;border-radius:4px;border:1px dashed #94a3b8;display:flex;align-items:center;justify-center;font-size:10px;color:#64748b;text-align:center;padding:4px;">Krebs Cycle Diagram</div>
+            <div style="flex:1;height:50px;background:#e2e8f0;border-radius:4px;border:1px dashed #94a3b8;display:flex;align-items:center;justify-center;font-size:10px;color:#64748b;text-align:center;padding:4px;">ATP Output Chart</div>
+          </div>
+          <div style="height:6px;background:#cbd5e1;border-radius:3px;width:90%"></div>
+          <div style="height:6px;background:#cbd5e1;border-radius:3px;width:75%"></div>
+        </div>
+      </div>
+
+      <!-- Filter Selection Chips -->
+      <section class="mb-lg">
+        <div class="text-label-md text-secondary mb-sm">Enhancement Filter</div>
+        <div class="filter-row">
+          <span class="chip" data-filter="original">Original</span>
+          <span class="chip active" data-filter="magic">Magic Enhance</span>
+          <span class="chip" data-filter="color">Color</span>
+          <span class="chip" data-filter="bw">B & W</span>
+        </div>
+      </section>
+
+      <!-- Adjustment Sliders -->
+      <section class="card p-lg flex-col gap-md mb-xl">
+        <div class="slider-row">
+          <span class="material-icons-round text-secondary" style="font-size:20px;">brightness_6</span>
+          <input type="range" id="brightnessRange" min="50" max="150" value="105" aria-label="Brightness" />
+        </div>
+        <div class="slider-row">
+          <span class="material-icons-round text-secondary" style="font-size:20px;">contrast</span>
+          <input type="range" id="contrastRange" min="50" max="150" value="125" aria-label="Contrast" />
+        </div>
+      </section>
+
+      <!-- Bottom Action Row -->
+      <div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--screen-max);padding:16px var(--screen-pad);background:var(--bg);border-top:1px solid var(--border);box-shadow:0 -4px 16px rgba(0,0,0,0.06);z-index:90;display:flex;align-items:center;gap:12px;">
+        <button class="btn btn-outlined btn-sm" id="addPageBtn" style="width:auto;min-width:100px;">
+          <span class="material-icons-round">note_add</span>
+          <span>Add Page</span>
+        </button>
+        <a href="ai-study.html" class="btn btn-primary flex-1" style="text-decoration:none;">
+          <span>Continue with AI</span>
+          <span class="material-icons-round">auto_awesome</span>
+        </a>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      StudyGenNav.initScrollBehavior();
+
+      // Read scan count from session
+      const count = sessionStorage.getItem('sg_scan_count') || 1;
+      const pageBadge = document.getElementById('pageBadge');
+      if (pageBadge) pageBadge.textContent = `Page 1 of ${count}`;
+
+      // Filter chips interaction
+      const imageEl = document.getElementById('scannedImage');
+      const chips = document.querySelectorAll('[data-filter]');
+
+      chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          chips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+
+          const filter = chip.getAttribute('data-filter');
+          imageEl.className = 'scanned-img-sim';
+          if (filter === 'magic') imageEl.classList.add('filter-magic');
+          else if (filter === 'color') imageEl.classList.add('filter-color');
+          else if (filter === 'bw') imageEl.classList.add('filter-bw');
+
+          StudyGenApp.toast.show(`Filter applied: ${chip.textContent}`);
+        });
+      });
+
+      // Brightness / Contrast sliders
+      const brightnessRange = document.getElementById('brightnessRange');
+      const contrastRange   = document.getElementById('contrastRange');
+
+      function updateImageFilters() {
+        const b = brightnessRange.value;
+        const c = contrastRange.value;
+        imageEl.style.filter = `brightness(${b}%) contrast(${c}%)`;
+      }
+
+      if (brightnessRange) brightnessRange.addEventListener('input', updateImageFilters);
+      if (contrastRange) contrastRange.addEventListener('input', updateImageFilters);
+
+      // Add Page button
+      const addPageBtn = document.getElementById('addPageBtn');
+      if (addPageBtn) {
+        addPageBtn.addEventListener('click', () => {
+          window.location.href = 'scanner.html';
+        });
+      }
+    });
+  </script>
+</body>
+</html>

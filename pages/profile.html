@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Profile — StudyGen AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="screen screen--with-nav screen--with-bar">
+    
+    <!-- Top App Bar -->
+    <header class="app-bar">
+      <button class="app-bar__back" onclick="location.href='home.html'" aria-label="Back">
+        <span class="material-icons-round">arrow_back_ios_new</span>
+      </button>
+      <span class="app-bar__center">Profile</span>
+      <div class="app-bar__actions">
+        <button class="app-bar__action-btn" id="editProfileHeaderBtn" aria-label="Edit Profile">
+          <span class="material-icons-round">edit</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Scroll Content -->
+    <main class="page-scroll">
+      
+      <!-- Profile Header Area -->
+      <section class="flex-col items-center text-center mb-xl">
+        <div style="position:relative;margin-bottom:var(--sp-md);">
+          <div class="avatar-placeholder" id="profileAvatar" style="width:88px;height:88px;font-size:32px;border:3px solid white;box-shadow:var(--shadow-md);">
+            RS
+          </div>
+          <button id="changeAvatarBtn" style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-xs);">
+            <span class="material-icons-round" style="font-size:16px;">photo_camera</span>
+          </button>
+        </div>
+        
+        <h2 class="text-headline-sm" id="userName" style="color:var(--text-primary);">Ravi Sharma</h2>
+        <p class="text-body-sm text-secondary mb-sm" id="userEmail">ravi@studygenai.com</p>
+        
+        <span class="badge badge-secondary" id="userBadge">
+          <span class="material-icons-round" style="font-size:14px;">star</span>
+          <span>Free Member</span>
+        </span>
+      </section>
+
+      <!-- Study Stats Grid -->
+      <section class="mb-xl">
+        <h3 class="section-header__title mb-md">Study Stats</h3>
+        <div class="stats-grid">
+          
+          <div class="stat-card">
+            <div class="icon-container ic-notes icon-container--sm">
+              <span class="material-icons-round">center_focus_strong</span>
+            </div>
+            <div>
+              <div class="stat-card__number" id="statScanned">24</div>
+              <div class="stat-card__label">Total Scanned</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="icon-container ic-pdf icon-container--sm">
+              <span class="material-icons-round">edit_note</span>
+            </div>
+            <div>
+              <div class="stat-card__number" id="statNotes">156</div>
+              <div class="stat-card__label">AI Notes</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="icon-container ic-quiz icon-container--sm">
+              <span class="material-icons-round">picture_as_pdf</span>
+            </div>
+            <div>
+              <div class="stat-card__number" id="statPdfs">42</div>
+              <div class="stat-card__label">PDF Summaries</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="icon-container ic-flash icon-container--sm">
+              <span class="material-icons-round">quiz</span>
+            </div>
+            <div>
+              <div class="stat-card__number" id="statQuizzes">12</div>
+              <div class="stat-card__label">Quizzes</div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Profile Menu List -->
+      <section class="card p-lg mb-xl">
+        
+        <a href="#" class="settings-item" id="btnEditProfile">
+          <div class="icon-container ic-notes icon-container--sm">
+            <span class="material-icons-round">person_outline</span>
+          </div>
+          <span class="settings-item__content">Edit Profile</span>
+          <span class="material-icons-round settings-item__chevron">chevron_right</span>
+        </a>
+
+        <a href="#" class="settings-item" id="btnChangePass">
+          <div class="icon-container ic-notes icon-container--sm">
+            <span class="material-icons-round">lock_outline</span>
+          </div>
+          <span class="settings-item__content">Change Password</span>
+          <span class="material-icons-round settings-item__chevron">chevron_right</span>
+        </a>
+
+        <a href="premium.html" class="settings-item" style="color:var(--secondary);">
+          <div class="icon-container ic-secondary icon-container--sm">
+            <span class="material-icons-round">star_outline</span>
+          </div>
+          <span class="settings-item__content" style="color:var(--secondary);font-weight:700;">Upgrade to Premium</span>
+          <span class="material-icons-round settings-item__chevron" style="color:var(--secondary);">chevron_right</span>
+        </a>
+
+        <a href="#" class="settings-item" id="btnDownloads">
+          <div class="icon-container ic-pdf icon-container--sm">
+            <span class="material-icons-round">cloud_download</span>
+          </div>
+          <span class="settings-item__content">My Downloads</span>
+          <span class="material-icons-round settings-item__chevron">chevron_right</span>
+        </a>
+
+        <a href="#" class="settings-item" id="btnFavorites">
+          <div class="icon-container ic-flash icon-container--sm">
+            <span class="material-icons-round">favorite_border</span>
+          </div>
+          <span class="settings-item__content">My Favorites</span>
+          <span class="material-icons-round settings-item__chevron">chevron_right</span>
+        </a>
+
+        <a href="settings.html" class="settings-item">
+          <div class="icon-container ic-info icon-container--sm">
+            <span class="material-icons-round">language</span>
+          </div>
+          <span class="settings-item__content">App Language</span>
+          <span class="material-icons-round settings-item__chevron">chevron_right</span>
+        </a>
+
+      </section>
+
+      <!-- Logout Action Button -->
+      <section class="mb-xl">
+        <button class="btn btn-danger" id="logoutBtn">
+          <span class="material-icons-round">logout</span>
+          <span>Logout</span>
+        </button>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script src="../js/profile.js"></script>
+</body>
+</html>

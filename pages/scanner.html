@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Smart Document Scanner — StudyGen AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <style>
+    body { background-color: var(--scanner-dark); color: white; }
+    .screen-scanner {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #0a0a10;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Top Bar Overlay */
+    .scanner-top-bar {
+      height: var(--app-bar-h);
+      padding: 0 var(--screen-pad);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(10px);
+      z-index: 50;
+    }
+
+    /* Camera Feed Container */
+    .camera-feed {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #1e1e2d 0%, #0d0d15 100%);
+      overflow: hidden;
+    }
+
+    /* Shutter Flash */
+    .shutter-flash {
+      position: absolute;
+      inset: 0;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 100;
+      transition: opacity 0.15s ease;
+    }
+
+    /* Edge Detection Frame */
+    .doc-frame {
+      width: 78%;
+      height: 70%;
+      position: relative;
+      border: 1px stroke rgba(59,123,248,0.4);
+      box-shadow: inset 0 0 0 1000px rgba(0,0,0,0.25);
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .doc-frame.detected {
+      box-shadow: inset 0 0 0 1000px rgba(59,123,248,0.08);
+    }
+
+    .doc-corner {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-color: var(--primary);
+      border-style: solid;
+    }
+    .doc-corner-tl { top: -2px; left: -2px; border-width: 4px 0 0 4px; border-radius: 4px 0 0 0; }
+    .doc-corner-tr { top: -2px; right: -2px; border-width: 4px 4px 0 0; border-radius: 0 4px 0 0; }
+    .doc-corner-bl { bottom: -2px; left: -2px; border-width: 0 0 4px 4px; border-radius: 0 0 0 4px; }
+    .doc-corner-br { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; border-radius: 0 0 4px 0; }
+
+    /* Simulated Document Texture inside Frame */
+    .doc-preview-sim {
+      position: absolute;
+      inset: 12px;
+      background: rgba(255,255,255,0.92);
+      border-radius: 4px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      opacity: 0.85;
+      pointer-events: none;
+    }
+    .doc-sim-line { height: 6px; background: #cbd5e1; border-radius: 3px; }
+    .doc-sim-title { height: 12px; background: #334155; border-radius: 3px; width: 60%; margin-bottom: 8px; }
+
+    /* Floating Toolbar Right */
+    .floating-tools {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: rgba(20,20,30,0.7);
+      backdrop-filter: blur(12px);
+      padding: 8px;
+      border-radius: var(--r-full);
+      border: 1px solid rgba(255,255,255,0.1);
+      z-index: 40;
+    }
+
+    .tool-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .tool-btn:hover, .tool-btn.active { background: var(--primary); }
+
+    /* Mode Selector Pills */
+    .mode-selector {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 0 8px;
+      background: rgba(10,10,16,0.9);
+    }
+    .mode-pill {
+      padding: 6px 16px;
+      border-radius: var(--r-full);
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mode-pill.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Multi-page Thumbnail Strip */
+    .thumb-strip {
+      display: flex;
+      gap: 8px;
+      padding: 8px 16px;
+      overflow-x: auto;
+      background: rgba(0,0,0,0.8);
+      min-height: 56px;
+      align-items: center;
+    }
+    .thumb-item {
+      width: 36px;
+      height: 48px;
+      background: white;
+      border-radius: 4px;
+      border: 2px solid var(--primary);
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    /* Bottom Control Bar */
+    .scanner-bottom-bar {
+      height: 100px;
+      background: #0d0d15;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 24px;
+      z-index: 50;
+    }
+  </style>
+</head>
+<body>
+  <div class="screen screen-scanner">
+    
+    <!-- Shutter Flash Effect -->
+    <div class="shutter-flash" id="shutterFlash"></div>
+
+    <!-- Top Navigation Bar -->
+    <header class="scanner-top-bar">
+      <button class="app-bar__back" id="closeBtn" aria-label="Close scanner" style="color:white">
+        <span class="material-icons-round">close</span>
+      </button>
+      <span style="font-weight:700;font-size:17px;letter-spacing:-0.2px;">Document Scanner</span>
+      <button class="app-bar__action-btn" id="flashToggle" aria-label="Toggle Flashlight" style="color:white">
+        <span class="material-icons-round" id="flashIcon">flash_off</span>
+      </button>
+    </header>
+
+    <!-- Camera Preview Viewport -->
+    <main class="camera-feed">
+      
+      <!-- Edge Detection Frame -->
+      <div class="doc-frame detected" id="docFrame">
+        <div class="doc-corner doc-corner-tl"></div>
+        <div class="doc-corner doc-corner-tr"></div>
+        <div class="doc-corner doc-corner-bl"></div>
+        <div class="doc-corner doc-corner-br"></div>
+
+        <!-- Simulated Document Content -->
+        <div class="doc-preview-sim">
+          <div class="doc-sim-title"></div>
+          <div class="doc-sim-line" style="width:90%"></div>
+          <div class="doc-sim-line" style="width:85%"></div>
+          <div class="doc-sim-line" style="width:95%"></div>
+          <div class="doc-sim-line" style="width:70%"></div>
+          <div class="doc-sim-line" style="width:80%"></div>
+        </div>
+      </div>
+
+      <!-- Hint Text Below Frame -->
+      <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;font-size:13px;color:rgba(255,255,255,0.8);font-weight:500;">
+        <span class="material-icons-round" style="font-size:16px;vertical-align:middle;margin-right:4px;color:var(--primary);">crop_free</span>
+        Align document within frame
+      </div>
+
+      <!-- Floating Right Toolbar -->
+      <div class="floating-tools">
+        <button class="tool-btn" id="galleryBtn" title="Import from Gallery">
+          <span class="material-icons-round">collections</span>
+        </button>
+        <button class="tool-btn" id="rotateBtn" title="Rotate Frame">
+          <span class="material-icons-round">rotate_right</span>
+        </button>
+        <button class="tool-btn" id="gridToggle" title="Toggle Grid">
+          <span class="material-icons-round">grid_on</span>
+        </button>
+      </div>
+
+    </main>
+
+    <!-- Mode Selector Row -->
+    <div class="mode-selector">
+      <span class="mode-pill active" data-mode="single">Single</span>
+      <span class="mode-pill" data-mode="multi">Batch / Multi</span>
+      <span class="mode-pill" data-mode="auto">Auto-Detect</span>
+    </div>
+
+    <!-- Multi-Page Thumbnail Strip (Hidden initially or shows scans) -->
+    <div class="thumb-strip hidden" id="thumbStrip">
+      <!-- Added dynamically -->
+    </div>
+
+    <!-- Bottom Control Area -->
+    <footer class="scanner-bottom-bar">
+      <!-- Gallery Thumbnail / Cancel -->
+      <div id="galleryThumb" style="width:48px;height:48px;border-radius:10px;background:#222;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(255,255,255,0.2)">
+        <span class="material-icons-round" style="color:rgba(255,255,255,0.7)">photo_library</span>
+      </div>
+
+      <!-- Capture Button -->
+      <button class="capture-btn" id="captureBtn" aria-label="Capture page"></button>
+
+      <!-- Continue / Page Counter -->
+      <div id="continueBtn" style="min-width:60px;text-align:center;cursor:pointer;">
+        <button class="btn btn-primary btn-sm hidden" id="doneBtn" style="padding:8px 16px;">
+          <span>Continue</span>
+          <span class="material-icons-round" style="font-size:18px;">arrow_forward</span>
+        </button>
+        <div id="pageCounter" class="text-label-md" style="color:rgba(255,255,255,0.6)">0 Pages</div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script src="../js/scanner.js"></script>
+</body>
+</html>

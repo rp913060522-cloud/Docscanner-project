@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PDF AI — StudyGen AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="screen screen--with-bar" style="padding-bottom:100px;">
+    
+    <!-- Top App Bar -->
+    <header class="app-bar">
+      <button class="app-bar__back" onclick="location.href='home.html'" aria-label="Back">
+        <span class="material-icons-round">arrow_back_ios_new</span>
+      </button>
+      <span class="app-bar__center">PDF AI</span>
+      <div class="app-bar__actions">
+        <div class="app-bar__avatar avatar-placeholder" style="width:34px;height:34px;font-size:13px;">RS</div>
+      </div>
+    </header>
+
+    <!-- Main Scroll Content -->
+    <main class="page-scroll page-scroll--no-nav">
+      
+      <!-- Upload PDF Drop Area -->
+      <section class="upload-area mb-xl" id="pdfDropZone">
+        <input type="file" id="pdfFileInput" accept=".pdf,.doc,.docx,.ppt,.pptx" class="hidden" />
+        <div class="upload-area__icon">
+          <span class="material-icons-round">picture_as_pdf</span>
+        </div>
+        <h3 class="text-headline-sm" style="color:var(--text-primary);margin-bottom:4px;">Upload PDF</h3>
+        <p class="text-body-sm text-secondary mb-lg" style="max-width:260px;margin-left:auto;margin-right:auto;">
+          Drag and drop your syllabus, readings, or slides here.
+        </p>
+        <button class="btn btn-primary btn-sm" id="browsePdfBtn" style="width:auto;margin:0 auto;">
+          <span class="material-icons-round">file_upload</span>
+          <span>Browse PDF</span>
+        </button>
+      </section>
+
+      <!-- Recent Documents Section -->
+      <section class="mb-xl">
+        <div class="section-header">
+          <h3 class="section-header__title">Recent Documents</h3>
+        </div>
+        <div class="flex-col gap-sm" id="recentDocsList">
+          
+          <div class="list-item">
+            <div class="icon-container ic-pdf">
+              <span class="material-icons-round">picture_as_pdf</span>
+            </div>
+            <div class="list-item__content">
+              <div class="list-item__title">Biology_101_Syllabus_FA.pdf</div>
+              <div class="list-item__subtitle">8 Pages &bull; Today, 10:30 AM</div>
+            </div>
+            <button class="dot-menu-btn" title="More options">
+              <span class="material-icons-round">more_vert</span>
+            </button>
+          </div>
+
+          <div class="list-item">
+            <div class="icon-container ic-pdf">
+              <span class="material-icons-round">picture_as_pdf</span>
+            </div>
+            <div class="list-item__content">
+              <div class="list-item__title">Chapter_4_Cellular_Respiration.pdf</div>
+              <div class="list-item__subtitle">32 Pages &bull; Yesterday</div>
+            </div>
+            <button class="dot-menu-btn" title="More options">
+              <span class="material-icons-round">more_vert</span>
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- AI Actions Grid (2x2) -->
+      <section class="mb-xl">
+        <div class="section-header">
+          <h3 class="section-header__title">AI Actions</h3>
+        </div>
+        
+        <div class="ai-output-grid">
+          
+          <a href="ai-study.html" class="ai-output-card">
+            <div class="ai-output-card__icon ic-notes">
+              <span class="material-icons-round">chrome_reader_mode</span>
+            </div>
+            <span class="ai-output-card__label">AI Read</span>
+          </a>
+
+          <a href="ai-study.html" class="ai-output-card">
+            <div class="ai-output-card__icon ic-pdf">
+              <span class="material-icons-round">short_text</span>
+            </div>
+            <span class="ai-output-card__label">Generate Summary</span>
+          </a>
+
+          <a href="ai-study.html" class="ai-output-card">
+            <div class="ai-output-card__icon ic-quiz">
+              <span class="material-icons-round">description</span>
+            </div>
+            <span class="ai-output-card__label">Generate Notes</span>
+          </a>
+
+          <a href="ai-learning.html" class="ai-output-card">
+            <div class="ai-output-card__icon ic-flash">
+              <span class="material-icons-round">style</span>
+            </div>
+            <span class="ai-output-card__label">Flash Cards</span>
+          </a>
+
+          <a href="ai-learning.html" class="ai-output-card" style="grid-column: span 2;">
+            <div class="ai-output-card__icon ic-chat">
+              <span class="material-icons-round">quiz</span>
+            </div>
+            <span class="ai-output-card__label">Generate Quiz from PDF</span>
+          </a>
+
+        </div>
+      </section>
+
+      <!-- Bottom Action Row -->
+      <div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--screen-max);padding:14px var(--screen-pad);background:var(--bg);border-top:1px solid var(--border);box-shadow:0 -4px 16px rgba(0,0,0,0.06);z-index:90;display:flex;align-items:center;gap:12px;">
+        <button class="btn btn-outlined btn-sm flex-1" id="pdfDownloadBtn">
+          <span class="material-icons-round">file_download</span>
+          <span>Download</span>
+        </button>
+        <button class="btn btn-outlined btn-sm flex-1" id="pdfSaveBtn">
+          <span class="material-icons-round">bookmark_border</span>
+          <span>Save</span>
+        </button>
+        <button class="btn btn-outlined btn-sm flex-1" id="pdfShareBtn">
+          <span class="material-icons-round">share</span>
+          <span>Share</span>
+        </button>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script src="../js/pdf-ai.js"></script>
+</body>
+</html>

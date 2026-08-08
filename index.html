@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="StudyGen AI — AI Powered Study Scanner & Smart Learning App. Scan your notes, generate AI summaries, quizzes and flashcards." />
+  <meta name="theme-color" content="#3B7BF8" />
+  <title>StudyGen AI — Scan • Learn • Revise • Succeed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Splash-specific Styles ── */
+    .splash-screen {
+      min-height: 100vh;
+      background: linear-gradient(160deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background decorative circles */
+    .splash-screen::before {
+      content: '';
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      top: -80px;
+      right: -80px;
+    }
+    .splash-screen::after {
+      content: '';
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      bottom: 60px;
+      left: -60px;
+    }
+
+    .splash-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      z-index: 1;
+      animation: splashFadeIn 0.8s ease forwards;
+    }
+
+    @keyframes splashFadeIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .splash-logo-container {
+      width: 96px;
+      height: 96px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+      animation: splashLogoScale 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
+    }
+
+    @keyframes splashLogoScale {
+      from { opacity: 0; transform: scale(0.5); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .splash-logo-icon {
+      font-size: 52px;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .splash-title {
+      font-size: 36px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+      text-align: center;
+    }
+
+    .splash-tagline {
+      font-size: 15px;
+      color: rgba(255,255,255,0.80);
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    .splash-bottom {
+      position: absolute;
+      bottom: 48px;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      z-index: 1;
+    }
+
+    .splash-status {
+      font-size: 11px;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      animation: statusPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes statusPulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    .splash-progress-track {
+      width: 160px;
+      height: 3px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .splash-progress-bar {
+      height: 100%;
+      background: rgba(255,255,255,0.9);
+      border-radius: 100px;
+      width: 0%;
+      animation: splashLoad 2.2s ease forwards 0.5s;
+    }
+
+    @keyframes splashLoad {
+      0%   { width: 0%; }
+      30%  { width: 35%; }
+      60%  { width: 65%; }
+      85%  { width: 88%; }
+      100% { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="splash-screen" id="splashScreen">
+    <div class="splash-content">
+      <div class="splash-logo-container">
+        <span class="material-icons-round splash-logo-icon">menu_book</span>
+      </div>
+      <div>
+        <div class="splash-title">StudyGen AI</div>
+        <div class="splash-tagline">Scan &bull; Learn &bull; Revise &bull; Succeed</div>
+      </div>
+    </div>
+
+    <div class="splash-bottom">
+      <div class="splash-status" id="splashStatus">Initializing...</div>
+      <div class="splash-progress-track">
+        <div class="splash-progress-bar" id="splashProgress"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    // Splash logic — check if user is already logged in, redirect appropriately
+    const statuses = ['Initializing...', 'Loading resources...', 'Almost ready...'];
+    let si = 0;
+    const statusEl = document.getElementById('splashStatus');
+
+    const statusInterval = setInterval(() => {
+      si++;
+      if (si < statuses.length) statusEl.textContent = statuses[si];
+    }, 700);
+
+    setTimeout(() => {
+      clearInterval(statusInterval);
+      statusEl.textContent = 'Ready!';
+      // Check mock auth → redirect
+      const isLoggedIn = StudyGenApp.auth.isLoggedIn();
+      document.getElementById('splashScreen').style.opacity = '0';
+      document.getElementById('splashScreen').style.transition = 'opacity 0.4s ease';
+      setTimeout(() => {
+        window.location.href = isLoggedIn ? 'pages/home.html' : 'pages/login.html';
+      }, 400);
+    }, 2600);
+  </script>
+</body>
+</html>

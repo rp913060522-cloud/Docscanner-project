@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>History — StudyGen AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="screen screen--with-nav screen--with-bar">
+    
+    <!-- Top App Bar -->
+    <header class="app-bar">
+      <button class="app-bar__back" onclick="location.href='home.html'" aria-label="Back">
+        <span class="material-icons-round">arrow_back_ios_new</span>
+      </button>
+      <span class="app-bar__center">History</span>
+      <div class="app-bar__actions">
+        <button class="app-bar__action-btn" id="filterModalBtn" aria-label="Filter">
+          <span class="material-icons-round">filter_list</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Scroll Content -->
+    <main class="page-scroll">
+      
+      <!-- Search Input Bar -->
+      <section class="mb-xl">
+        <div class="search-bar">
+          <span class="material-icons-round">search</span>
+          <input type="search" id="historySearch" placeholder="Search history..." aria-label="Search history" />
+          <button class="btn-icon" id="clearSearchBtn" style="width:28px;height:28px;" title="Clear search">
+            <span class="material-icons-round" style="font-size:18px;">close</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Category Filter Chips -->
+      <section class="mb-lg">
+        <div class="filter-row" id="historyFilterChips">
+          <span class="chip active" data-cat="all">All Items</span>
+          <span class="chip" data-cat="notes">Notes</span>
+          <span class="chip" data-cat="pdfs">PDFs</span>
+          <span class="chip" data-cat="guides">AI Study Guides</span>
+        </div>
+      </section>
+
+      <!-- Category 1: RECENT NOTES -->
+      <section class="mb-xl" id="secNotes">
+        <div class="text-label-sm text-secondary mb-sm" style="letter-spacing:1px;font-weight:700;">RECENT NOTES</div>
+        <div class="flex-col gap-sm" id="notesList">
+          <!-- Rendered by js/history.js -->
+        </div>
+      </section>
+
+      <!-- Category 2: RECENT PDFS -->
+      <section class="mb-xl" id="secPdfs">
+        <div class="text-label-sm text-secondary mb-sm" style="letter-spacing:1px;font-weight:700;">RECENT PDFS</div>
+        <div class="flex-col gap-sm" id="pdfsList">
+          <!-- Rendered by js/history.js -->
+        </div>
+      </section>
+
+      <!-- Category 3: AI STUDY GUIDES -->
+      <section class="mb-xl" id="secGuides">
+        <div class="text-label-sm text-secondary mb-sm" style="letter-spacing:1px;font-weight:700;">AI STUDY GUIDES</div>
+        <div class="flex-col gap-sm" id="guidesList">
+          <!-- Rendered by js/history.js -->
+        </div>
+      </section>
+
+      <!-- Empty State View (hidden unless search yields 0 items) -->
+      <section class="empty-state hidden" id="emptyHistoryState">
+        <div class="empty-state__icon">
+          <span class="material-icons-round">history</span>
+        </div>
+        <h4 class="empty-state__title">No history found</h4>
+        <p class="empty-state__subtitle">Scan a document or upload a PDF to generate notes.</p>
+        <a href="scanner.html" class="btn btn-primary btn-sm mt-md" style="text-decoration:none;width:auto;">
+          <span class="material-icons-round">photo_camera</span>
+          <span>Start Scanning</span>
+        </a>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script src="../js/history.js"></script>
+</body>
+</html>

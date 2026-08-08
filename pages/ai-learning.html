@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AI Learning Features — StudyGen AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <style>
+    .feature-card {
+      border-left: 4px solid var(--primary);
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .feature-card:hover { transform: translateX(4px); box-shadow: var(--shadow-md); }
+    .feature-card.purple { border-left-color: var(--secondary); }
+    .feature-card.green  { border-left-color: var(--success); }
+    .feature-card.orange { border-left-color: var(--warning); }
+    .feature-card.teal   { border-left-color: var(--info); }
+  </style>
+</head>
+<body>
+  <div class="screen screen--with-bar" style="padding-bottom:120px;">
+    
+    <!-- Top App Bar -->
+    <header class="app-bar">
+      <button class="app-bar__back" onclick="location.href='home.html'" aria-label="Back">
+        <span class="material-icons-round">arrow_back_ios_new</span>
+      </button>
+      <span class="app-bar__center">AI Learning Features</span>
+      <div class="app-bar__actions">
+        <div class="app-bar__avatar avatar-placeholder" id="avatarBtn" style="width:34px;height:34px;font-size:13px;">RS</div>
+      </div>
+    </header>
+
+    <!-- Main Scroll Content -->
+    <main class="page-scroll page-scroll--no-nav">
+      
+      <!-- Hero Header & Language Switcher -->
+      <section class="mb-lg">
+        <div class="flex-between items-center mb-xs">
+          <h2 class="text-headline-md" style="color:var(--text-primary);">AI Learning Tools</h2>
+          
+          <!-- Hindi/English Language Toggle -->
+          <div class="flex items-center gap-xs background-surface" style="background:var(--surface);padding:4px 10px;border-radius:var(--r-full);border:1px solid var(--border);">
+            <span class="text-label-sm" style="font-weight:700;">Eng</span>
+            <label class="toggle" style="width:36px;height:20px;">
+              <input type="checkbox" id="langToggle" />
+              <span class="toggle__track"></span>
+              <span class="toggle__thumb" style="width:14px;height:14px;top:3px;left:3px;"></span>
+            </label>
+            <span class="text-label-sm" style="font-weight:700;">हिं</span>
+          </div>
+        </div>
+        <p class="text-body-sm text-secondary">Supercharge your studies with intelligent AI tools.</p>
+      </section>
+
+      <!-- Interactive Feature Sub-Windows Container (Tabs for Quiz, Flashcards, AI Chat) -->
+      <section class="mb-xl">
+        <div class="flex gap-sm mb-lg scroll-x" id="featureTabRow">
+          <button class="chip active" data-tab="all">All Tools</button>
+          <button class="chip" data-tab="quiz">Quiz Game</button>
+          <button class="chip" data-tab="flashcards">Flash Cards</button>
+          <button class="chip" data-tab="chat">AI Chat</button>
+        </div>
+
+        <!-- ── TAB CONTENT: QUIZ GAME (Interactive) ────────────────────── -->
+        <div id="tabQuizContent" class="card p-xl mb-xl hidden">
+          <div class="flex-between mb-md">
+            <span class="badge badge-success">Quiz Mode</span>
+            <span class="text-label-sm text-secondary" id="quizScore">Question 1 of 5</span>
+          </div>
+          <h4 class="text-title-lg mb-lg" id="quizQuestion">What is the powerhouse of the cell?</h4>
+          <div class="flex-col gap-md mb-lg" id="quizOptions">
+            <!-- Rendered by js/ai-learning.js -->
+          </div>
+          <div class="flex-between">
+            <button class="btn btn-outlined btn-sm" id="prevQuizBtn" style="width:auto;">Previous</button>
+            <button class="btn btn-primary btn-sm" id="nextQuizBtn" style="width:auto;">Next Question</button>
+          </div>
+        </div>
+
+        <!-- ── TAB CONTENT: FLASHCARDS (3D Flip Interactive) ───────────── -->
+        <div id="tabFlashcardsContent" class="card p-xl mb-xl hidden">
+          <div class="flex-between mb-md">
+            <span class="badge badge-warning">Flash Cards</span>
+            <span class="text-label-sm text-secondary" id="cardCounter">Card 1 of 5</span>
+          </div>
+          
+          <!-- 3D Flip Card -->
+          <div class="flashcard mb-lg" id="flashcardElement">
+            <div class="flashcard__inner">
+              <div class="flashcard__front">
+                <span class="flashcard__hint">Tap card to reveal answer</span>
+                <div class="flashcard__text" id="cardFrontText">What is ATP?</div>
+              </div>
+              <div class="flashcard__back">
+                <span class="flashcard__hint" style="color:var(--primary);">Answer</span>
+                <div class="flashcard__text" id="cardBackText" style="color:var(--text-primary);">Adenosine Triphosphate — the energy currency of cells.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex-between">
+            <button class="btn btn-outlined btn-sm" id="prevCardBtn" style="width:auto;">Previous</button>
+            <button class="btn btn-primary btn-sm" id="nextCardBtn" style="width:auto;">Next Card</button>
+          </div>
+        </div>
+
+        <!-- ── TAB CONTENT: AI CHAT (Interactive Tutor) ────────────────── -->
+        <div id="tabChatContent" class="card p-lg mb-xl hidden">
+          <div class="flex-between pb-sm mb-md" style="border-bottom:1px solid var(--border);">
+            <div class="flex items-center gap-sm">
+              <div class="icon-container icon-container--sm ic-chat icon-container--circle">
+                <span class="material-icons-round">smart_toy</span>
+              </div>
+              <div>
+                <div class="text-title-md" style="color:var(--text-primary);">AI Tutor</div>
+                <div class="text-label-sm text-success">● Online 24/7</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex-col gap-md mb-md scroll-y" id="chatMessageList" style="max-height:240px;padding-right:4px;">
+            <!-- Rendered by js/ai-learning.js -->
+          </div>
+
+          <form id="chatForm" class="flex gap-sm">
+            <input type="text" id="chatInput" class="input-field" placeholder="Ask AI anything about your notes..." style="min-height:44px;" required />
+            <button type="submit" class="btn btn-primary btn-icon" style="width:44px;height:44px;min-height:44px;flex-shrink:0;">
+              <span class="material-icons-round">send</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- ── FEATURE LIST (7 items matching approved Stitch UI) ────────── -->
+        <div class="flex-col gap-md" id="featureListContainer">
+          
+          <div class="card p-lg list-item feature-card green" id="featQuizBtn">
+            <div class="icon-container ic-quiz icon-container--circle">
+              <span class="material-icons-round">quiz</span>
+            </div>
+            <div class="list-item__content">
+              <div class="list-item__title">Quiz Generator</div>
+              <div class="list-item__subtitle">Create custom quizzes instantly from your notes</div>
+            </div>
+            <span class="material-icons-round text-muted">chevron_right</span>
+          </div>
+
+          <div class="card p-lg list-item feature-card orange" id="featFlashBtn">
+            <div class="icon-container ic-flash icon-container--circle">
+              <span class="material-icons-round">style</span>
+            </div>
+            <div class="list-item__content">
+              <div class="list-item__title">Flash Cards</div>
+              <div class="list-item__subtitle">Smart spaced repetition cards for better memory</div>
+            </div>
+            <span class="material-icons-round text-muted">chevron_right</span>
+          </div>
+
+          <div class="card p-lg list-item feature-card teal" id="featChatBtn">
+            <div class="icon-container ic-chat icon-container--circle">
+              <span class="material-icons-round">forum</span>
+            </div>
+            <div class="list-item__content">
+              <div class="list-item__title">AI Chat</div>
+              <div class="list-item__subtitle">Interactive tutor available 24/7 for deeper understanding</div>
+            </div>
+            <span class="material-icons-round text-muted">chevron_right</span>
+          </div>
+
+          <div class="card p-lg list-item feature-card purple" id="featExplainBtn">
+            <div class="icon-container ic-pdf icon-container--circle">
+              <span class="material-icons-round">auto_awesome</span>
+            </div>
+            <div class="list-item__content">
+              <div class="list-item__title">Explain in Easy Language</div>
+              <div class="list-item__subtitle">Simplify complex topics into digestible 5-year-old concepts</div>
+            </div>
+            <span class="material-icons-round text-muted">chevron_right</span>
+          </div>
+
+          <div class="card p-lg list-item feature-card" id="featReadAloudBtn">
+            <div class="icon-container ic-notes icon-container--circle">
+              <span class="material-icons-round">volume_up</span>
+            </div>
+            <div class="list-item__content">
+              <div class="list-item__title">Read Aloud</div>
+              <div class="list-item__subtitle">Listen to your study materials audio while on the go</div>
+            </div>
+            <span class="material-icons-round text-muted">chevron_right</span>
+          </div>
+
+          <div class="card p-lg list-item feature-card purple" id="featAskBtn">
+            <div class="icon-container ic-secondary icon-container--circle">
+              <span class="material-icons-round">help_outline</span>
+            </div>
+            <div class="list-item__content">
+              <div class="list-item__title">Ask Questions</div>
+              <div class="list-item__subtitle">Snap a photo or type to get instant AI answers</div>
+            </div>
+            <span class="material-icons-round text-muted">chevron_right</span>
+          </div>
+
+          <div class="card p-lg list-item feature-card" id="featHomeworkBtn">
+            <div class="icon-container ic-notes icon-container--circle">
+              <span class="material-icons-round">school</span>
+            </div>
+            <div class="list-item__content">
+              <div class="list-item__title">Homework Help</div>
+              <div class="list-item__subtitle">Step-by-step guidance for tough assignments</div>
+            </div>
+            <span class="material-icons-round text-muted">chevron_right</span>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- Bottom Bar Sticky CTA -->
+      <div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--screen-max);padding:14px var(--screen-pad);background:var(--bg);border-top:1px solid var(--border);box-shadow:0 -4px 16px rgba(0,0,0,0.06);z-index:90;display:flex;align-items:center;gap:12px;">
+        <button class="btn btn-icon" id="bookmarkBtn" style="border:1px solid var(--border);" title="Bookmark Feature">
+          <span class="material-icons-round">bookmark_border</span>
+        </button>
+        <button class="btn btn-icon" id="shareFeatBtn" style="border:1px solid var(--border);" title="Share">
+          <span class="material-icons-round">share</span>
+        </button>
+        <a href="home.html" class="btn btn-primary flex-1" style="text-decoration:none;">
+          <span>Continue Learning</span>
+          <span class="material-icons-round">arrow_forward</span>
+        </a>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script src="../js/ai-learning.js"></script>
+</body>
+</html>

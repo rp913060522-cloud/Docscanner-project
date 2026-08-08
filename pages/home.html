@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Home — StudyGen AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="screen screen--with-nav screen--with-bar">
+    
+    <!-- Top App Bar -->
+    <header class="app-bar" id="appBar">
+      <div class="app-bar__logo">
+        <div class="app-bar__logo-icon">
+          <span class="material-icons-round" style="font-size:20px;color:white">menu_book</span>
+        </div>
+        <span class="app-bar__title">StudyGen AI</span>
+      </div>
+      <div class="app-bar__actions">
+        <button class="app-bar__action-btn" id="notifBtn" aria-label="Notifications">
+          <span class="material-icons-round">notifications_none</span>
+        </button>
+        <div class="app-bar__avatar avatar-placeholder" id="avatarBtn" role="button" aria-label="Profile">
+          RS
+        </div>
+      </div>
+    </header>
+
+    <!-- Scrollable Main Content -->
+    <main class="page-scroll">
+      
+      <!-- Greeting Banner Card -->
+      <section class="card-gradient p-xl mb-xl">
+        <div class="flex-between">
+          <div>
+            <h2 class="text-headline-sm text-white" id="greetingText">Good Morning, Ravi! 👋</h2>
+            <p class="text-body-sm text-white" style="opacity:0.85;margin-top:4px;">What would you like to study today?</p>
+          </div>
+          <div class="icon-container icon-container--lg" style="background:rgba(255,255,255,0.2);color:white;border-radius:18px;">
+            <span class="material-icons-round" style="font-size:32px;">auto_awesome</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Action Card: Scan Document -->
+      <section class="card card--elevated p-xl mb-xl flex-col items-center text-center gap-md" style="background:linear-gradient(180deg, var(--bg) 0%, var(--primary-light) 100%);border-color:rgba(59,123,248,0.2);">
+        <div class="icon-container icon-container--lg ic-primary icon-container--circle" style="width:64px;height:64px;box-shadow:0 8px 24px rgba(59,123,248,0.25);">
+          <span class="material-icons-round" style="font-size:32px;">document_scanner</span>
+        </div>
+        <div>
+          <h3 class="text-headline-sm" style="color:var(--text-primary);">Scan Document</h3>
+          <p class="text-body-sm text-secondary" style="margin-top:2px;">Scan your handwritten notes, textbooks or handouts</p>
+        </div>
+        <a href="scanner.html" class="btn btn-primary mt-xs" style="text-decoration:none;">
+          <span class="material-icons-round">photo_camera</span>
+          <span>Start Scanning</span>
+        </a>
+      </section>
+
+      <!-- Quick Access Grid Section -->
+      <section class="mb-xl">
+        <div class="section-header">
+          <h3 class="section-header__title">Quick Access</h3>
+        </div>
+        <div class="quick-grid">
+          
+          <a href="pdf-ai.html" class="quick-card">
+            <div class="quick-card__icon ic-pdf">
+              <span class="material-icons-round">picture_as_pdf</span>
+            </div>
+            <span class="quick-card__label">PDF AI</span>
+          </a>
+
+          <a href="ai-study.html" class="quick-card">
+            <div class="quick-card__icon ic-notes">
+              <span class="material-icons-round">description</span>
+            </div>
+            <span class="quick-card__label">AI Notes</span>
+          </a>
+
+          <a href="ai-learning.html" class="quick-card">
+            <div class="quick-card__icon ic-quiz">
+              <span class="material-icons-round">quiz</span>
+            </div>
+            <span class="quick-card__label">Quiz</span>
+          </a>
+
+          <a href="ai-learning.html" class="quick-card">
+            <div class="quick-card__icon ic-flash">
+              <span class="material-icons-round">style</span>
+            </div>
+            <span class="quick-card__label">Flash Cards</span>
+          </a>
+
+          <a href="ai-learning.html" class="quick-card">
+            <div class="quick-card__icon ic-chat">
+              <span class="material-icons-round">forum</span>
+            </div>
+            <span class="quick-card__label">AI Chat</span>
+          </a>
+
+          <a href="ai-learning.html" class="quick-card">
+            <div class="quick-card__icon" style="background:rgba(123,82,244,0.1);color:var(--secondary);">
+              <span class="material-icons-round">more_horiz</span>
+            </div>
+            <span class="quick-card__label">More</span>
+          </a>
+
+        </div>
+      </section>
+
+      <!-- Recent Activity Section -->
+      <section class="mb-xl">
+        <div class="section-header">
+          <h3 class="section-header__title">Recent Activity</h3>
+          <a href="history.html" class="section-header__link">See All</a>
+        </div>
+        <div class="flex-col gap-sm" id="recentActivityList">
+          <!-- Dynamically populated by JS or rendered below -->
+          <a href="ai-study.html" class="list-item">
+            <div class="icon-container ic-notes">
+              <span class="material-icons-round">description</span>
+            </div>
+            <div class="list-item__content">
+              <div class="list-item__title">Biology Ch.4 Summary</div>
+              <div class="list-item__subtitle">Today, 2:16 PM</div>
+            </div>
+            <span class="material-icons-round list-item__trailing">chevron_right</span>
+          </a>
+
+          <a href="ai-learning.html" class="list-item">
+            <div class="icon-container ic-flash">
+              <span class="material-icons-round">style</span>
+            </div>
+            <div class="list-item__content">
+              <div class="list-item__title">European History Flashcards</div>
+              <div class="list-item__subtitle">Yesterday, 10:30 AM</div>
+            </div>
+            <span class="material-icons-round list-item__trailing">chevron_right</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- Premium Upgrade Banner -->
+      <section class="card-premium p-lg flex-between items-center" id="premiumBanner">
+        <div class="flex items-center gap-md">
+          <div class="icon-container ic-secondary icon-container--circle" style="background:var(--secondary);color:white;">
+            <span class="material-icons-round">star</span>
+          </div>
+          <div>
+            <div class="text-title-md" style="color:var(--text-primary);">Upgrade to Premium</div>
+            <div class="text-body-sm text-secondary">Unlimited AI scans, quizzes & notes</div>
+          </div>
+        </div>
+        <a href="premium.html" class="btn btn-outlined-secondary btn-sm" style="text-decoration:none;white-space:nowrap;margin-left:8px;">
+          Upgrade
+        </a>
+      </section>
+
+    </main>
+
+  </div>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      StudyGenNav.init({ activePage: 'home', requireAuth: false });
+
+      // Dynamic greeting based on time of day
+      const hour = new Date().getHours();
+      let timeGreeting = 'Good Morning';
+      if (hour >= 12 && hour < 17) timeGreeting = 'Good Afternoon';
+      else if (hour >= 17) timeGreeting = 'Good Evening';
+
+      const user = StudyGenApp.auth.getUser() || StudyGenApp.MOCK.user;
+      const firstName = user.name ? user.name.split(' ')[0] : 'Student';
+
+      const greetingEl = document.getElementById('greetingText');
+      if (greetingEl) greetingEl.textContent = `${timeGreeting}, ${firstName}! 👋`;
+
+      const avatarEl = document.getElementById('avatarBtn');
+      if (avatarEl) avatarEl.textContent = user.initials || 'RS';
+    });
+  </script>
+</body>
+</html>

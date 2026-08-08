@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Sign Up — StudyGen AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="screen flex-center" style="min-height:100vh;padding:var(--screen-pad);background:var(--bg);">
+    <div style="width:100%;max-width:380px;padding:var(--sp-xl) 0;">
+      
+      <!-- Top Logo & Header -->
+      <div style="text-align:center;margin-bottom:var(--sp-2xl);">
+        <div style="width:72px;height:72px;border-radius:18px;background:white;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 12px 32px rgba(59,123,248,0.18);margin-bottom:var(--sp-lg);">
+          <span class="material-icons-round gradient-text" style="font-size:40px;">menu_book</span>
+        </div>
+        <h1 class="text-headline-lg" style="color:var(--text-primary);margin-bottom:6px;">Create Account</h1>
+        <p class="text-body-sm text-secondary">Join StudyGen AI and start learning smarter.</p>
+      </div>
+
+      <!-- Sign Up Form -->
+      <form id="signupForm" class="flex-col gap-lg" novalidate>
+        
+        <!-- Full Name Input -->
+        <div class="form-group">
+          <div class="input-wrapper">
+            <span class="material-icons-round input-icon input-icon--left">person</span>
+            <input type="text" id="fullname" class="input-field input-field--icon-left" placeholder="Full name" autocomplete="name" required />
+          </div>
+          <div class="form-error hidden" id="nameError">
+            <span class="material-icons-round">error_outline</span>
+            <span>Please enter your full name.</span>
+          </div>
+        </div>
+
+        <!-- Email Input -->
+        <div class="form-group">
+          <div class="input-wrapper">
+            <span class="material-icons-round input-icon input-icon--left">email</span>
+            <input type="email" id="email" class="input-field input-field--icon-left" placeholder="Email address" autocomplete="email" required />
+          </div>
+          <div class="form-error hidden" id="emailError">
+            <span class="material-icons-round">error_outline</span>
+            <span>Please enter a valid email address.</span>
+          </div>
+        </div>
+
+        <!-- Password Input -->
+        <div class="form-group">
+          <div class="input-wrapper">
+            <span class="material-icons-round input-icon input-icon--left">lock</span>
+            <input type="password" id="password" class="input-field input-field--icon-left input-field--icon-right" placeholder="Password (min 6 chars)" autocomplete="new-password" required />
+            <button type="button" class="input-icon input-icon--right" id="togglePassword" aria-label="Toggle password visibility">
+              <span class="material-icons-round" id="togglePasswordIcon">visibility_off</span>
+            </button>
+          </div>
+          <div class="form-error hidden" id="passwordError">
+            <span class="material-icons-round">error_outline</span>
+            <span>Password must be at least 6 characters.</span>
+          </div>
+        </div>
+
+        <!-- Form Level Error -->
+        <div class="form-error hidden" id="formError" style="justify-content:center;font-size:13px;padding:8px;background:rgba(255,59,48,0.08);border-radius:var(--r-sm);">
+          <span class="material-icons-round">error_outline</span>
+          <span id="formErrorMsg">Could not create account.</span>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary mt-sm" id="submitBtn">
+          <span class="btn-text-content">Create Account</span>
+        </button>
+
+      </form>
+
+      <!-- Bottom Log In Link -->
+      <div style="text-align:center;margin-top:var(--sp-2xl);" class="text-body-sm text-secondary">
+        Already have an account? <a href="login.html" class="text-primary" style="font-weight:600;">Log In</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../js/app.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script src="../js/auth.js"></script>
+</body>
+</html>
