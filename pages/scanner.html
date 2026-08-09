@@ -201,17 +201,20 @@
     </header>
 
     <!-- Camera Preview Viewport -->
-    <main class="camera-feed">
+    <main class="camera-feed" id="cameraFeedContainer">
+      
+      <!-- Real Mobile HTML5 Camera Video Stream -->
+      <video id="cameraVideo" autoplay playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;display:none;"></video>
       
       <!-- Edge Detection Frame -->
-      <div class="doc-frame detected" id="docFrame">
+      <div class="doc-frame detected" id="docFrame" style="z-index:10;">
         <div class="doc-corner doc-corner-tl"></div>
         <div class="doc-corner doc-corner-tr"></div>
         <div class="doc-corner doc-corner-bl"></div>
         <div class="doc-corner doc-corner-br"></div>
 
-        <!-- Simulated Document Content -->
-        <div class="doc-preview-sim">
+        <!-- Simulated Document Content (Shown when live camera feed is idle) -->
+        <div class="doc-preview-sim" id="docSimOverlay">
           <div class="doc-sim-title"></div>
           <div class="doc-sim-line" style="width:90%"></div>
           <div class="doc-sim-line" style="width:85%"></div>
@@ -222,13 +225,13 @@
       </div>
 
       <!-- Hint Text Below Frame -->
-      <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;font-size:13px;color:rgba(255,255,255,0.8);font-weight:500;">
+      <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;font-size:13px;color:rgba(255,255,255,0.8);font-weight:500;z-index:15;">
         <span class="material-icons-round" style="font-size:16px;vertical-align:middle;margin-right:4px;color:var(--primary);">crop_free</span>
         Align document within frame
       </div>
 
       <!-- Floating Right Toolbar -->
-      <div class="floating-tools">
+      <div class="floating-tools" style="z-index:20;">
         <button class="tool-btn" id="galleryBtn" title="Import from Gallery">
           <span class="material-icons-round">collections</span>
         </button>
@@ -241,6 +244,10 @@
       </div>
 
     </main>
+
+    <!-- Hidden Native Mobile Inputs for Camera Capture & Gallery Selection -->
+    <input type="file" id="galleryInput" accept="image/*,application/pdf,.pdf,.jpg,.jpeg,.png" style="display:none;" />
+    <input type="file" id="cameraFileInput" accept="image/*" capture="environment" style="display:none;" />
 
     <!-- Mode Selector Row -->
     <div class="mode-selector">
