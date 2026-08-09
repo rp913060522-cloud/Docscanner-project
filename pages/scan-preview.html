@@ -45,22 +45,28 @@
     .filter-color { filter: saturate(1.4); }
     .filter-bw    { filter: grayscale(1) contrast(1.5); }
 
-    /* Crop Corner Handles */
-    .crop-handle {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: var(--primary);
-      border: 3px solid white;
+    /* Page Navigation Arrow Buttons */
+    .nav-arrow {
       position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      z-index: 20;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      cursor: grab;
-      z-index: 10;
     }
-    .crop-handle-tl { top: -10px; left: -10px; }
-    .crop-handle-tr { top: -10px; right: -10px; }
-    .crop-handle-bl { bottom: -10px; left: -10px; }
-    .crop-handle-br { bottom: -10px; right: -10px; }
+    .nav-arrow-left { left: 8px; }
+    .nav-arrow-right { right: 8px; }
+    .nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
 
     /* Page Badge Overlay */
     .page-badge-overlay {
@@ -112,25 +118,28 @@
       <div class="preview-container">
         <div class="page-badge-overlay" id="pageBadge">Page 1 of 1</div>
 
-        <!-- Real Captured Camera Photo or Selected Gallery Image -->
+        <!-- Carousel Left & Right Arrow Controls -->
+        <button class="nav-arrow nav-arrow-left" id="prevPageBtn" aria-label="Previous Page">
+          <span class="material-icons-round">chevron_left</span>
+        </button>
+        <button class="nav-arrow nav-arrow-right" id="nextPageBtn" aria-label="Next Page">
+          <span class="material-icons-round">chevron_right</span>
+        </button>
+
+        <!-- Real Captured Camera Photo Image -->
         <img id="realCapturedImage" class="filter-magic" alt="Captured Document Preview" style="max-width:90%;max-height:90%;object-fit:contain;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,0.5);display:none;position:relative;z-index:5;" />
 
         <!-- Fallback Simulated Document Content -->
         <div class="scanned-img-sim filter-magic" id="scannedImageSim">
-          <div class="crop-handle crop-handle-tl"></div>
-          <div class="crop-handle crop-handle-tr"></div>
-          <div class="crop-handle crop-handle-bl"></div>
-          <div class="crop-handle crop-handle-br"></div>
-
           <div style="font-size:14px;font-weight:700;color:#1e293b;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">
-            LECTURE 4: CELLULAR RESPIRATION
+            SCANNED DOCUMENT
           </div>
           <div style="height:6px;background:#94a3b8;border-radius:3px;width:95%"></div>
           <div style="height:6px;background:#cbd5e1;border-radius:3px;width:88%"></div>
           <div style="height:6px;background:#cbd5e1;border-radius:3px;width:92%"></div>
           <div style="display:flex;gap:8px;margin:8px 0;">
-            <div style="flex:1;height:50px;background:#e2e8f0;border-radius:4px;border:1px dashed #94a3b8;display:flex;align-items:center;justify-center;font-size:10px;color:#64748b;text-align:center;padding:4px;">Krebs Cycle Diagram</div>
-            <div style="flex:1;height:50px;background:#e2e8f0;border-radius:4px;border:1px dashed #94a3b8;display:flex;align-items:center;justify-center;font-size:10px;color:#64748b;text-align:center;padding:4px;">ATP Output Chart</div>
+            <div style="flex:1;height:50px;background:#e2e8f0;border-radius:4px;border:1px dashed #94a3b8;display:flex;align-items:center;justify-center;font-size:10px;color:#64748b;text-align:center;padding:4px;">Diagram View</div>
+            <div style="flex:1;height:50px;background:#e2e8f0;border-radius:4px;border:1px dashed #94a3b8;display:flex;align-items:center;justify-center;font-size:10px;color:#64748b;text-align:center;padding:4px;">Chart View</div>
           </div>
           <div style="height:6px;background:#cbd5e1;border-radius:3px;width:90%"></div>
           <div style="height:6px;background:#cbd5e1;border-radius:3px;width:75%"></div>
@@ -184,39 +193,76 @@
       StudyGenNav.initScrollBehavior();
 
       const pageBadge = document.getElementById('pageBadge');
-      const count = sessionStorage.getItem('sg_scan_count') || 1;
-      if (pageBadge) pageBadge.textContent = `Page 1 of ${count}`;
-
+      const prevPageBtn = document.getElementById('prevPageBtn');
+      const nextPageBtn = document.getElementById('nextPageBtn');
       const realCapturedImage = document.getElementById('realCapturedImage');
       const scannedImageSim   = document.getElementById('scannedImageSim');
+
+      let currentPageIndex = 0;
+      let pagesData = [];
       let currentBlob = null;
       let currentDocTitle = 'Scanned Document';
 
-      // Load captured image blob from local IndexedDB
+      // Load batch pages array or single document blob from IndexedDB
+      const batchStr = sessionStorage.getItem('sg_batch_pages');
+      if (batchStr) {
+        try {
+          pagesData = JSON.parse(batchStr);
+        } catch {}
+      }
+
       const activeDocId = sessionStorage.getItem('sg_active_doc_id');
       if (activeDocId && window.LocalPdfDB) {
         try {
           const docRecord = await window.LocalPdfDB.getDocument(activeDocId);
-          if (docRecord && docRecord.blob) {
-            currentBlob = docRecord.blob;
+          if (docRecord) {
             currentDocTitle = docRecord.documentTitle || 'Scanned Document';
-            const imageUrl = URL.createObjectURL(docRecord.blob);
-
-            if (realCapturedImage) {
-              realCapturedImage.src = imageUrl;
-              realCapturedImage.style.display = 'block';
-              if (scannedImageSim) scannedImageSim.style.display = 'none';
+            currentBlob = docRecord.blob;
+            if (pagesData.length === 0 && docRecord.blob) {
+              pagesData = [URL.createObjectURL(docRecord.blob)];
             }
           }
         } catch (err) {
-          console.warn('Could not retrieve active scan blob:', err.message);
+          console.warn('Could not load doc blob:', err.message);
         }
+      }
+
+      function updateCarouselPage() {
+        const total = Math.max(1, pagesData.length);
+        if (pageBadge) pageBadge.textContent = `Page ${currentPageIndex + 1} of ${total}`;
+
+        if (prevPageBtn) prevPageBtn.disabled = currentPageIndex <= 0;
+        if (nextPageBtn) nextPageBtn.disabled = currentPageIndex >= total - 1;
+
+        if (pagesData.length > 0 && realCapturedImage) {
+          realCapturedImage.src = pagesData[currentPageIndex];
+          realCapturedImage.style.display = 'block';
+          if (scannedImageSim) scannedImageSim.style.display = 'none';
+        }
+      }
+
+      updateCarouselPage();
+
+      if (prevPageBtn) {
+        prevPageBtn.addEventListener('click', () => {
+          if (currentPageIndex > 0) {
+            currentPageIndex--;
+            updateCarouselPage();
+          }
+        });
+      }
+
+      if (nextPageBtn) {
+        nextPageBtn.addEventListener('click', () => {
+          if (currentPageIndex < pagesData.length - 1) {
+            currentPageIndex++;
+            updateCarouselPage();
+          }
+        });
       }
 
       // Filter chips interaction
       const chips = document.querySelectorAll('[data-filter]');
-      const activeTargetEl = realCapturedImage && realCapturedImage.style.display !== 'none' ? realCapturedImage : scannedImageSim;
-
       chips.forEach(chip => {
         chip.addEventListener('click', () => {
           chips.forEach(c => c.classList.remove('active'));
@@ -260,16 +306,22 @@
       const continueAiBtn = document.getElementById('continueAiBtn');
       if (continueAiBtn) {
         continueAiBtn.addEventListener('click', async () => {
-          if (!currentBlob) {
+          if (!currentBlob && pagesData.length === 0) {
             window.location.href = 'ai-study.html';
             return;
           }
 
-          StudyGenApp.toast.show('Analyzing scanned document with Gemini AI... ✨', 6000);
+          StudyGenApp.toast.show(`Analyzing ${pagesData.length || 1} scanned ${pagesData.length === 1 ? 'page' : 'pages'} with Gemini AI... ✨`, 6000);
 
           try {
             const formData = new FormData();
-            formData.append('file', currentBlob, `${currentDocTitle}.jpg`);
+            if (currentBlob) {
+              formData.append('file', currentBlob, `${currentDocTitle}.jpg`);
+            } else if (pagesData.length > 0) {
+              const fetchRes = await fetch(pagesData[0]);
+              const blob = await fetchRes.blob();
+              formData.append('file', blob, `${currentDocTitle}.jpg`);
+            }
 
             const res = await window.ApiClient.uploadFile('/ai/study-notes', formData);
             if (res && res.success && res.data) {

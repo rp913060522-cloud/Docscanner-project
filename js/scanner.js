@@ -1,17 +1,18 @@
 'use strict';
 
 /**
- * StudyGen AI — Smart Document Scanner & Mobile Gallery Integration
- * Connects HTML5 mediaDevices camera stream, native mobile camera capture,
- * and mobile phone gallery image/PDF selection to IndexedDB.
+ * StudyGen AI — Smart Document Scanner & Multi-Page Batch Capture Logic
+ * Supports single page scanning and multi-page batch document scanning.
+ * Saves captured page Blobs to IndexedDB (`studygen_pdf_db`) and renders
+ * real-time thumbnail strip for all captured pages.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  let pageCount = 0;
   let currentMode = 'single';
   let isFlashOn = false;
   let mediaStream = null;
+  let capturedPageBlobs = [];
 
   const captureBtn       = document.getElementById('captureBtn');
   const shutterFlash     = document.getElementById('shutterFlash');
@@ -62,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (flashIcon) flashIcon.textContent = isFlashOn ? 'flash_on' : 'flash_off';
       flashToggle.style.color = isFlashOn ? 'var(--warning)' : 'white';
 
-      // Attempt web track flashlight if supported on mobile Chrome
       if (mediaStream) {
         const track = mediaStream.getVideoTracks()[0];
         if (track && track.getCapabilities && track.getCapabilities().torch) {
@@ -85,30 +85,43 @@ document.addEventListener('DOMContentLoaded', () => {
     pill.addEventListener('click', () => {
       modePills.forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
-      currentMode = pill.getAttribute('data-mode');
+      currentMode = pill.getAttribute('data-mode') || 'single';
       StudyGenApp.toast.show(`Mode: ${pill.textContent}`);
     });
   });
 
-  // Saves a File or Blob to local IndexedDB and routes to preview
-  async function processAndSaveDocument(blob, originalFilename = null, mimeType = 'image/jpeg') {
+  // Saves captured page Blobs to IndexedDB and routes to scan-preview.html
+  async function finalizeDocumentAndNavigate(originalFilename = null) {
+    if (capturedPageBlobs.length === 0) return;
+
     try {
       const localPdfId = window.LocalPdfDB.generateLocalPdfId();
       const dateStr = new Date().toLocaleDateString('en-IN').replace(/\//g, '-');
-      const title = originalFilename ? originalFilename.replace(/\.[^/.]+$/, "") : `Scan_${dateStr}_P${Math.max(1, pageCount)}`;
-      const filename = originalFilename || `${title}.jpg`;
+      const count = capturedPageBlobs.length;
+      const title = originalFilename ? originalFilename.replace(/\.[^/.]+$/, "") : `Scan_${dateStr}_${count}P`;
 
+      // Save primary Blob (first page or merged document) to IndexedDB
+      const primaryBlob = capturedPageBlobs[0];
       const savedDoc = await window.LocalPdfDB.saveDocument({
         localPdfId,
         documentTitle: title,
-        filename,
-        mimeType: mimeType || blob.type || 'image/jpeg',
-        blob,
+        filename: originalFilename || `${title}.jpg`,
+        mimeType: primaryBlob.type || 'image/jpeg',
+        blob: primaryBlob,
       });
 
+      // Store active session metadata
       sessionStorage.setItem('sg_active_doc_id', savedDoc.localPdfId);
       sessionStorage.setItem('sg_active_doc_title', savedDoc.documentTitle);
-      sessionStorage.setItem('sg_scan_count', pageCount || 1);
+      sessionStorage.setItem('sg_scan_count', count);
+
+      // Store data URLs for multi-page carousel preview in scan-preview.html
+      const dataUrls = await Promise.all(capturedPageBlobs.map(b => new Promise(res => {
+        const reader = new FileReader();
+        reader.onload = () => res(reader.result);
+        reader.readAsDataURL(b);
+      })));
+      sessionStorage.setItem('sg_batch_pages', JSON.stringify(dataUrls));
 
       stopCameraStream();
       window.location.href = 'scan-preview.html';
@@ -117,6 +130,31 @@ document.addEventListener('DOMContentLoaded', () => {
       stopCameraStream();
       window.location.href = 'scan-preview.html';
     }
+  }
+
+  // Adds a page Blob to the current document batch and updates thumbnail strip
+  function addCapturedPage(blob) {
+    if (!blob) return;
+    capturedPageBlobs.push(blob);
+
+    const count = capturedPageBlobs.length;
+    if (pageCounter) pageCounter.textContent = `${count} ${count === 1 ? 'Page' : 'Pages'}`;
+
+    if (thumbStrip) {
+      thumbStrip.classList.remove('hidden');
+      const thumb = document.createElement('div');
+      thumb.className = 'thumb-item flex-center';
+      thumb.style.overflow = 'hidden';
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(blob);
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+      thumb.appendChild(img);
+      thumbStrip.appendChild(thumb);
+    }
+
+    if (doneBtn) doneBtn.classList.remove('hidden');
   }
 
   // Captures a frame from active live video camera feed
@@ -140,30 +178,22 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => shutterFlash.style.opacity = '0', 150);
       }
 
-      pageCount++;
-      if (pageCounter) pageCounter.textContent = `${pageCount} ${pageCount === 1 ? 'Page' : 'Pages'}`;
-
-      if (thumbStrip) {
-        thumbStrip.classList.remove('hidden');
-        const thumb = document.createElement('div');
-        thumb.className = 'thumb-item flex-center';
-        thumb.innerHTML = `<span class="material-icons-round" style="font-size:16px;color:var(--primary)">article</span>`;
-        thumbStrip.appendChild(thumb);
-      }
-
-      if (doneBtn) doneBtn.classList.remove('hidden');
-
-      // If live video is active, capture video frame
+      // If live video stream is active
       if (cameraVideo && cameraVideo.srcObject && cameraVideo.videoWidth > 0) {
         const frameBlob = await captureVideoFrame();
-        if (frameBlob && currentMode === 'single') {
-          await processAndSaveDocument(frameBlob);
+        if (frameBlob) {
+          addCapturedPage(frameBlob);
+          if (currentMode === 'single') {
+            await finalizeDocumentAndNavigate();
+          } else {
+            StudyGenApp.toast.show(`Page ${capturedPageBlobs.length} captured! Tap shutter for next page or Continue when done.`);
+          }
           return;
         }
       }
 
-      // If live video stream is not active, trigger mobile native camera file input
-      if (cameraFileInput && currentMode === 'single') {
+      // If live video is inactive, fallback to native camera file input
+      if (cameraFileInput) {
         cameraFileInput.click();
       }
     });
@@ -174,8 +204,12 @@ document.addEventListener('DOMContentLoaded', () => {
     cameraFileInput.addEventListener('change', async (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
-      StudyGenApp.toast.show('Processing captured photo...');
-      await processAndSaveDocument(file, file.name, file.type);
+      addCapturedPage(file);
+      if (currentMode === 'single') {
+        await finalizeDocumentAndNavigate(file.name);
+      } else {
+        StudyGenApp.toast.show(`Page ${capturedPageBlobs.length} captured!`);
+      }
     });
   }
 
@@ -193,28 +227,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (galleryInput) {
     galleryInput.addEventListener('change', async (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      StudyGenApp.toast.show(`Importing ${file.name}...`);
-      await processAndSaveDocument(file, file.name, file.type);
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0) return;
+
+      StudyGenApp.toast.show(`Importing ${files.length} ${files.length === 1 ? 'file' : 'files'}...`);
+      for (const file of files) {
+        addCapturedPage(file);
+      }
+      await finalizeDocumentAndNavigate(files[0].name);
     });
   }
 
   if (doneBtn) {
     doneBtn.addEventListener('click', async () => {
-      pageCount = Math.max(1, pageCount);
-      if (cameraVideo && cameraVideo.srcObject && cameraVideo.videoWidth > 0) {
-        const frameBlob = await captureVideoFrame();
-        if (frameBlob) {
-          await processAndSaveDocument(frameBlob);
-          return;
-        }
-      }
-      if (galleryInput && galleryInput.files && galleryInput.files[0]) {
-        const file = galleryInput.files[0];
-        await processAndSaveDocument(file, file.name, file.type);
-      } else {
-        // Fallback demo canvas if no media captured
+      if (capturedPageBlobs.length === 0) {
+        // Fallback canvas if no pages captured
         const dummyCanvas = document.createElement('canvas');
         dummyCanvas.width = 600;
         dummyCanvas.height = 800;
@@ -223,10 +250,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillRect(0, 0, 600, 800);
         ctx.fillStyle = '#333333';
         ctx.font = '20px Inter, sans-serif';
-        ctx.fillText(`Scanned Document: Mobile Capture`, 50, 100);
+        ctx.fillText(`Scanned Document`, 50, 100);
         const blob = await new Promise(resolve => dummyCanvas.toBlob(resolve, 'image/jpeg', 0.9));
-        await processAndSaveDocument(blob);
+        addCapturedPage(blob);
       }
+      await finalizeDocumentAndNavigate();
     });
   }
 
