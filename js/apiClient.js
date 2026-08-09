@@ -13,9 +13,10 @@
  */
 
 const ApiClient = (() => {
-  // Dynamically resolve backend API origin using window.location.hostname in dev mode
-  const isDevPort = typeof window !== 'undefined' && window.location.port !== '5000';
-  const hostname = (typeof window !== 'undefined' && window.location.hostname) ? window.location.hostname : 'localhost';
+  // Dynamically resolve backend API origin: use localhost:5000 ONLY when on local dev servers
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0';
+  const isDevPort = typeof window !== 'undefined' && isLocalhost && window.location.port !== '5000';
   const BASE_URL = isDevPort ? `http://${hostname}:5000/api` : '/api';
 
   /**
