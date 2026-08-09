@@ -127,11 +127,12 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// ── Indexes ───────────────────────────────────────────────────────────────────
-
 // email is already indexed via unique:true in the field definition.
-// googleId needs a sparse index (allows multiple null values but unique non-null).
-userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
+// googleId uses a Partial Filter Index so uniqueness is ONLY enforced when googleId is a string.
+userSchema.index(
+  { googleId: 1 },
+  { unique: true, partialFilterExpression: { googleId: { $type: 'string' } } }
+);
 
 // ── Pre-save Hook: Password Hashing ──────────────────────────────────────────
 

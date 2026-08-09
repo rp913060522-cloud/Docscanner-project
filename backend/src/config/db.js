@@ -9,25 +9,47 @@
  */
 
 const mongoose = require('mongoose');
+const dns = require('dns');
 const config = require('./env');
+
+// Set IPv4 first and add fallback public DNS (Google/Cloudflare) for mongodb+srv:// SRV resolution
+try {
+  if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+  }
+} catch (e) {}
 
 /**
  * Connects to MongoDB Atlas using the URI from environment config.
- * Exits the process on fatal connection failure so the server does
- * not boot in a broken state.
  */
 async function connectDB() {
   try {
     const conn = await mongoose.connect(config.mongoUri, {
-      serverSelectionTimeoutMS: 10000, // Fail fast if Atlas is unreachable (10 s)
-      socketTimeoutMS: 45000,          // Close socket after 45 s of inactivity
-      maxPoolSize: 10,                 // Atlas Free Tier connection pool cap
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
     });
 
     console.log(`✔  MongoDB Atlas connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error('✗  MongoDB connection error:', error.message);
-    // Exit immediately — the application cannot function without a database
+    // If SRV lookup failed on local DNS, try setting fallback public DNS servers (8.8.8.8, 1.1.1.1)
+    if (error.message && error.message.includes('querySrv')) {
+      console.warn('⚠  Local DNS SRV query failed. Retrying with Google/Cloudflare public DNS...');
+      try {
+        dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+        const conn = await mongoose.connect(config.mongoUri, {
+          serverSelectionTimeoutMS: 10000,
+          socketTimeoutMS: 45000,
+          maxPoolSize: 10,
+        });
+        console.log(`✔  MongoDB Atlas connected via fallback DNS: ${conn.connection.host}`);
+        return;
+      } catch (retryErr) {
+        console.error('✗  MongoDB connection error after DNS fallback:', retryErr.message);
+      }
+    } else {
+      console.error('✗  MongoDB connection error:', error.message);
+    }
     process.exit(1);
   }
 }

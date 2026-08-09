@@ -13,12 +13,8 @@
  */
 
 const ApiClient = (() => {
-  // Dynamically resolve backend API origin if running on Live Server / file protocol
-  const isDevPort = typeof window !== 'undefined' && (
-    window.location.port === '5500' ||
-    window.location.port === '5501' ||
-    window.location.protocol === 'file:'
-  );
+  // Dynamically resolve backend API origin if running on any port other than 5000
+  const isDevPort = typeof window !== 'undefined' && window.location.port !== '5000';
   const BASE_URL = isDevPort ? 'http://localhost:5000/api' : '/api';
 
   /**

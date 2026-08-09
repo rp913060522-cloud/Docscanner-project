@@ -87,7 +87,10 @@ async function register(req, res, next) {
   } catch (err) {
     // Mongoose duplicate key error (race condition)
     if (err.code === 11000) {
-      return next(new AppError('An account with this email already exists.', 409, 'EMAIL_EXISTS'));
+      if (err.keyPattern && err.keyPattern.email) {
+        return next(new AppError('An account with this email already exists.', 409, 'EMAIL_EXISTS'));
+      }
+      return next(new AppError('Account creation failed due to duplicate entry.', 409, 'DUPLICATE_ENTRY'));
     }
     next(err);
   }
