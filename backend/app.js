@@ -12,6 +12,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 const config = require('./src/config/env');
 
 // ── Route imports ─────────────────────────────────────────────────────────────
@@ -48,7 +49,7 @@ app.use(
       if (!origin || allowedOrigins.has(origin) || config.nodeEnv === 'test') {
         callback(null, true);
       } else if (config.isProduction) {
-        callback(new Error('CORS request rejected from untrusted origin.'));
+        callback(null, true); // Allow all web clients in production
       } else {
         callback(null, true);
       }
@@ -81,32 +82,22 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
-// ── 4. Production Security Headers ────────────────────────────────────────────
+// ── 4. Production Security Headers & Static File Server ────────────────────────
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'same-origin');
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://accounts.google.com;"
-  );
   if (config.isProduction) {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
   next();
 });
 
-// ── 5. Routes ─────────────────────────────────────────────────────────────────
-app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Welcome to StudyGen AI REST API Backend 🚀',
-    documentation: 'All API routes are served under /api/',
-    healthCheck: '/api/health',
-  });
-});
+// Serve frontend static web app UI (HTML, CSS, JS, Assets)
+app.use(express.static(path.join(__dirname, '../')));
 
+// ── 5. API Routes ─────────────────────────────────────────────────────────────
 app.use('/api/health',     healthRoutes);
 app.use('/api/auth',       authRoutes);
 app.use('/api/notes',      noteRoutes);
