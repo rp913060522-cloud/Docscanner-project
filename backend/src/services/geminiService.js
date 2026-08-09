@@ -1,0 +1,319 @@
+'use strict';
+
+/**
+ * StudyGen AI — Gemini AI Integration Service
+ *
+ * Handles backend interaction with Google Gemini API using @google/genai SDK.
+ * All API key credentials remain strictly on the backend.
+ * Never logs API keys or full sensitive document texts.
+ */
+
+const { GoogleGenAI } = require('@google/genai');
+const config = require('../config/env');
+const AppError = require('../utils/AppError');
+
+// Initialize GoogleGenAI client singleton
+let aiClient = null;
+
+function getAiClient() {
+  if (!aiClient) {
+    if (!config.geminiApiKey || config.geminiApiKey.includes('REPLACE_WITH_REAL')) {
+      throw new AppError(
+        'Gemini API key is not configured in backend/.env',
+        500,
+        'GEMINI_CONFIG_ERROR'
+      );
+    }
+    aiClient = new GoogleGenAI({ apiKey: config.geminiApiKey });
+  }
+  return aiClient;
+}
+
+/**
+ * Clean markdown code block fences and parse JSON string.
+ *
+ * @param {string} rawText
+ * @returns {Object|Array}
+ */
+function cleanAndParseJSON(rawText) {
+  if (!rawText || typeof rawText !== 'string') {
+    throw new AppError('AI returned an empty response.', 502, 'GEMINI_EMPTY_RESPONSE');
+  }
+
+  let cleaned = rawText.trim();
+
+  // Strip ```json ... ``` markdown fence
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
+  }
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (err) {
+    console.error('Failed to parse Gemini JSON output:', err.message);
+    throw new AppError(
+      'Failed to parse structured response from AI model.',
+      502,
+      'GEMINI_PARSE_ERROR'
+    );
+  }
+}
+
+/**
+ * Calls Gemini API safely with error translation.
+ *
+ * @param {Array<string|Object>} contents
+ * @returns {Promise<string>}
+ */
+async function callGemini(contents) {
+  const client = getAiClient();
+  const modelName = config.geminiModel || 'gemini-2.5-flash';
+
+  try {
+    const AI_TIMEOUT_MS = 45000;
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new AppError('AI request timed out. Please try again.', 504, 'GEMINI_TIMEOUT'));
+      }, AI_TIMEOUT_MS);
+    });
+
+    const apiPromise = client.models.generateContent({
+      model: modelName,
+      contents,
+    });
+
+    const response = await Promise.race([apiPromise, timeoutPromise]);
+
+    const text = response.text || '';
+    if (!text.trim()) {
+      throw new AppError('Gemini API returned an empty response.', 502, 'GEMINI_EMPTY_RESPONSE');
+    }
+    return text;
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+
+    const msg = err.message || '';
+    if (msg.includes('429') || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
+      throw new AppError(
+        'Gemini API quota/rate limit exceeded. Please try again later.',
+        429,
+        'GEMINI_RATE_LIMIT'
+      );
+    }
+
+    if (msg.includes('API_KEY_INVALID') || msg.includes('UNAUTHENTICATED')) {
+      throw new AppError('Invalid Gemini API key configuration.', 500, 'GEMINI_AUTH_ERROR');
+    }
+
+    console.error('Gemini API call error:', msg);
+    throw new AppError(
+      'Failed to process request with Gemini AI.',
+      502,
+      'GEMINI_API_ERROR'
+    );
+  }
+}
+
+/**
+ * Builds Gemini contents payload with text and optional image inlineData.
+ */
+function buildContents(promptText, textContext, imageContent) {
+  const parts = [];
+
+  let fullPrompt = promptText;
+  if (textContext) {
+    // Truncate context if extremely long (max 100k chars for safety)
+    const safeContext = textContext.slice(0, 100000);
+    fullPrompt += `\n\nDOCUMENT CONTEXT:\n${safeContext}`;
+  }
+
+  parts.push(fullPrompt);
+
+  if (imageContent && imageContent.buffer) {
+    parts.push({
+      inlineData: {
+        data: imageContent.buffer.toString('base64'),
+        mimeType: imageContent.mimeType,
+      },
+    });
+  }
+
+  return parts;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EXPORTED AI GENERATION METHODS
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function generateSummary(textContext, imageContent) {
+  const prompt = `You are an expert AI study assistant.
+Summarize the provided document accurately.
+Return ONLY valid JSON in the following exact format without extra commentary:
+{
+  "summary": "Clear, concise overview of the document contents...",
+  "keyPoints": [
+    "Key takeaway point 1",
+    "Key takeaway point 2",
+    "Key takeaway point 3"
+  ]
+}`;
+
+  const contents = buildContents(prompt, textContext, imageContent);
+  const rawResponse = await callGemini(contents);
+  const result = cleanAndParseJSON(rawResponse);
+
+  return {
+    summary: result.summary || 'Summary unavailable.',
+    keyPoints: Array.isArray(result.keyPoints) ? result.keyPoints : [],
+  };
+}
+
+async function generateStudyNotes(textContext, imageContent) {
+  const prompt = `You are an expert AI study assistant.
+Generate comprehensive study notes for the provided document.
+Return ONLY valid JSON in the following exact format without extra text:
+{
+  "shortNotes": "Quick revision notes bullet list or summary...",
+  "detailedNotes": "Detailed section-by-section study notes...",
+  "summary": "Core summary overview...",
+  "keyPoints": ["Point 1", "Point 2"],
+  "importantQuestions": [
+    { "question": "Question 1?", "answer": "Detailed answer 1" }
+  ],
+  "formulas": [
+    { "title": "Formula 1", "formula": "E = mc^2", "explanation": "Explanation..." }
+  ]
+}`;
+
+  const contents = buildContents(prompt, textContext, imageContent);
+  const rawResponse = await callGemini(contents);
+  const result = cleanAndParseJSON(rawResponse);
+
+  return {
+    shortNotes: result.shortNotes || '',
+    detailedNotes: result.detailedNotes || '',
+    summary: result.summary || '',
+    keyPoints: Array.isArray(result.keyPoints) ? result.keyPoints : [],
+    importantQuestions: Array.isArray(result.importantQuestions) ? result.importantQuestions : [],
+    formulas: Array.isArray(result.formulas) ? result.formulas : [],
+  };
+}
+
+async function generateQuiz(textContext, imageContent, numQuestions = 5) {
+  const count = Math.min(Math.max(parseInt(numQuestions, 10) || 5, 1), 20);
+  const prompt = `You are an expert AI quiz generator.
+Create ${count} multiple-choice quiz questions based on the provided document.
+Return ONLY valid JSON in the following exact format:
+{
+  "docTitle": "Suggested Quiz Title",
+  "questions": [
+    {
+      "question": "Question text?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctIndex": 0,
+      "explanation": "Explanation why Option A is correct..."
+    }
+  ]
+}`;
+
+  const contents = buildContents(prompt, textContext, imageContent);
+  const rawResponse = await callGemini(contents);
+  const result = cleanAndParseJSON(rawResponse);
+
+  const questions = (result.questions || []).map((q) => ({
+    question: q.question || 'Untitled Question',
+    options: Array.isArray(q.options) && q.options.length >= 2 ? q.options : ['True', 'False'],
+    correctIndex: typeof q.correctIndex === 'number' && q.correctIndex >= 0 ? q.correctIndex : 0,
+    explanation: q.explanation || '',
+  }));
+
+  return {
+    docTitle: result.docTitle || 'Document Quiz',
+    questions,
+  };
+}
+
+async function generateFlashcards(textContext, imageContent) {
+  const prompt = `You are an expert AI study assistant.
+Generate flashcards (front question/term and back answer/definition) from the provided document.
+Return ONLY valid JSON in the following exact format:
+{
+  "docTitle": "Flashcard Deck Title",
+  "cards": [
+    {
+      "front": "Term or Question 1",
+      "back": "Definition or Answer 1"
+    }
+  ]
+}`;
+
+  const contents = buildContents(prompt, textContext, imageContent);
+  const rawResponse = await callGemini(contents);
+  const result = cleanAndParseJSON(rawResponse);
+
+  const cards = (result.cards || []).map((c) => ({
+    front: c.front || 'Term',
+    back: c.back || 'Definition',
+  }));
+
+  return {
+    docTitle: result.docTitle || 'Flashcards',
+    cards,
+  };
+}
+
+async function generateExplanation(topicText, targetAge = '15') {
+  const prompt = `You are an expert AI tutor.
+Explain the following concept or topic so that a ${targetAge}-year-old student can easily understand it.
+Use clear analogies and simple terms.
+Topic: "${topicText}"
+
+Return ONLY valid JSON:
+{
+  "simplifiedExplanation": "Clear, engaging explanation..."
+}`;
+
+  const contents = [prompt];
+  const rawResponse = await callGemini(contents);
+  const result = cleanAndParseJSON(rawResponse);
+
+  return {
+    simplifiedExplanation: result.simplifiedExplanation || rawResponse,
+  };
+}
+
+async function generateChatResponse(userQuery, chatHistory = [], textContext = null, imageContent = null) {
+  let prompt = `You are StudyGen AI, a helpful and intelligent study assistant.
+Answer the student's question accurately based on the document context and previous conversation.`;
+
+  if (!textContext && !imageContent) {
+    prompt += `\nNOTE: The original document file is currently NOT attached or available on the server. Answer using prior context or general knowledge. If the user asks a specific question requiring document evidence that is not in context, politely inform them to re-select or re-upload the document locally.`;
+  }
+
+  if (chatHistory && chatHistory.length > 0) {
+    prompt += `\n\nRECENT CHAT HISTORY:\n`;
+    chatHistory.slice(-6).forEach((msg) => {
+      prompt += `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.text}\n`;
+    });
+  }
+
+  prompt += `\n\nUSER QUESTION: "${userQuery}"`;
+
+  const contents = buildContents(prompt, textContext, imageContent);
+  const answerText = await callGemini(contents);
+
+  return {
+    answer: answerText.trim(),
+    docContextAvailable: Boolean(textContext || imageContent),
+  };
+}
+
+module.exports = {
+  generateSummary,
+  generateStudyNotes,
+  generateQuiz,
+  generateFlashcards,
+  generateExplanation,
+  generateChatResponse,
+  cleanAndParseJSON,
+};

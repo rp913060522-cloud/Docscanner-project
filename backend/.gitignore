@@ -1,0 +1,18 @@
+# ── Secrets — NEVER commit this file ─────────────────────────────────────────
+.env
+
+# ── Temporary upload directory — ephemeral files, not for version control ─────
+temp_uploads/
+
+# ── Node dependencies ─────────────────────────────────────────────────────────
+node_modules/
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── OS & Editor files ─────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

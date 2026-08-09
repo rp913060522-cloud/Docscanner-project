@@ -1,9 +1,10 @@
+'use strict';
+
 /**
  * StudyGen AI — Smart Document Scanner Logic
- * Camera simulation, edge detection state, shutter flash, multi-page capture
+ * Simulates camera page captures, creates a local IndexedDB document record,
+ * and passes the scanned document to preview/study screens.
  */
-
-'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -21,24 +22,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeBtn     = document.getElementById('closeBtn');
   const galleryBtn   = document.getElementById('galleryBtn');
 
-  // ── Flashlight Toggle ───────────────────────────────────────────────────────
   if (flashToggle) {
     flashToggle.addEventListener('click', () => {
       isFlashOn = !isFlashOn;
-      flashIcon.textContent = isFlashOn ? 'flash_on' : 'flash_off';
+      if (flashIcon) flashIcon.textContent = isFlashOn ? 'flash_on' : 'flash_off';
       flashToggle.style.color = isFlashOn ? 'var(--warning)' : 'white';
       StudyGenApp.toast.show(isFlashOn ? 'Flashlight ON 💡' : 'Flashlight OFF');
     });
   }
 
-  // ── Close Scanner ──────────────────────────────────────────────────────────
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
       window.location.href = 'home.html';
     });
   }
 
-  // ── Mode Switcher ──────────────────────────────────────────────────────────
   const modePills = document.querySelectorAll('.mode-pill');
   modePills.forEach(pill => {
     pill.addEventListener('click', () => {
@@ -49,55 +47,88 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ── Capture Action ─────────────────────────────────────────────────────────
+  async function processCapturedScan() {
+    try {
+      const localPdfId = window.LocalPdfDB.generateLocalPdfId();
+      const title = `Scan_${new Date().toLocaleDateString('en-IN').replace(/\//g, '-')}_${pageCount}P`;
+
+      // Create a lightweight image/canvas blob representing the scanned page
+      const dummyCanvas = document.createElement('canvas');
+      dummyCanvas.width = 600;
+      dummyCanvas.height = 800;
+      const ctx = dummyCanvas.getContext('2d');
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, 600, 800);
+      ctx.fillStyle = '#333333';
+      ctx.font = '20px Inter, sans-serif';
+      ctx.fillText(`Scanned Document: ${title}`, 50, 100);
+      ctx.fillText(`Pages Captured: ${pageCount}`, 50, 140);
+      ctx.fillText(`Date: ${new Date().toLocaleString()}`, 50, 180);
+
+      const blob = await new Promise(resolve => dummyCanvas.toBlob(resolve, 'image/jpeg', 0.9));
+
+      const savedDoc = await window.LocalPdfDB.saveDocument({
+        localPdfId,
+        documentTitle: title,
+        filename: `${title}.jpg`,
+        mimeType: 'image/jpeg',
+        blob,
+      });
+
+      sessionStorage.setItem('sg_active_doc_id', savedDoc.localPdfId);
+      sessionStorage.setItem('sg_active_doc_title', savedDoc.documentTitle);
+      sessionStorage.setItem('sg_scan_count', pageCount);
+
+      window.location.href = 'scan-preview.html';
+    } catch (err) {
+      console.error('Scan save error:', err);
+      window.location.href = 'scan-preview.html';
+    }
+  }
+
   if (captureBtn) {
     captureBtn.addEventListener('click', () => {
-      // Haptic feedback
       if (navigator.vibrate) navigator.vibrate(30);
 
-      // Shutter flash effect
-      shutterFlash.style.opacity = '1';
-      setTimeout(() => shutterFlash.style.opacity = '0', 150);
+      if (shutterFlash) {
+        shutterFlash.style.opacity = '1';
+        setTimeout(() => shutterFlash.style.opacity = '0', 150);
+      }
 
-      // Increment count
       pageCount++;
-      pageCounter.textContent = `${pageCount} ${pageCount === 1 ? 'Page' : 'Pages'}`;
+      if (pageCounter) pageCounter.textContent = `${pageCount} ${pageCount === 1 ? 'Page' : 'Pages'}`;
 
-      // Show thumb strip
-      thumbStrip.classList.remove('hidden');
-      const thumb = document.createElement('div');
-      thumb.className = 'thumb-item flex-center';
-      thumb.innerHTML = `<span class="material-icons-round" style="font-size:16px;color:var(--primary)">article</span>`;
-      thumbStrip.appendChild(thumb);
+      if (thumbStrip) {
+        thumbStrip.classList.remove('hidden');
+        const thumb = document.createElement('div');
+        thumb.className = 'thumb-item flex-center';
+        thumb.innerHTML = `<span class="material-icons-round" style="font-size:16px;color:var(--primary)">article</span>`;
+        thumbStrip.appendChild(thumb);
+      }
 
-      // Show Done / Continue button
       if (doneBtn) doneBtn.classList.remove('hidden');
 
-      // Auto-navigate if single mode
       if (currentMode === 'single') {
         setTimeout(() => {
-          sessionStorage.setItem('sg_scan_count', pageCount);
-          window.location.href = 'scan-preview.html';
+          processCapturedScan();
         }, 400);
       }
     });
   }
 
-  // ── Done / Continue Action ─────────────────────────────────────────────────
   if (doneBtn) {
     doneBtn.addEventListener('click', () => {
-      sessionStorage.setItem('sg_scan_count', Math.max(1, pageCount));
-      window.location.href = 'scan-preview.html';
+      pageCount = Math.max(1, pageCount);
+      processCapturedScan();
     });
   }
 
-  // ── Gallery Import Mock ────────────────────────────────────────────────────
   if (galleryBtn) {
     galleryBtn.addEventListener('click', () => {
       StudyGenApp.toast.show('Importing from Gallery...');
+      pageCount = 1;
       setTimeout(() => {
-        sessionStorage.setItem('sg_scan_count', 1);
-        window.location.href = 'scan-preview.html';
+        processCapturedScan();
       }, 600);
     });
   }

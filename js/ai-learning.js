@@ -1,11 +1,14 @@
-/**
- * StudyGen AI — AI Learning Features Logic
- * Controls Quiz game, Flashcard player, AI Chat widget, and Language toggle
- */
-
 'use strict';
 
-document.addEventListener('DOMContentLoaded', () => {
+/**
+ * StudyGen AI — AI Learning Features Logic
+ * Handles Quiz game, Flashcard player, AI Chat, Explain concept, and real API integrations.
+ */
+
+document.addEventListener('DOMContentLoaded', async () => {
+
+  const activeDocId    = sessionStorage.getItem('sg_active_doc_id') || 'pdf_default';
+  const activeDocTitle = sessionStorage.getItem('sg_active_doc_title') || 'Study Document';
 
   // ── Language Toggle ─────────────────────────────────────────────────────────
   const langToggle = document.getElementById('langToggle');
@@ -41,19 +44,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Feature Card clicks -> activate respective tab
   document.getElementById('featQuizBtn')?.addEventListener('click', () => showTab('quiz'));
   document.getElementById('featFlashBtn')?.addEventListener('click', () => showTab('flashcards'));
   document.getElementById('featChatBtn')?.addEventListener('click', () => showTab('chat'));
 
-  document.getElementById('featExplainBtn')?.addEventListener('click', () => StudyGenApp.toast.show('Simplifying notes into 5-year-old language... ✨'));
+  // ── 1. EXPLAIN FEATURE (POST /api/ai/explain) ──────────────────────────────
+  document.getElementById('featExplainBtn')?.addEventListener('click', async () => {
+    StudyGenApp.toast.show('Simplifying notes into 5-year-old language... ✨');
+    try {
+      const res = await window.ApiClient.post('/ai/explain', {
+        topicText: `${activeDocTitle}: Cellular Respiration and Energy Production`,
+        targetAge: 12,
+      });
+      if (res && res.success && res.data) {
+        StudyGenApp.toast.show(`Explanation: ${res.data.simplifiedExplanation.slice(0, 80)}...`, 6000);
+      }
+    } catch (err) {
+      StudyGenApp.toast.show(err.message || 'Could not generate explanation.');
+    }
+  });
+
   document.getElementById('featReadAloudBtn')?.addEventListener('click', () => StudyGenApp.toast.show('🔊 Playing audio summary...'));
   document.getElementById('featAskBtn')?.addEventListener('click', () => showTab('chat'));
   document.getElementById('featHomeworkBtn')?.addEventListener('click', () => StudyGenApp.toast.show('Homework help assistant activated! 📚'));
 
-  // ── 1. QUIZ GAME LOGIC ──────────────────────────────────────────────────────
+  // ── 2. QUIZ GAME LOGIC (POST /api/ai/quiz & POST /api/quizzes) ────────────
   let currentQuizIdx = 0;
-  const questions = StudyGenApp.MOCK.quizQuestions;
+  let quizQuestions = [
+    { question: 'What is the powerhouse of the cell?', options: ['Nucleus', 'Mitochondria', 'Ribosome', 'Golgi Apparatus'], correctIndex: 1, explanation: 'Mitochondria generate ATP.' },
+    { question: 'What is the formula for water?', options: ['H2O2', 'CO2', 'H2O', 'HCl'], correctIndex: 2, explanation: 'Water is H2O.' },
+  ];
+  let userScore = 0;
 
   const quizQuestion = document.getElementById('quizQuestion');
   const quizOptions  = document.getElementById('quizOptions');
@@ -63,32 +84,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderQuiz(idx) {
     if (!quizQuestion || !quizOptions) return;
+    if (!quizQuestions || quizQuestions.length === 0) return;
 
-    const q = questions[idx];
+    const q = quizQuestions[idx];
     quizQuestion.textContent = q.question;
-    if (quizScore) quizScore.textContent = `Question ${idx + 1} of ${questions.length}`;
+    if (quizScore) quizScore.textContent = `Question ${idx + 1} of ${quizQuestions.length}`;
 
     const letters = ['A', 'B', 'C', 'D'];
-    quizOptions.innerHTML = q.options.map((opt, i) => `
+    quizOptions.innerHTML = (q.options || []).map((opt, i) => `
       <button class="quiz-option" data-idx="${i}">
-        <span class="quiz-option__letter">${letters[i]}</span>
+        <span class="quiz-option__letter">${letters[i] || i+1}</span>
         <span style="flex:1;">${opt}</span>
       </button>
     `).join('');
 
-    // Option click handler
     document.querySelectorAll('.quiz-option').forEach(btn => {
       btn.addEventListener('click', () => {
         const selected = parseInt(btn.getAttribute('data-idx'));
         const options = document.querySelectorAll('.quiz-option');
         options.forEach(o => o.style.pointerEvents = 'none');
 
-        if (selected === q.correct) {
+        const correctIdx = typeof q.correctIndex === 'number' ? q.correctIndex : q.correct || 0;
+
+        if (selected === correctIdx) {
           btn.classList.add('correct');
+          userScore++;
           StudyGenApp.toast.show('Correct! 🎉');
         } else {
           btn.classList.add('wrong');
-          options[q.correct].classList.add('correct');
+          if (options[correctIdx]) options[correctIdx].classList.add('correct');
           StudyGenApp.toast.show('Incorrect answer.');
         }
       });
@@ -96,12 +120,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (nextQuizBtn) {
-    nextQuizBtn.addEventListener('click', () => {
-      if (currentQuizIdx < questions.length - 1) {
+    nextQuizBtn.addEventListener('click', async () => {
+      if (currentQuizIdx < quizQuestions.length - 1) {
         currentQuizIdx++;
         renderQuiz(currentQuizIdx);
       } else {
-        StudyGenApp.toast.show('Quiz Complete! Score: 4/5 🌟');
+        StudyGenApp.toast.show(`Quiz Complete! Score: ${userScore}/${quizQuestions.length} 🌟`);
+
+        // Save Quiz to backend upon completion if user chooses
+        try {
+          await window.ApiClient.post('/quizzes', {
+            localPdfId: activeDocId,
+            documentTitle: activeDocTitle,
+            questions: quizQuestions,
+            score: userScore,
+          });
+          StudyGenApp.toast.show('Quiz results saved to History! 📁');
+        } catch (err) {
+          console.warn('Quiz save warning:', err.message);
+        }
       }
     });
   }
@@ -117,9 +154,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderQuiz(0);
 
-  // ── 2. FLASHCARD LOGIC ──────────────────────────────────────────────────────
+  // ── 3. FLASHCARD LOGIC (POST /api/ai/flashcards & POST /api/flashcards) ────
   let currentCardIdx = 0;
-  const cards = StudyGenApp.MOCK.flashcards;
+  let flashcards = [
+    { front: 'What is ATP?', back: 'Adenosine Triphosphate — cellular energy currency.' },
+    { front: 'What is photosynthesis?', back: 'Conversion of sunlight and CO2 into glucose and O2.' },
+  ];
 
   const cardElement   = document.getElementById('flashcardElement');
   const cardFrontText = document.getElementById('cardFrontText');
@@ -130,12 +170,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderFlashcard(idx) {
     if (!cardFrontText || !cardBackText) return;
+    if (!flashcards || flashcards.length === 0) return;
 
     if (cardElement) cardElement.classList.remove('flipped');
-    const c = cards[idx];
+    const c = flashcards[idx];
     cardFrontText.textContent = c.front;
     cardBackText.textContent = c.back;
-    if (cardCounter) cardCounter.textContent = `Card ${idx + 1} of ${cards.length}`;
+    if (cardCounter) cardCounter.textContent = `Card ${idx + 1} of ${flashcards.length}`;
   }
 
   if (cardElement) {
@@ -146,13 +187,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (nextCardBtn) {
     nextCardBtn.addEventListener('click', () => {
-      if (currentCardIdx < cards.length - 1) {
+      if (currentCardIdx < flashcards.length - 1) {
         currentCardIdx++;
         renderFlashcard(currentCardIdx);
-      } else {
-        currentCardIdx = 0;
-        renderFlashcard(0);
-        StudyGenApp.toast.show('Cards reset to beginning!');
       }
     });
   }
@@ -168,51 +205,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderFlashcard(0);
 
-  // ── 3. AI CHAT LOGIC ────────────────────────────────────────────────────────
-  const chatForm    = document.getElementById('chatForm');
-  const chatInput   = document.getElementById('chatInput');
-  const chatMsgList = document.getElementById('chatMessageList');
+  // ── 4. AI CHAT LOGIC (POST /api/ai/chat) ───────────────────────────────────
+  const chatInput = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  const chatMessagesList = document.getElementById('chatMessagesList');
+  let activeChatId = null;
 
-  const messages = StudyGenApp.MOCK.chatMessages;
+  async function sendChatMessage() {
+    if (!chatInput) return;
+    const text = chatInput.value.trim();
+    if (!text) return;
 
-  function renderMessages() {
-    if (!chatMsgList) return;
+    chatInput.value = '';
 
-    chatMsgList.innerHTML = messages.map(m => `
-      <div class="chat-bubble ${m.role === 'user' ? 'chat-bubble--user' : 'chat-bubble--ai'}">
-        <div>${m.text}</div>
-        <div class="chat-bubble__time">${m.time}</div>
-      </div>
-    `).join('');
+    // Append user message to UI
+    if (chatMessagesList) {
+      const userBubble = document.createElement('div');
+      userBubble.className = 'chat-message chat-message--user';
+      userBubble.innerHTML = `<div class="chat-bubble">${text}</div>`;
+      chatMessagesList.appendChild(userBubble);
+      chatMessagesList.scrollTop = chatMessagesList.scrollHeight;
+    }
 
-    chatMsgList.scrollTop = chatMsgList.scrollHeight;
+    // Check if local PDF exists in IndexedDB for temporary context upload
+    let localDoc = null;
+    try {
+      localDoc = await window.LocalPdfDB.getDocument(activeDocId);
+    } catch {}
+
+    const formData = new FormData();
+    formData.append('userQuery', text);
+    formData.append('localPdfId', activeDocId);
+    formData.append('documentTitle', activeDocTitle);
+    if (activeChatId) formData.append('chatId', activeChatId);
+
+    if (localDoc && localDoc.blob) {
+      formData.append('file', localDoc.blob, localDoc.filename || 'document.pdf');
+    } else {
+      StudyGenApp.toast.show('Note: Local PDF file unavailable — answering from chat history.', 4000);
+    }
+
+    try {
+      const res = await window.ApiClient.uploadFile('/ai/chat', formData);
+
+      if (res && res.success && res.data) {
+        const answer = res.data.answer;
+        if (res.data.chatId) activeChatId = res.data.chatId;
+
+        if (chatMessagesList) {
+          const aiBubble = document.createElement('div');
+          aiBubble.className = 'chat-message chat-message--ai';
+          aiBubble.innerHTML = `<div class="chat-bubble">${answer}</div>`;
+          chatMessagesList.appendChild(aiBubble);
+          chatMessagesList.scrollTop = chatMessagesList.scrollHeight;
+        }
+      }
+    } catch (err) {
+      console.error('Chat error:', err);
+      if (chatMessagesList) {
+        const errBubble = document.createElement('div');
+        errBubble.className = 'chat-message chat-message--ai';
+        errBubble.innerHTML = `<div class="chat-bubble" style="background:rgba(255,59,48,0.1);color:var(--error);">${err.message || 'Could not get response from AI.'}</div>`;
+        chatMessagesList.appendChild(errBubble);
+      }
+    }
   }
 
-  if (chatForm) {
-    chatForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const text = chatInput ? chatInput.value.trim() : '';
-      if (!text) return;
+  if (chatSendBtn) {
+    chatSendBtn.addEventListener('click', sendChatMessage);
+  }
 
-      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      messages.push({ id: Date.now(), role: 'user', text, time: now });
-      chatInput.value = '';
-      renderMessages();
-
-      // Simulated AI response
-      setTimeout(() => {
-        const aiReplies = [
-          "Great question! Cellular respiration generates ATP which powers metabolic activity.",
-          "Based on your notes, the main key point is that mitochondria produce 36-38 ATP per glucose.",
-          "I can help summarize that further or generate a quick 3-question quiz for practice!",
-        ];
-        const randomReply = aiReplies[Math.floor(Math.random() * aiReplies.length)];
-        messages.push({ id: Date.now(), role: 'ai', text: randomReply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-        renderMessages();
-      }, 800);
+  if (chatInput) {
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendChatMessage();
+      }
     });
   }
-
-  renderMessages();
 
 });

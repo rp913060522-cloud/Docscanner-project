@@ -1,39 +1,90 @@
-/**
- * StudyGen AI — History Screen Logic
- * Category filtering, live search, item deletion, and bottom nav integration
- */
-
 'use strict';
 
-document.addEventListener('DOMContentLoaded', () => {
-  StudyGenNav.init({ activePage: 'history', requireAuth: false });
+/**
+ * StudyGen AI — History Screen Logic
+ * Connects real backend GET /api/history and DELETE /api/history/:id APIs.
+ * Checks local IndexedDB for PDF existence and displays `[Local File Deleted]` badge if removed locally,
+ * while keeping saved Notes, Quizzes, Flashcards, and Chat accessible from MongoDB.
+ */
 
-  let notes  = [...StudyGenApp.MOCK.recentNotes];
-  let pdfs   = [...StudyGenApp.MOCK.recentPDFs];
-  let guides = [...StudyGenApp.MOCK.aiStudyGuides];
+document.addEventListener('DOMContentLoaded', async () => {
 
-  const searchInput  = document.getElementById('historySearch');
-  const clearSearch  = document.getElementById('clearSearchBtn');
-  const notesList    = document.getElementById('notesList');
-  const pdfsList     = document.getElementById('pdfsList');
-  const guidesList   = document.getElementById('guidesList');
-  const emptyState   = document.getElementById('emptyHistoryState');
+  const searchInput = document.getElementById('historySearch');
+  const clearSearch = document.getElementById('clearSearchBtn');
+  const notesList   = document.getElementById('notesList');
+  const pdfsList    = document.getElementById('pdfsList');
+  const guidesList  = document.getElementById('guidesList');
+  const emptyState  = document.getElementById('emptyHistoryState');
 
   const secNotes  = document.getElementById('secNotes');
   const secPdfs   = document.getElementById('secPdfs');
   const secGuides = document.getElementById('secGuides');
 
   let activeCat = 'all';
+  let historyItems = [];
+  let localPdfPresenceMap = {};
 
-  function renderItem(item, iconClass, iconName, type) {
+  async function loadHistory() {
+    try {
+      const res = await window.ApiClient.get('/history');
+      if (res && res.success && res.data) {
+        historyItems = res.data.history || [];
+      }
+    } catch (err) {
+      console.error('Failed to load history:', err);
+      StudyGenApp.toast.show(err.message || 'Failed to load history from server.');
+      historyItems = [];
+    }
+
+    // Check IndexedDB for each item's localPdfId
+    localPdfPresenceMap = {};
+    for (const item of historyItems) {
+      if (item.localPdfId) {
+        const exists = await window.LocalPdfDB.documentExists(item.localPdfId);
+        localPdfPresenceMap[item.localPdfId] = exists;
+      }
+    }
+
+    renderAll();
+  }
+
+  function renderItem(item) {
+    const isPdfAvailable = localPdfPresenceMap[item.localPdfId] === true;
+    const dateFormatted = StudyGenApp.utils.relativeTime(item.lastAccessedAt || item.updatedAt);
+    const pdfBadgeHtml = !isPdfAvailable
+      ? `<span class="badge" style="background:rgba(255,59,48,0.12);color:var(--error);font-size:10px;margin-left:6px;">[Local File Deleted]</span>`
+      : '';
+
+    let type = 'pdf';
+    let iconName = 'picture_as_pdf';
+    let iconClass = 'ic-pdf';
+    let routeTarget = 'pdf-ai.html';
+
+    if (item.noteId) {
+      type = 'note';
+      iconName = 'description';
+      iconClass = 'ic-notes';
+      routeTarget = `ai-study.html?id=${item.noteId._id || item.noteId}`;
+    } else if (item.quizId) {
+      type = 'quiz';
+      iconName = 'quiz';
+      iconClass = 'ic-quiz';
+      routeTarget = 'ai-learning.html?tab=quiz';
+    } else if (item.chatId) {
+      type = 'chat';
+      iconName = 'forum';
+      iconClass = 'ic-notes';
+      routeTarget = 'ai-learning.html?tab=chat';
+    }
+
     return `
-      <div class="list-item" data-id="${item.id}" data-type="${type}" data-title="${item.title}">
+      <div class="list-item" data-id="${item._id}" data-localpdfid="${item.localPdfId}" data-type="${type}" data-title="${item.documentTitle}" data-route="${routeTarget}" data-pdfavailable="${isPdfAvailable}">
         <div class="icon-container ${iconClass}">
           <span class="material-icons-round">${iconName}</span>
         </div>
         <div class="list-item__content">
-          <div class="list-item__title">${item.title}</div>
-          <div class="list-item__subtitle">${item.date}</div>
+          <div class="list-item__title">${item.documentTitle} ${pdfBadgeHtml}</div>
+          <div class="list-item__subtitle">${dateFormatted}</div>
         </div>
         <button class="dot-menu-btn item-menu-btn" title="Options">
           <span class="material-icons-round">more_vert</span>
@@ -44,12 +95,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderAll() {
     const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    const filterFn = (item) => !query || (item.documentTitle || '').toLowerCase().includes(query);
 
-    const filterFn = (item) => !query || item.title.toLowerCase().includes(query);
+    const filtered = historyItems.filter(filterFn);
 
-    const filteredNotes  = notes.filter(filterFn);
-    const filteredPdfs   = pdfs.filter(filterFn);
-    const filteredGuides = guides.filter(filterFn);
+    const filteredNotes  = filtered.filter(i => i.noteId);
+    const filteredGuides = filtered.filter(i => i.quizId || i.chatId || i.flashcardId);
+    const filteredPdfs   = filtered.filter(i => !i.noteId && !i.quizId && !i.chatId);
 
     const showNotes  = (activeCat === 'all' || activeCat === 'notes') && filteredNotes.length > 0;
     const showPdfs   = (activeCat === 'all' || activeCat === 'pdfs') && filteredPdfs.length > 0;
@@ -59,9 +111,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (secPdfs) secPdfs.classList.toggle('hidden', !showPdfs);
     if (secGuides) secGuides.classList.toggle('hidden', !showGuides);
 
-    if (notesList)  notesList.innerHTML  = filteredNotes.map(n => renderItem(n, 'ic-notes', 'description', 'notes')).join('');
-    if (pdfsList)   pdfsList.innerHTML   = filteredPdfs.map(p => renderItem(p, 'ic-pdf', 'picture_as_pdf', 'pdfs')).join('');
-    if (guidesList) guidesList.innerHTML = filteredGuides.map(g => renderItem(g, 'ic-quiz', 'auto_awesome', 'guides')).join('');
+    if (notesList)  notesList.innerHTML  = filteredNotes.map(renderItem).join('');
+    if (pdfsList)   pdfsList.innerHTML   = filteredPdfs.map(renderItem).join('');
+    if (guidesList) guidesList.innerHTML = filteredGuides.map(renderItem).join('');
 
     const totalVisible = (showNotes ? filteredNotes.length : 0) + (showPdfs ? filteredPdfs.length : 0) + (showGuides ? filteredGuides.length : 0);
     if (emptyState) emptyState.classList.toggle('hidden', totalVisible > 0);
@@ -75,30 +127,42 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.closest('.item-menu-btn')) {
           e.stopPropagation();
           const title = el.getAttribute('data-title');
-          const id = parseInt(el.getAttribute('data-id'));
-          const type = el.getAttribute('data-type');
-          _openItemMenu(id, type, title);
+          const id = el.getAttribute('data-id');
+          _openItemMenu(id, title);
         } else {
-          window.location.href = 'ai-study.html';
+          const route = el.getAttribute('data-route');
+          const isPdfAvailable = el.getAttribute('data-pdfavailable') === 'true';
+          const localPdfId = el.getAttribute('data-localpdfid');
+
+          if (localPdfId) sessionStorage.setItem('sg_active_doc_id', localPdfId);
+
+          if (!isPdfAvailable && route === 'pdf-ai.html') {
+            StudyGenApp.toast.show('The original PDF file was deleted from this device. Saved notes & chats remain accessible.', 5000);
+            return;
+          }
+
+          window.location.href = route;
         }
       });
     });
   }
 
-  function _openItemMenu(id, type, title) {
+  function _openItemMenu(id, title) {
     StudyGenNav.confirm(
-      `Delete "${title}"?`,
-      () => {
-        if (type === 'notes') notes = notes.filter(n => n.id !== id);
-        if (type === 'pdfs') pdfs = pdfs.filter(p => p.id !== id);
-        if (type === 'guides') guides = guides.filter(g => g.id !== id);
-        renderAll();
-        StudyGenApp.toast.show('Item deleted from history.');
+      `Delete history entry for "${title}"?`,
+      async () => {
+        try {
+          await window.ApiClient.delete(`/history/${id}`);
+          historyItems = historyItems.filter(i => i._id !== id);
+          renderAll();
+          StudyGenApp.toast.show('History entry deleted.');
+        } catch (err) {
+          StudyGenApp.toast.show(err.message || 'Failed to delete history record.');
+        }
       }
     );
   }
 
-  // Category filter chips
   const chips = document.querySelectorAll('#historyFilterChips .chip');
   chips.forEach(chip => {
     chip.addEventListener('click', () => {
@@ -109,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Search input handler
   if (searchInput) {
     searchInput.addEventListener('input', () => renderAll());
   }
@@ -123,5 +186,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  renderAll();
+  await loadHistory();
 });

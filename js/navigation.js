@@ -189,7 +189,7 @@ const StudyGenNav = (() => {
   }
 
   // ── Initialize current page ────────────────────────────────────────────────
-  function init(options = {}) {
+  async function init(options = {}) {
     const {
       activePage,
       showNav = true,
@@ -198,9 +198,9 @@ const StudyGenNav = (() => {
     } = options;
 
     // Auth guard
-    if (requireAuth && !StudyGenApp.auth.isLoggedIn()) {
-      window.location.href = 'login.html';
-      return;
+    if (requireAuth) {
+      const isAuth = await StudyGenApp.auth.requireAuth();
+      if (!isAuth) return;
     }
 
     const runInit = () => {

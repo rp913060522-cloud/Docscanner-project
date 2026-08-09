@@ -171,9 +171,11 @@
     </div>
   </div>
 
+  <script src="js/apiClient.js"></script>
+  <script src="js/db.js"></script>
   <script src="js/app.js"></script>
   <script>
-    // Splash logic — check if user is already logged in, redirect appropriately
+    // Splash logic — check session via /api/auth/me -> redirect
     const statuses = ['Initializing...', 'Loading resources...', 'Almost ready...'];
     let si = 0;
     const statusEl = document.getElementById('splashStatus');
@@ -183,15 +185,15 @@
       if (si < statuses.length) statusEl.textContent = statuses[si];
     }, 700);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       clearInterval(statusInterval);
       statusEl.textContent = 'Ready!';
-      // Check mock auth → redirect
-      const isLoggedIn = StudyGenApp.auth.isLoggedIn();
+      // Check real backend session
+      const user = await StudyGenApp.auth.checkSession();
       document.getElementById('splashScreen').style.opacity = '0';
       document.getElementById('splashScreen').style.transition = 'opacity 0.4s ease';
       setTimeout(() => {
-        window.location.href = isLoggedIn ? 'pages/home.html' : 'pages/login.html';
+        window.location.href = user ? 'pages/home.html' : 'pages/login.html';
       }, 400);
     }, 2600);
   </script>
