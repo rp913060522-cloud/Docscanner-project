@@ -14,16 +14,11 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 // ── Required Variables ────────────────────────────────────────────────────────
-// These MUST be present in .env or the process will exit immediately.
+// Critical secrets MUST be present in process.env or the server exits.
 const REQUIRED_VARS = [
-  'PORT',
-  'NODE_ENV',
   'MONGO_URI',
   'JWT_SECRET',
-  'CLIENT_ORIGIN',
   'GEMINI_API_KEY',
-  'GEMINI_MODEL',
-  'GOOGLE_CLIENT_ID',
 ];
 
 function validateEnv() {
@@ -34,7 +29,7 @@ function validateEnv() {
     console.error('║   FATAL: Missing required environment variables   ║');
     console.error('╚══════════════════════════════════════════════════╝');
     missing.forEach((key) => console.error(`   ✗ ${key} is not set`));
-    console.error('\nCopy .env.example to .env and fill in all values.');
+    console.error('\nPlease set these Environment Variables in your server dashboard or .env file.');
     process.exit(1);
   }
 }
@@ -42,12 +37,10 @@ function validateEnv() {
 validateEnv();
 
 // ── Export Typed Config Object ────────────────────────────────────────────────
-// All code reads environment values through this object.
-// No raw process.env references scattered through the codebase.
 const config = {
   port: parseInt(process.env.PORT, 10) || 5000,
-  nodeEnv: process.env.NODE_ENV,
-  isProduction: process.env.NODE_ENV === 'production',
+  nodeEnv: process.env.NODE_ENV || 'production',
+  isProduction: (process.env.NODE_ENV || 'production') === 'production',
 
   // MongoDB
   mongoUri: process.env.MONGO_URI,
@@ -57,10 +50,10 @@ const config = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
 
   // Client (for CORS)
-  clientOrigin: process.env.CLIENT_ORIGIN,
+  clientOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:5500',
 
   // Google OAuth
-  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  googleClientId: process.env.GOOGLE_CLIENT_ID || 'not_configured',
 
   // Gemini AI
   geminiApiKey: process.env.GEMINI_API_KEY,
