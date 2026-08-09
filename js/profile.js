@@ -3,20 +3,25 @@
 /**
  * StudyGen AI — Profile Screen Logic
  * Connects authenticated user session, stats, and real API logout.
+ * Enforces session protection and populates dynamic user statistics from backend.
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-  const user = await StudyGenApp.auth.checkSession();
+  // Require authentication — redirects to login.html if unauthorized
+  const isAuth = await StudyGenApp.auth.requireAuth();
+  if (!isAuth) return;
 
-  // Set user info
+  const user = StudyGenApp.auth.getUser();
+
+  // Set user info dynamically
   const nameEl   = document.getElementById('userName');
   const emailEl  = document.getElementById('userEmail');
   const avatarEl = document.getElementById('profileAvatar');
   const badgeEl  = document.getElementById('userBadge');
 
   if (user) {
-    const initials = (user.name || 'User').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    const initials = (user.name || 'User').split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'US';
     if (nameEl) nameEl.textContent = user.name;
     if (emailEl) emailEl.textContent = user.email;
     if (avatarEl) avatarEl.textContent = initials;
@@ -27,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // Load user stats from backend history API if available
+  // Load user stats from backend history API for authenticated user
   try {
     const res = await window.ApiClient.get('/history');
     if (res && res.success && res.data) {
@@ -43,7 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (statQuizzes) statQuizzes.textContent = historyItems.filter(h => h.quizId).length;
     }
   } catch (err) {
-    console.warn('Profile history stats warning:', err.message);
+    console.warn('Profile history stats info:', err.message);
   }
 
   // Menu click handlers

@@ -86,7 +86,7 @@ function setTokenCookie(res, token) {
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
     secure: config.isProduction,       // HTTPS only in production
-    sameSite: 'Strict',
+    sameSite: config.isProduction ? 'Strict' : 'Lax',
     maxAge: parseExpiryToMs(config.jwtExpiresIn),
     path: '/',
   });
@@ -103,7 +103,7 @@ function clearTokenCookie(res) {
   res.cookie(COOKIE_NAME, '', {
     httpOnly: true,
     secure: config.isProduction,
-    sameSite: 'Strict',
+    sameSite: config.isProduction ? 'Strict' : 'Lax',
     maxAge: 0,      // Expire immediately
     expires: new Date(0),
     path: '/',

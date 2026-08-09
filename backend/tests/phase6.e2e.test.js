@@ -175,7 +175,7 @@ async function runE2eSuite() {
   // 5. Frontend-Backend Contract Verification
   test('E2E Frontend Client: apiClient.js resolves API Base URL dynamically', () => {
     const apiClientContent = fs.readFileSync(path.join(__dirname, '../../js/apiClient.js'), 'utf8');
-    assert(apiClientContent.includes("isDevPort ? 'http://localhost:5000/api' : '/api'"), 'apiClient.js must handle dev ports');
+    assert(apiClientContent.includes("isDevPort") && apiClientContent.includes(":5000/api"), 'apiClient.js must handle dev ports dynamically');
   });
 
   test('E2E Frontend Client: db.js implements IndexedDB store for local PDFs', () => {
