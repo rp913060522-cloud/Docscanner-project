@@ -23,6 +23,7 @@
       justify-content: center;
       box-shadow: var(--shadow-md);
       margin-bottom: var(--sp-lg);
+      padding: 12px;
     }
 
     .scanned-img-sim {
@@ -111,8 +112,11 @@
       <div class="preview-container">
         <div class="page-badge-overlay" id="pageBadge">Page 1 of 1</div>
 
-        <!-- Scanned Document View -->
-        <div class="scanned-img-sim filter-magic" id="scannedImage">
+        <!-- Real Captured Camera Photo or Selected Gallery Image -->
+        <img id="realCapturedImage" class="filter-magic" alt="Captured Document Preview" style="max-width:90%;max-height:90%;object-fit:contain;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,0.5);display:none;position:relative;z-index:5;" />
+
+        <!-- Fallback Simulated Document Content -->
+        <div class="scanned-img-sim filter-magic" id="scannedImageSim">
           <div class="crop-handle crop-handle-tl"></div>
           <div class="crop-handle crop-handle-tr"></div>
           <div class="crop-handle crop-handle-bl"></div>
@@ -162,10 +166,10 @@
           <span class="material-icons-round">note_add</span>
           <span>Add Page</span>
         </button>
-        <a href="ai-study.html" class="btn btn-primary flex-1" style="text-decoration:none;">
+        <button class="btn btn-primary flex-1" id="continueAiBtn">
           <span>Continue with AI</span>
           <span class="material-icons-round">auto_awesome</span>
-        </a>
+        </button>
       </div>
 
     </main>
@@ -176,17 +180,42 @@
   <script src="../js/app.js"></script>
   <script src="../js/navigation.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       StudyGenNav.initScrollBehavior();
 
-      // Read scan count from session
-      const count = sessionStorage.getItem('sg_scan_count') || 1;
       const pageBadge = document.getElementById('pageBadge');
+      const count = sessionStorage.getItem('sg_scan_count') || 1;
       if (pageBadge) pageBadge.textContent = `Page 1 of ${count}`;
 
+      const realCapturedImage = document.getElementById('realCapturedImage');
+      const scannedImageSim   = document.getElementById('scannedImageSim');
+      let currentBlob = null;
+      let currentDocTitle = 'Scanned Document';
+
+      // Load captured image blob from local IndexedDB
+      const activeDocId = sessionStorage.getItem('sg_active_doc_id');
+      if (activeDocId && window.LocalPdfDB) {
+        try {
+          const docRecord = await window.LocalPdfDB.getDocument(activeDocId);
+          if (docRecord && docRecord.blob) {
+            currentBlob = docRecord.blob;
+            currentDocTitle = docRecord.documentTitle || 'Scanned Document';
+            const imageUrl = URL.createObjectURL(docRecord.blob);
+
+            if (realCapturedImage) {
+              realCapturedImage.src = imageUrl;
+              realCapturedImage.style.display = 'block';
+              if (scannedImageSim) scannedImageSim.style.display = 'none';
+            }
+          }
+        } catch (err) {
+          console.warn('Could not retrieve active scan blob:', err.message);
+        }
+      }
+
       // Filter chips interaction
-      const imageEl = document.getElementById('scannedImage');
       const chips = document.querySelectorAll('[data-filter]');
+      const activeTargetEl = realCapturedImage && realCapturedImage.style.display !== 'none' ? realCapturedImage : scannedImageSim;
 
       chips.forEach(chip => {
         chip.addEventListener('click', () => {
@@ -194,10 +223,12 @@
           chip.classList.add('active');
 
           const filter = chip.getAttribute('data-filter');
-          imageEl.className = 'scanned-img-sim';
-          if (filter === 'magic') imageEl.classList.add('filter-magic');
-          else if (filter === 'color') imageEl.classList.add('filter-color');
-          else if (filter === 'bw') imageEl.classList.add('filter-bw');
+          const target = realCapturedImage.style.display !== 'none' ? realCapturedImage : scannedImageSim;
+          target.className = target === realCapturedImage ? 'filter-magic' : 'scanned-img-sim';
+
+          if (filter === 'magic') target.classList.add('filter-magic');
+          else if (filter === 'color') target.classList.add('filter-color');
+          else if (filter === 'bw') target.classList.add('filter-bw');
 
           StudyGenApp.toast.show(`Filter applied: ${chip.textContent}`);
         });
@@ -210,7 +241,8 @@
       function updateImageFilters() {
         const b = brightnessRange.value;
         const c = contrastRange.value;
-        imageEl.style.filter = `brightness(${b}%) contrast(${c}%)`;
+        const target = realCapturedImage.style.display !== 'none' ? realCapturedImage : scannedImageSim;
+        target.style.filter = `brightness(${b}%) contrast(${c}%)`;
       }
 
       if (brightnessRange) brightnessRange.addEventListener('input', updateImageFilters);
@@ -223,6 +255,41 @@
           window.location.href = 'scanner.html';
         });
       }
+
+      // Continue with AI processing button
+      const continueAiBtn = document.getElementById('continueAiBtn');
+      if (continueAiBtn) {
+        continueAiBtn.addEventListener('click', async () => {
+          if (!currentBlob) {
+            window.location.href = 'ai-study.html';
+            return;
+          }
+
+          StudyGenApp.toast.show('Analyzing scanned document with Gemini AI... ✨', 6000);
+
+          try {
+            const formData = new FormData();
+            formData.append('file', currentBlob, `${currentDocTitle}.jpg`);
+
+            const res = await window.ApiClient.uploadFile('/ai/study-notes', formData);
+            if (res && res.success && res.data) {
+              sessionStorage.setItem('sg_study_output', JSON.stringify({
+                localPdfId: activeDocId,
+                documentTitle: currentDocTitle,
+                ...res.data,
+              }));
+              StudyGenApp.toast.show('AI Study Notes generated! Opening... 🚀');
+              setTimeout(() => { window.location.href = 'ai-study.html'; }, 400);
+            } else {
+              window.location.href = 'ai-study.html';
+            }
+          } catch (err) {
+            console.error('AI Study notes generation error:', err);
+            window.location.href = 'ai-study.html';
+          }
+        });
+      }
+
     });
   </script>
 </body>
