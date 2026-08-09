@@ -98,6 +98,15 @@ app.use((req, res, next) => {
 });
 
 // ── 5. Routes ─────────────────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Welcome to StudyGen AI REST API Backend 🚀',
+    documentation: 'All API routes are served under /api/',
+    healthCheck: '/api/health',
+  });
+});
+
 app.use('/api/health',     healthRoutes);
 app.use('/api/auth',       authRoutes);
 app.use('/api/notes',      noteRoutes);
