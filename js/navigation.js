@@ -1,7 +1,7 @@
 /**
- * StudyGen AI — Navigation System
- * Handles: Bottom navigation, app bar scroll behavior, back navigation,
- *           active tab highlighting, page-to-page transitions.
+ * StudyGen AI — Navigation System & Real-Time Header Manager
+ * Handles: Real-time user greeting & avatar initialization, bottom navigation,
+ *           app bar scroll behavior, back navigation, active tab highlighting.
  */
 
 'use strict';
@@ -21,6 +21,64 @@ const StudyGenNav = (() => {
     const path = window.location.pathname;
     const file = path.split('/').pop().replace('.html', '');
     return file || 'home';
+  }
+
+  // Helper to compute initials from full name
+  function getInitials(name) {
+    if (!name) return 'SG';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
+
+  // ── Dynamic Real-Time Time Greeting & User Avatar Manager ────────────────
+  async function updateHeaderAndGreeting() {
+    let user = null;
+    try {
+      user = await StudyGenApp.auth.checkSession();
+    } catch (err) {
+      console.warn('Session check warning:', err.message);
+    }
+
+    // Real-time Greeting Calculation based on Local Clock
+    const hour = new Date().getHours();
+    let timeGreeting = 'Good Morning';
+    if (hour >= 12 && hour < 17) {
+      timeGreeting = 'Good Afternoon';
+    } else if (hour >= 17 && hour < 22) {
+      timeGreeting = 'Good Evening';
+    } else if (hour >= 22 || hour < 5) {
+      timeGreeting = 'Good Night';
+    }
+
+    // Determine display name & initials
+    let displayName = 'Student';
+    let userInitials = 'SG';
+
+    if (user && user.name) {
+      displayName = user.name.split(' ')[0];
+      userInitials = getInitials(user.name);
+    } else if (StudyGenApp.MOCK && StudyGenApp.MOCK.user && StudyGenApp.MOCK.user.name) {
+      displayName = StudyGenApp.MOCK.user.name.split(' ')[0];
+      userInitials = getInitials(StudyGenApp.MOCK.user.name);
+    }
+
+    // 1. Update Greeting Banner Text (#greetingText)
+    const greetingEl = document.getElementById('greetingText');
+    if (greetingEl) {
+      greetingEl.textContent = `${timeGreeting}, ${displayName}! 👋`;
+    }
+
+    // 2. Update Header Avatar Badge Elements (.app-bar__avatar, #avatarBtn)
+    document.querySelectorAll('.app-bar__avatar, #avatarBtn').forEach(el => {
+      if (user && user.avatarUrl) {
+        el.innerHTML = `<img src="${user.avatarUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
+      } else {
+        el.textContent = userInitials;
+      }
+    });
   }
 
   // ── Render Bottom Navigation HTML ─────────────────────────────────────────
@@ -70,41 +128,37 @@ const StudyGenNav = (() => {
         const href = item.getAttribute('href');
         if (!href) return;
 
-        // Haptic feedback on mobile
         if (navigator.vibrate) navigator.vibrate(10);
 
-        // Set active state immediately for visual feedback
         document.querySelectorAll('.bottom-nav__item').forEach(i => i.classList.remove('active'));
         item.classList.add('active');
 
-        // Navigate with slight delay for animation
         setTimeout(() => {
           window.location.href = href;
-        }, 100);
+        }, 150);
       });
     });
   }
 
-  // ── App Bar Scroll Behavior ───────────────────────────────────────────────
-  function initScrollBehavior(scrollTarget) {
-    const appBar = document.querySelector('.app-bar');
-    if (!appBar) return;
-
-    const el = scrollTarget || document.querySelector('.page-scroll') || window;
-
-    const onScroll = StudyGenApp.utils.debounce(() => {
-      const scrollY = el === window ? window.scrollY : el.scrollTop;
-      appBar.classList.toggle('scrolled', scrollY > 8);
-    }, 50);
-
-    el.addEventListener('scroll', onScroll, { passive: true });
+  // ── Render Header Helper for Sub-pages ─────────────────────────────────────
+  function renderBackAppBar(title = '', backHref = 'home.html') {
+    return `
+      <header class="app-bar app-bar--back">
+        <button class="app-bar__back" onclick="StudyGenNav.goBack('${backHref}')" aria-label="Back">
+          <span class="material-icons-round">arrow_back_ios_new</span>
+        </button>
+        <span class="app-bar__center">${title}</span>
+        <div class="app-bar__actions">
+          <div class="app-bar__avatar avatar-placeholder" id="avatarBtn" role="button" aria-label="Profile">SG</div>
+        </div>
+      </header>
+    `;
   }
 
-  // ── Build Standard App Bar (with logo & actions) ──────────────────────────
-  function renderHomeAppBar(userInitials) {
+  function renderHomeAppBar() {
     return `
-      <header class="app-bar" id="appBar" role="banner">
-        <div class="app-bar__logo">
+      <header class="app-bar app-bar--home">
+        <div class="app-bar__brand">
           <div class="app-bar__logo-icon">
             <span class="material-icons-round" style="font-size:20px;color:white">menu_book</span>
           </div>
@@ -114,77 +168,51 @@ const StudyGenNav = (() => {
           <button class="app-bar__action-btn" id="notifBtn" aria-label="Notifications">
             <span class="material-icons-round">notifications_none</span>
           </button>
-          <div class="app-bar__avatar avatar-placeholder" id="avatarBtn" style="width:36px;height:36px;font-size:14px;cursor:pointer" role="button" aria-label="Profile">
-            ${userInitials || 'RS'}
-          </div>
+          <div class="app-bar__avatar avatar-placeholder" id="avatarBtn" role="button" aria-label="Profile">SG</div>
         </div>
       </header>
     `;
   }
 
-  // ── Build Back App Bar (with back button) ─────────────────────────────────
-  function renderBackAppBar(title, actions = '') {
-    return `
-      <header class="app-bar" id="appBar" role="banner">
-        <button class="app-bar__back" onclick="history.back()" aria-label="Go back">
-          <span class="material-icons-round">arrow_back_ios_new</span>
-        </button>
-        <span class="app-bar__center">${title}</span>
-        <div class="app-bar__actions">${actions}</div>
-      </header>
-    `;
-  }
+  // ── Attach Header Scroll Shadow ───────────────────────────────────────────
+  function initScrollBehavior() {
+    const appBar = document.querySelector('.app-bar');
+    const scrollContainer = document.querySelector('.page-scroll') || window;
 
-  // ── Navigate to page with transition ─────────────────────────────────────
-  function navigate(href) {
-    document.body.style.opacity = '0';
-    document.body.style.transition = 'opacity 0.15s ease';
-    setTimeout(() => {
-      window.location.href = href;
-    }, 150);
-  }
+    if (!appBar) return;
 
-  // ── Back navigation helper ────────────────────────────────────────────────
-  function goBack(fallback = 'home.html') {
-    if (window.history.length > 1) {
-      window.history.back();
+    const handleScroll = (scrollTop) => {
+      if (scrollTop > 10) {
+        appBar.classList.add('app-bar--scrolled');
+      } else {
+        appBar.classList.remove('app-bar--scrolled');
+      }
+    };
+
+    if (scrollContainer === window) {
+      window.addEventListener('scroll', () => handleScroll(window.scrollY), { passive: true });
     } else {
-      navigate(fallback);
+      scrollContainer.addEventListener('scroll', () => handleScroll(scrollContainer.scrollTop), { passive: true });
     }
   }
 
-  // ── Confirm dialog helper ─────────────────────────────────────────────────
-  function confirm(message, onConfirm, onCancel) {
-    const overlay = document.createElement('div');
-    overlay.className = 'overlay visible';
+  // ── Navigation Utilities ──────────────────────────────────────────────────
+  function navigate(href) {
+    const screen = document.querySelector('.screen');
+    if (screen) {
+      StudyGenApp.utils.pageExit(screen, () => {
+        window.location.href = href;
+      });
+    } else {
+      window.location.href = href;
+    }
+  }
 
-    const dialog = document.createElement('div');
-    dialog.style.cssText = `
-      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-      width: 100%; max-width: 430px; background: var(--bg);
-      border-radius: 20px 20px 0 0; padding: 24px 16px 40px;
-      z-index: 210; font-family: var(--font);
-    `;
-    dialog.innerHTML = `
-      <div style="width:40px;height:4px;background:var(--border);border-radius:100px;margin:0 auto 20px;"></div>
-      <p style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px;text-align:center;">${message}</p>
-      <p style="font-size:13px;color:var(--text-secondary);text-align:center;margin-bottom:24px;">This action cannot be undone.</p>
-      <div style="display:flex;gap:12px;">
-        <button id="cancelBtn" class="btn btn-outlined" style="width:50%;">Cancel</button>
-        <button id="confirmBtn" class="btn btn-danger" style="width:50%;">Delete</button>
-      </div>
-    `;
-
-    document.body.appendChild(overlay);
-    document.body.appendChild(dialog);
-
-    overlay.addEventListener('click', cleanup);
-    dialog.querySelector('#cancelBtn').addEventListener('click', () => { cleanup(); if (onCancel) onCancel(); });
-    dialog.querySelector('#confirmBtn').addEventListener('click', () => { cleanup(); if (onConfirm) onConfirm(); });
-
-    function cleanup() {
-      overlay.remove();
-      dialog.remove();
+  function goBack(fallbackHref = 'home.html') {
+    if (document.referrer && document.referrer.includes(window.location.host)) {
+      window.history.back();
+    } else {
+      navigate(fallbackHref);
     }
   }
 
@@ -197,45 +225,40 @@ const StudyGenNav = (() => {
       onReady,
     } = options;
 
-    // Auth guard
     if (requireAuth) {
       const isAuth = await StudyGenApp.auth.requireAuth();
       if (!isAuth) return;
     }
 
-    const runInit = () => {
-      // Inject bottom nav if needed
+    const runInit = async () => {
       if (showNav) {
         injectBottomNav(activePage);
       }
 
-      // Init scroll behavior
       initScrollBehavior();
 
-      // Page enter animation
       const screen = document.querySelector('.screen, main');
       if (screen) StudyGenApp.utils.pageEnter(screen);
 
-      // Wire avatar → profile navigation
       const avatar = document.getElementById('avatarBtn');
       if (avatar) avatar.addEventListener('click', () => navigate('profile.html'));
 
-      // Wire notification button
       const notifBtn = document.getElementById('notifBtn');
       if (notifBtn) notifBtn.addEventListener('click', () => StudyGenApp.toast.show('No new notifications'));
 
-      // Call ready callback
+      // Real-time update greeting & user avatar
+      await updateHeaderAndGreeting();
+
       if (onReady) onReady();
     };
 
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', runInit);
     } else {
-      runInit();
+      await runInit();
     }
   }
 
-  // ── PUBLIC API ─────────────────────────────────────────────────────────────
   return {
     init,
     injectBottomNav,
@@ -243,9 +266,9 @@ const StudyGenNav = (() => {
     renderBackAppBar,
     navigate,
     goBack,
-    confirm,
     getCurrentPage,
     initScrollBehavior,
+    updateHeaderAndGreeting,
   };
 
 })();

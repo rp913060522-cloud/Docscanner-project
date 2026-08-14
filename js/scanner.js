@@ -1,15 +1,14 @@
 'use strict';
 
 /**
- * StudyGen AI — Smart Document Scanner & Multi-Page Batch Capture Logic
- * Supports single page scanning and multi-page batch document scanning.
- * Saves captured page Blobs to IndexedDB (`studygen_pdf_db`) and renders
- * real-time thumbnail strip for all captured pages.
+ * StudyGen AI — Continuous Document Scanner & Batch Capture Logic
+ * Enables continuous multi-page document scanning.
+ * Each shutter tap captures a page and updates the thumbnail strip & counter.
+ * Navigates to scan-preview.html ONLY when the user clicks 'Continue' or taps thumbnails.
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
-  let currentMode = 'single';
   let isFlashOn = false;
   let mediaStream = null;
   let capturedPageBlobs = [];
@@ -28,6 +27,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const docSimOverlay    = document.getElementById('docSimOverlay');
   const galleryInput     = document.getElementById('galleryInput');
   const cameraFileInput  = document.getElementById('cameraFileInput');
+
+  // Restore existing batch pages ONLY if explicitly returning via "Add Page" button (?mode=add_page)
+  const isAddPageMode = window.location.search.includes('mode=add_page');
+  const existingBatchStr = sessionStorage.getItem('sg_batch_pages');
+
+  if (isAddPageMode && existingBatchStr) {
+    try {
+      const dataUrls = JSON.parse(existingBatchStr);
+      for (const url of dataUrls) {
+        const fetchRes = await fetch(url);
+        const b = await fetchRes.blob();
+        addCapturedPage(b, false); // Add without toast alert
+      }
+    } catch (err) {
+      console.warn('Could not restore previous batch pages:', err.message);
+    }
+  } else {
+    // Fresh scanner visit: Purge old unsaved temporary session images
+    sessionStorage.removeItem('sg_batch_pages');
+    sessionStorage.removeItem('sg_scan_count');
+  }
 
   // Initialize live mobile HTML5 camera stream if supported
   async function initCameraStream() {
@@ -76,6 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
       stopCameraStream();
+      sessionStorage.removeItem('sg_batch_pages');
+      sessionStorage.removeItem('sg_scan_count');
       window.location.href = 'home.html';
     });
   }
@@ -85,34 +107,35 @@ document.addEventListener('DOMContentLoaded', () => {
     pill.addEventListener('click', () => {
       modePills.forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
-      currentMode = pill.getAttribute('data-mode') || 'single';
       StudyGenApp.toast.show(`Mode: ${pill.textContent}`);
     });
   });
 
-  // Saves captured page Blobs to IndexedDB and routes to scan-preview.html
+  // Saves all captured page Blobs to IndexedDB and routes to scan-preview.html
   async function finalizeDocumentAndNavigate(originalFilename = null) {
     if (capturedPageBlobs.length === 0) return;
 
     try {
-      const localPdfId = window.LocalPdfDB.generateLocalPdfId();
+      const localPdfId = window.LocalPdfDB ? window.LocalPdfDB.generateLocalPdfId() : `doc_${Date.now()}`;
       const dateStr = new Date().toLocaleDateString('en-IN').replace(/\//g, '-');
       const count = capturedPageBlobs.length;
       const title = originalFilename ? originalFilename.replace(/\.[^/.]+$/, "") : `Scan_${dateStr}_${count}P`;
 
       // Save primary Blob (first page or merged document) to IndexedDB
       const primaryBlob = capturedPageBlobs[0];
-      const savedDoc = await window.LocalPdfDB.saveDocument({
-        localPdfId,
-        documentTitle: title,
-        filename: originalFilename || `${title}.jpg`,
-        mimeType: primaryBlob.type || 'image/jpeg',
-        blob: primaryBlob,
-      });
+      if (window.LocalPdfDB && primaryBlob) {
+        const savedDoc = await window.LocalPdfDB.saveDocument({
+          localPdfId,
+          documentTitle: title,
+          filename: originalFilename || `${title}.jpg`,
+          mimeType: primaryBlob.type || 'image/jpeg',
+          blob: primaryBlob,
+        });
 
-      // Store active session metadata
-      sessionStorage.setItem('sg_active_doc_id', savedDoc.localPdfId);
-      sessionStorage.setItem('sg_active_doc_title', savedDoc.documentTitle);
+        sessionStorage.setItem('sg_active_doc_id', savedDoc.localPdfId);
+        sessionStorage.setItem('sg_active_doc_title', savedDoc.documentTitle);
+      }
+
       sessionStorage.setItem('sg_scan_count', count);
 
       // Store data URLs for multi-page carousel preview in scan-preview.html
@@ -132,8 +155,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Adds a page Blob to the current document batch and updates thumbnail strip
-  function addCapturedPage(blob) {
+  // Adds a page Blob to current document batch and updates thumbnail strip & counter
+  function addCapturedPage(blob, showNotification = true) {
     if (!blob) return;
     capturedPageBlobs.push(blob);
 
@@ -145,16 +168,42 @@ document.addEventListener('DOMContentLoaded', () => {
       const thumb = document.createElement('div');
       thumb.className = 'thumb-item flex-center';
       thumb.style.overflow = 'hidden';
+      thumb.style.position = 'relative';
+      thumb.style.cursor = 'pointer';
+
       const img = document.createElement('img');
       img.src = URL.createObjectURL(blob);
       img.style.width = '100%';
       img.style.height = '100%';
       img.style.objectFit = 'cover';
       thumb.appendChild(img);
+
+      // Page number badge on thumbnail
+      const badge = document.createElement('span');
+      badge.textContent = count;
+      badge.style.position = 'absolute';
+      badge.style.bottom = '2px';
+      badge.style.right = '2px';
+      badge.style.background = 'rgba(0,0,0,0.7)';
+      badge.style.color = 'white';
+      badge.style.fontSize = '9px';
+      badge.style.padding = '1px 3px';
+      badge.style.borderRadius = '3px';
+      thumb.appendChild(badge);
+
+      // Tapping thumbnail opens preview
+      thumb.addEventListener('click', () => {
+        finalizeDocumentAndNavigate();
+      });
+
       thumbStrip.appendChild(thumb);
     }
 
     if (doneBtn) doneBtn.classList.remove('hidden');
+
+    if (showNotification) {
+      StudyGenApp.toast.show(`Page ${count} captured! Tap shutter for next page or 'Continue' when done. 📷`);
+    }
   }
 
   // Captures a frame from active live video camera feed
@@ -168,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
   }
 
-  // Handle Capture Button click
+  // Handle Capture Button click — Continuous capture stays on camera view!
   if (captureBtn) {
     captureBtn.addEventListener('click', async () => {
       if (navigator.vibrate) navigator.vibrate(30);
@@ -183,11 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const frameBlob = await captureVideoFrame();
         if (frameBlob) {
           addCapturedPage(frameBlob);
-          if (currentMode === 'single') {
-            await finalizeDocumentAndNavigate();
-          } else {
-            StudyGenApp.toast.show(`Page ${capturedPageBlobs.length} captured! Tap shutter for next page or Continue when done.`);
-          }
           return;
         }
       }
@@ -205,11 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
       addCapturedPage(file);
-      if (currentMode === 'single') {
-        await finalizeDocumentAndNavigate(file.name);
-      } else {
-        StudyGenApp.toast.show(`Page ${capturedPageBlobs.length} captured!`);
-      }
     });
   }
 
@@ -232,12 +271,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       StudyGenApp.toast.show(`Importing ${files.length} ${files.length === 1 ? 'file' : 'files'}...`);
       for (const file of files) {
-        addCapturedPage(file);
+        addCapturedPage(file, false);
       }
       await finalizeDocumentAndNavigate(files[0].name);
     });
   }
 
+  // Done / Continue button — Finishes continuous scanning and opens preview screen
   if (doneBtn) {
     doneBtn.addEventListener('click', async () => {
       if (capturedPageBlobs.length === 0) {
@@ -252,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.font = '20px Inter, sans-serif';
         ctx.fillText(`Scanned Document`, 50, 100);
         const blob = await new Promise(resolve => dummyCanvas.toBlob(resolve, 'image/jpeg', 0.9));
-        addCapturedPage(blob);
+        addCapturedPage(blob, false);
       }
       await finalizeDocumentAndNavigate();
     });

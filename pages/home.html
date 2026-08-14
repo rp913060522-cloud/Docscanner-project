@@ -27,7 +27,7 @@
           <span class="material-icons-round">notifications_none</span>
         </button>
         <div class="app-bar__avatar avatar-placeholder" id="avatarBtn" role="button" aria-label="Profile">
-          RS
+          SG
         </div>
       </div>
     </header>
@@ -39,7 +39,7 @@
       <section class="card-gradient p-xl mb-xl">
         <div class="flex-between">
           <div>
-            <h2 class="text-headline-sm text-white" id="greetingText">Good Morning, Ravi! 👋</h2>
+            <h2 class="text-headline-sm text-white" id="greetingText">Welcome to StudyGen AI! 👋</h2>
             <p class="text-body-sm text-white" style="opacity:0.85;margin-top:4px;">What would you like to study today?</p>
           </div>
           <div class="icon-container icon-container--lg" style="background:rgba(255,255,255,0.2);color:white;border-radius:18px;">
@@ -174,21 +174,6 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       StudyGenNav.init({ activePage: 'home', requireAuth: false });
-
-      // Dynamic greeting based on time of day
-      const hour = new Date().getHours();
-      let timeGreeting = 'Good Morning';
-      if (hour >= 12 && hour < 17) timeGreeting = 'Good Afternoon';
-      else if (hour >= 17) timeGreeting = 'Good Evening';
-
-      const user = StudyGenApp.auth.getUser() || StudyGenApp.MOCK.user;
-      const firstName = user.name ? user.name.split(' ')[0] : 'Student';
-
-      const greetingEl = document.getElementById('greetingText');
-      if (greetingEl) greetingEl.textContent = `${timeGreeting}, ${firstName}! 👋`;
-
-      const avatarEl = document.getElementById('avatarBtn');
-      if (avatarEl) avatarEl.textContent = user.initials || 'RS';
     });
   </script>
 </body>

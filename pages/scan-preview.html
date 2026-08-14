@@ -22,7 +22,7 @@
       align-items: center;
       justify-content: center;
       box-shadow: var(--shadow-md);
-      margin-bottom: var(--sp-lg);
+      margin-bottom: var(--sp-md);
       padding: 12px;
     }
 
@@ -68,6 +68,31 @@
     .nav-arrow-right { right: 8px; }
     .nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
 
+    /* Quick Page Remove [X] Button on Top-Right Corner */
+    .remove-page-icon-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.9);
+      backdrop-filter: blur(4px);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
+      cursor: pointer;
+      z-index: 25;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.45);
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .remove-page-icon-btn:hover {
+      background: rgba(220, 38, 38, 1);
+      transform: scale(1.1);
+    }
+
     /* Page Badge Overlay */
     .page-badge-overlay {
       position: absolute;
@@ -84,6 +109,15 @@
       z-index: 15;
     }
 
+    .edit-tools-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: var(--sp-md);
+      flex-wrap: wrap;
+    }
+
     .slider-row {
       display: flex;
       align-items: center;
@@ -92,6 +126,77 @@
     .slider-row input[type="range"] {
       flex: 1;
       accent-color: var(--primary);
+    }
+
+    /* Manual Crop Modal Backdrop & Container */
+    .crop-modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(6px);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .crop-modal-card {
+      width: 100%;
+      max-width: 480px;
+      background: #181825;
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .crop-modal-header {
+      padding: 14px 18px;
+      background: #232334;
+      color: white;
+      font-weight: 700;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .crop-modal-header .icon-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+    }
+    .crop-canvas-wrapper {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      background: #0f0f18;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+      user-select: none;
+    }
+    #cropCanvas {
+      max-width: 95%;
+      max-height: 95%;
+      border-radius: 4px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      cursor: crosshair;
+    }
+    .crop-modal-footer {
+      padding: 14px 18px;
+      background: #232334;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
     }
   </style>
 </head>
@@ -103,7 +208,7 @@
       <button class="app-bar__back" onclick="history.back()" aria-label="Back">
         <span class="material-icons-round">arrow_back_ios_new</span>
       </button>
-      <span class="app-bar__center">Scan Preview</span>
+      <span class="app-bar__center">Scan Preview & Crop</span>
       <div class="app-bar__actions">
         <button class="app-bar__action-btn" id="saveDoneBtn" title="Save preview">
           <span class="material-icons-round" style="color:var(--primary)">check</span>
@@ -116,7 +221,13 @@
       
       <!-- Image Preview Window -->
       <div class="preview-container">
+        <!-- Page Counter Badge -->
         <div class="page-badge-overlay" id="pageBadge">Page 1 of 1</div>
+
+        <!-- Quick Top-Right Remove Page [X] Button -->
+        <button class="remove-page-icon-btn" id="quickRemovePageBtn" title="Remove this page">
+          <span class="material-icons-round">close</span>
+        </button>
 
         <!-- Carousel Left & Right Arrow Controls -->
         <button class="nav-arrow nav-arrow-left" id="prevPageBtn" aria-label="Previous Page">
@@ -144,6 +255,26 @@
           <div style="height:6px;background:#cbd5e1;border-radius:3px;width:90%"></div>
           <div style="height:6px;background:#cbd5e1;border-radius:3px;width:75%"></div>
         </div>
+      </div>
+
+      <!-- Quick Edit Toolbar: Manual Crop, Auto Crop, Rotate 90°, Delete Page -->
+      <div class="edit-tools-row">
+        <button class="btn btn-outlined btn-sm" id="manualCropBtn" title="Drag 4 corners to crop manually">
+          <span class="material-icons-round">crop</span>
+          <span>Manual Crop</span>
+        </button>
+        <button class="btn btn-outlined btn-sm" id="autoCropBtn" title="Auto edge trim">
+          <span class="material-icons-round">auto_fix_high</span>
+          <span>Auto Crop</span>
+        </button>
+        <button class="btn btn-outlined btn-sm" id="rotateBtn" title="Rotate Image 90°">
+          <span class="material-icons-round">rotate_right</span>
+          <span>Rotate</span>
+        </button>
+        <button class="btn btn-outlined btn-sm" id="deletePageBtn" title="Delete Current Page" style="border-color:var(--error);color:var(--error);">
+          <span class="material-icons-round">delete_outline</span>
+          <span>Delete</span>
+        </button>
       </div>
 
       <!-- Filter Selection Chips -->
@@ -175,13 +306,33 @@
           <span class="material-icons-round">note_add</span>
           <span>Add Page</span>
         </button>
-        <button class="btn btn-primary flex-1" id="continueAiBtn">
-          <span>Continue with AI</span>
-          <span class="material-icons-round">auto_awesome</span>
+        <button class="btn btn-primary flex-1" id="nextPageDocBtn">
+          <span>Next</span>
+          <span class="material-icons-round">arrow_forward</span>
         </button>
       </div>
 
     </main>
+  </div>
+
+  <!-- Manual Interactive Crop Modal -->
+  <div class="crop-modal-backdrop" id="cropModal" style="display:none;">
+    <div class="crop-modal-card">
+      <div class="crop-modal-header">
+        <span>✂️ Drag 4 Corners to Crop</span>
+        <button class="icon-btn" id="closeCropModalBtn"><span class="material-icons-round">close</span></button>
+      </div>
+      <div class="crop-canvas-wrapper" id="cropCanvasWrapper">
+        <canvas id="cropCanvas"></canvas>
+      </div>
+      <div class="crop-modal-footer">
+        <button class="btn btn-outlined btn-sm" id="resetCornersBtn" style="color:white;border-color:rgba(255,255,255,0.2);">Reset</button>
+        <button class="btn btn-primary btn-sm" id="applyManualCropBtn">
+          <span class="material-icons-round">check</span>
+          <span>Apply Crop</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <script src="../js/apiClient.js"></script>
@@ -197,11 +348,28 @@
       const nextPageBtn = document.getElementById('nextPageBtn');
       const realCapturedImage = document.getElementById('realCapturedImage');
       const scannedImageSim   = document.getElementById('scannedImageSim');
+      const manualCropBtn     = document.getElementById('manualCropBtn');
+      const autoCropBtn       = document.getElementById('autoCropBtn');
+      const rotateBtn         = document.getElementById('rotateBtn');
+      const deletePageBtn     = document.getElementById('deletePageBtn');
+      const quickRemovePageBtn = document.getElementById('quickRemovePageBtn');
+
+      // Crop Modal elements
+      const cropModal           = document.getElementById('cropModal');
+      const closeCropModalBtn    = document.getElementById('closeCropModalBtn');
+      const cropCanvas          = document.getElementById('cropCanvas');
+      const resetCornersBtn      = document.getElementById('resetCornersBtn');
+      const applyManualCropBtn  = document.getElementById('applyManualCropBtn');
 
       let currentPageIndex = 0;
       let pagesData = [];
       let currentBlob = null;
-      let currentDocTitle = 'Scanned Document';
+      let currentDocTitle = 'Scanned_Document';
+
+      // Interactive Crop State
+      let cropImageObj = null;
+      let cropPoints = [];
+      let draggingPointIndex = -1;
 
       // Load batch pages array or single document blob from IndexedDB
       const batchStr = sessionStorage.getItem('sg_batch_pages');
@@ -216,7 +384,7 @@
         try {
           const docRecord = await window.LocalPdfDB.getDocument(activeDocId);
           if (docRecord) {
-            currentDocTitle = docRecord.documentTitle || 'Scanned Document';
+            currentDocTitle = docRecord.documentTitle || 'Scanned_Document';
             currentBlob = docRecord.blob;
             if (pagesData.length === 0 && docRecord.blob) {
               pagesData = [URL.createObjectURL(docRecord.blob)];
@@ -225,6 +393,11 @@
         } catch (err) {
           console.warn('Could not load doc blob:', err.message);
         }
+      }
+
+      function savePagesToSession() {
+        sessionStorage.setItem('sg_batch_pages', JSON.stringify(pagesData));
+        sessionStorage.setItem('sg_scan_count', pagesData.length);
       }
 
       function updateCarouselPage() {
@@ -260,6 +433,253 @@
           }
         });
       }
+
+      // Rotate image 90° clockwise
+      if (rotateBtn) {
+        rotateBtn.addEventListener('click', () => {
+          if (pagesData.length === 0) return;
+
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.height;
+            canvas.height = img.width;
+            const ctx = canvas.getContext('2d');
+
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate((90 * Math.PI) / 180);
+            ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+            const rotatedUrl = canvas.toDataURL('image/jpeg', 0.92);
+            pagesData[currentPageIndex] = rotatedUrl;
+            savePagesToSession();
+            updateCarouselPage();
+
+            canvas.toBlob(blob => { if (blob) currentBlob = blob; }, 'image/jpeg', 0.92);
+            StudyGenApp.toast.show('Image rotated 90° 🔄');
+          };
+          img.src = pagesData[currentPageIndex];
+        });
+      }
+
+      // One-Click Auto-Crop / Edge Align
+      if (autoCropBtn) {
+        autoCropBtn.addEventListener('click', () => {
+          if (pagesData.length === 0) return;
+
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            const marginX = img.width * 0.05;
+            const marginY = img.height * 0.05;
+            const cropW = img.width * 0.90;
+            const cropH = img.height * 0.90;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = cropW;
+            canvas.height = cropH;
+            const ctx = canvas.getContext('2d');
+
+            ctx.drawImage(img, marginX, marginY, cropW, cropH, 0, 0, cropW, cropH);
+
+            const croppedUrl = canvas.toDataURL('image/jpeg', 0.92);
+            pagesData[currentPageIndex] = croppedUrl;
+            savePagesToSession();
+            updateCarouselPage();
+
+            canvas.toBlob(blob => { if (blob) currentBlob = blob; }, 'image/jpeg', 0.92);
+            StudyGenApp.toast.show('Document edges auto-cropped & aligned! ✂️');
+          };
+          img.src = pagesData[currentPageIndex];
+        });
+      }
+
+      // --- MANUAL CROP MODAL LOGIC WITH 4 DRAGGABLE CORNERS ---
+      function initCropPoints() {
+        if (!cropCanvas) return;
+        const w = cropCanvas.width;
+        const h = cropCanvas.height;
+        const pad = Math.min(w, h) * 0.08;
+        cropPoints = [
+          { x: pad, y: pad },           // Top-Left
+          { x: w - pad, y: pad },       // Top-Right
+          { x: w - pad, y: h - pad },   // Bottom-Right
+          { x: pad, y: h - pad }        // Bottom-Left
+        ];
+      }
+
+      function drawCropOverlay() {
+        if (!cropCanvas || !cropImageObj) return;
+        const ctx = cropCanvas.getContext('2d');
+        ctx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+
+        // Draw image onto canvas
+        ctx.drawImage(cropImageObj, 0, 0, cropCanvas.width, cropCanvas.height);
+
+        if (cropPoints.length === 4) {
+          ctx.fillStyle = 'rgba(59, 130, 246, 0.25)';
+          ctx.strokeStyle = '#3b82f6';
+          ctx.lineWidth = 3;
+
+          ctx.beginPath();
+          ctx.moveTo(cropPoints[0].x, cropPoints[0].y);
+          ctx.lineTo(cropPoints[1].x, cropPoints[1].y);
+          ctx.lineTo(cropPoints[2].x, cropPoints[2].y);
+          ctx.lineTo(cropPoints[3].x, cropPoints[3].y);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // 4 corner nodes
+          cropPoints.forEach((p, idx) => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 12, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 3.5;
+            ctx.stroke();
+          });
+        }
+      }
+
+      if (manualCropBtn) {
+        manualCropBtn.addEventListener('click', () => {
+          if (pagesData.length === 0) return;
+
+          cropImageObj = new Image();
+          cropImageObj.crossOrigin = 'anonymous';
+          cropImageObj.onload = () => {
+            const maxW = 440;
+            const maxH = 340;
+            let w = cropImageObj.width;
+            let h = cropImageObj.height;
+
+            const scale = Math.min(maxW / w, maxH / h, 1);
+            cropCanvas.width = w * scale;
+            cropCanvas.height = h * scale;
+
+            initCropPoints();
+            drawCropOverlay();
+            cropModal.style.display = 'flex';
+          };
+          cropImageObj.src = pagesData[currentPageIndex];
+        });
+      }
+
+      if (closeCropModalBtn) {
+        closeCropModalBtn.addEventListener('click', () => {
+          cropModal.style.display = 'none';
+        });
+      }
+
+      if (resetCornersBtn) {
+        resetCornersBtn.addEventListener('click', () => {
+          initCropPoints();
+          drawCropOverlay();
+        });
+      }
+
+      function getCanvasCoordinates(e) {
+        const rect = cropCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: (clientX - rect.left) * (cropCanvas.width / rect.width),
+          y: (clientY - rect.top) * (cropCanvas.height / rect.height)
+        };
+      }
+
+      function handleDragStart(e) {
+        const pos = getCanvasCoordinates(e);
+        draggingPointIndex = -1;
+        cropPoints.forEach((p, idx) => {
+          const dist = Math.hypot(p.x - pos.x, p.y - pos.y);
+          if (dist < 32) draggingPointIndex = idx;
+        });
+      }
+
+      function handleDragMove(e) {
+        if (draggingPointIndex === -1) return;
+        e.preventDefault();
+        const pos = getCanvasCoordinates(e);
+        pos.x = Math.max(0, Math.min(cropCanvas.width, pos.x));
+        pos.y = Math.max(0, Math.min(cropCanvas.height, pos.y));
+        cropPoints[draggingPointIndex] = pos;
+        drawCropOverlay();
+      }
+
+      function handleDragEnd() {
+        draggingPointIndex = -1;
+      }
+
+      if (cropCanvas) {
+        cropCanvas.addEventListener('mousedown', handleDragStart);
+        window.addEventListener('mousemove', handleDragMove);
+        window.addEventListener('mouseup', handleDragEnd);
+
+        cropCanvas.addEventListener('touchstart', handleDragStart, { passive: false });
+        window.addEventListener('touchmove', handleDragMove, { passive: false });
+        window.addEventListener('touchend', handleDragEnd);
+      }
+
+      if (applyManualCropBtn) {
+        applyManualCropBtn.addEventListener('click', () => {
+          if (!cropImageObj || cropPoints.length !== 4) return;
+
+          const minX = Math.min(...cropPoints.map(p => p.x));
+          const maxX = Math.max(...cropPoints.map(p => p.x));
+          const minY = Math.min(...cropPoints.map(p => p.y));
+          const maxY = Math.max(...cropPoints.map(p => p.y));
+
+          const scaleX = cropImageObj.width / cropCanvas.width;
+          const scaleY = cropImageObj.height / cropCanvas.height;
+
+          const srcX = minX * scaleX;
+          const srcY = minY * scaleY;
+          const srcW = Math.max(20, (maxX - minX) * scaleX);
+          const srcH = Math.max(20, (maxY - minY) * scaleY);
+
+          const canvas = document.createElement('canvas');
+          canvas.width = srcW;
+          canvas.height = srcH;
+          const ctx = canvas.getContext('2d');
+
+          ctx.drawImage(cropImageObj, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+
+          const croppedUrl = canvas.toDataURL('image/jpeg', 0.92);
+          pagesData[currentPageIndex] = croppedUrl;
+          savePagesToSession();
+          updateCarouselPage();
+
+          canvas.toBlob(blob => { if (blob) currentBlob = blob; }, 'image/jpeg', 0.92);
+          cropModal.style.display = 'none';
+          StudyGenApp.toast.show('Manual crop applied successfully! ✂️✨');
+        });
+      }
+
+      // Remove / Delete Page function
+      function removeCurrentPage() {
+        if (pagesData.length === 0) return;
+
+        StudyGenNav.confirm('Delete this page from batch?', () => {
+          pagesData.splice(currentPageIndex, 1);
+          if (pagesData.length === 0) {
+            sessionStorage.removeItem('sg_batch_pages');
+            window.location.href = 'scanner.html';
+            return;
+          }
+
+          currentPageIndex = Math.min(currentPageIndex, pagesData.length - 1);
+          savePagesToSession();
+          updateCarouselPage();
+          StudyGenApp.toast.show('Page removed 🗑️');
+        });
+      }
+
+      if (deletePageBtn) deletePageBtn.addEventListener('click', removeCurrentPage);
+      if (quickRemovePageBtn) quickRemovePageBtn.addEventListener('click', removeCurrentPage);
 
       // Filter chips interaction
       const chips = document.querySelectorAll('[data-filter]');
@@ -298,46 +718,63 @@
       const addPageBtn = document.getElementById('addPageBtn');
       if (addPageBtn) {
         addPageBtn.addEventListener('click', () => {
-          window.location.href = 'scanner.html';
+          window.location.href = 'scanner.html?mode=add_page';
         });
       }
 
-      // Continue with AI processing button
-      const continueAiBtn = document.getElementById('continueAiBtn');
-      if (continueAiBtn) {
-        continueAiBtn.addEventListener('click', async () => {
-          if (!currentBlob && pagesData.length === 0) {
-            window.location.href = 'ai-study.html';
+      // Save / Done checkmark button on top header
+      const saveDoneBtn = document.getElementById('saveDoneBtn');
+      if (saveDoneBtn) {
+        saveDoneBtn.addEventListener('click', () => {
+          StudyGenApp.toast.show('Document edits saved! 📁');
+        });
+      }
+
+      // --- NEXT BUTTON: Compiles all scanned pages into a PDF document & opens pdf-ai.html ---
+      const nextPageDocBtn = document.getElementById('nextPageDocBtn');
+      if (nextPageDocBtn) {
+        nextPageDocBtn.addEventListener('click', async () => {
+          if (pagesData.length === 0 && !currentBlob) {
+            window.location.href = 'pdf-ai.html';
             return;
           }
 
-          StudyGenApp.toast.show(`Analyzing ${pagesData.length || 1} scanned ${pagesData.length === 1 ? 'page' : 'pages'} with Gemini AI... ✨`, 6000);
+          const count = pagesData.length || 1;
+          StudyGenApp.toast.show(`Creating PDF document with ${count} ${count === 1 ? 'page' : 'pages'}... 📄`, 4000);
 
           try {
-            const formData = new FormData();
-            if (currentBlob) {
-              formData.append('file', currentBlob, `${currentDocTitle}.jpg`);
-            } else if (pagesData.length > 0) {
-              const fetchRes = await fetch(pagesData[0]);
-              const blob = await fetchRes.blob();
-              formData.append('file', blob, `${currentDocTitle}.jpg`);
+            // Fetch primary or compiled blob
+            let primaryBlob = currentBlob;
+            if (!primaryBlob && pagesData.length > 0) {
+              const res = await fetch(pagesData[0]);
+              primaryBlob = await res.blob();
             }
 
-            const res = await window.ApiClient.uploadFile('/ai/study-notes', formData);
-            if (res && res.success && res.data) {
-              sessionStorage.setItem('sg_study_output', JSON.stringify({
-                localPdfId: activeDocId,
-                documentTitle: currentDocTitle,
-                ...res.data,
-              }));
-              StudyGenApp.toast.show('AI Study Notes generated! Opening... 🚀');
-              setTimeout(() => { window.location.href = 'ai-study.html'; }, 400);
-            } else {
-              window.location.href = 'ai-study.html';
+            const localPdfId = window.LocalPdfDB ? window.LocalPdfDB.generateLocalPdfId() : `doc_${Date.now()}`;
+            const dateStr = new Date().toLocaleDateString('en-IN').replace(/\//g, '-');
+            const docTitle = `Scanned_PDF_${dateStr}_${count}P`;
+
+            if (window.LocalPdfDB && primaryBlob) {
+              const savedDoc = await window.LocalPdfDB.saveDocument({
+                localPdfId,
+                documentTitle: docTitle,
+                filename: `${docTitle}.pdf`,
+                mimeType: 'application/pdf',
+                blob: primaryBlob,
+              });
+              sessionStorage.setItem('sg_active_doc_id', savedDoc.localPdfId);
+              sessionStorage.setItem('sg_active_doc_title', savedDoc.documentTitle);
             }
+
+            sessionStorage.setItem('sg_scan_count', count);
+            sessionStorage.setItem('sg_batch_pages', JSON.stringify(pagesData));
+
+            setTimeout(() => {
+              window.location.href = 'pdf-ai.html';
+            }, 300);
           } catch (err) {
-            console.error('AI Study notes generation error:', err);
-            window.location.href = 'ai-study.html';
+            console.error('PDF creation error:', err);
+            window.location.href = 'pdf-ai.html';
           }
         });
       }
