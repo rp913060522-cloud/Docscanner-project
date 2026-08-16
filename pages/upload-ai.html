@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Start Study with AI — StudyGen AI</title>
@@ -252,7 +253,7 @@
         </div>
         <!-- View PDF Button -->
         <button type="button" id="viewPdfBtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#3b7bf8,#7b52f4);color:white;border:none;border-radius:12px;padding:11px 16px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(59,123,248,0.25);">
-          <span class="material-icons-round" style="font-size:18px;">visibility</span>
+          <span class="material-icons-round" style="font-size:18px;">open_in_new</span>
           View PDF / Document
         </button>
       </div>
@@ -375,33 +376,37 @@
       let currentObjectUrl  = null;
 
       function openPdfViewer(file) {
-        if (!file || !pdfViewerSheet || !pdfViewerFrame) return;
-        // Revoke old URL to prevent memory leaks
+        if (!file) return;
+
+        // PDFs → open in new browser tab (native viewer = full scroll support on mobile)
+        if (!file.type.startsWith('image/')) {
+          if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+          currentObjectUrl = URL.createObjectURL(file);
+          window.open(currentObjectUrl, '_blank');
+          StudyGenApp.toast.show('PDF opening in new tab for full scroll support 📄');
+          return;
+        }
+
+        // Images → show inline in bottom sheet (scrolls fine)
         if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
         currentObjectUrl = URL.createObjectURL(file);
 
         if (pdfViewerTitle) pdfViewerTitle.textContent = file.name;
+        if (pdfViewerFrame) pdfViewerFrame.style.display = 'none';
 
-        // Images → show in img tag; PDFs → show in iframe
-        if (file.type.startsWith('image/')) {
-          pdfViewerFrame.style.display = 'none';
-          let imgEl = pdfViewerFrame.parentElement.querySelector('img.pdf-preview-img');
-          if (!imgEl) {
-            imgEl = document.createElement('img');
-            imgEl.className = 'pdf-preview-img';
-            imgEl.alt = 'Document Preview';
-            pdfViewerFrame.parentElement.appendChild(imgEl);
-          }
+        let imgEl = pdfViewerSheet && pdfViewerSheet.querySelector('img.pdf-preview-img');
+        if (!imgEl && pdfViewerFrame) {
+          imgEl = document.createElement('img');
+          imgEl.className = 'pdf-preview-img';
+          imgEl.alt = 'Image Preview';
+          pdfViewerFrame.parentElement.appendChild(imgEl);
+        }
+        if (imgEl) {
           imgEl.src = currentObjectUrl;
           imgEl.style.display = 'block';
-        } else {
-          const imgEl = pdfViewerFrame.parentElement.querySelector('img.pdf-preview-img');
-          if (imgEl) imgEl.style.display = 'none';
-          pdfViewerFrame.style.display = 'block';
-          pdfViewerFrame.src = currentObjectUrl;
         }
 
-        pdfViewerSheet.classList.add('open');
+        if (pdfViewerSheet) pdfViewerSheet.classList.add('open');
         document.body.style.overflow = 'hidden';
       }
 

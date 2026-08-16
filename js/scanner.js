@@ -41,11 +41,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         addCapturedPage(b, false); // Add without toast alert
       }
     } catch (err) {
-      console.warn('Could not restore previous batch pages:', err.message);
+      console.warn('Could not restore previous batch pages from dataURLs:', err.message);
+    }
+  } else if (isAddPageMode && window.LocalPdfDB) {
+    // Fallback: restore from IndexedDB IDs
+    const batchIdStr = sessionStorage.getItem('sg_batch_page_ids');
+    if (batchIdStr) {
+      try {
+        const ids = JSON.parse(batchIdStr);
+        for (const id of ids) {
+          const docRecord = await window.LocalPdfDB.getDocument(id);
+          if (docRecord && docRecord.blob) {
+            addCapturedPage(docRecord.blob, false);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not restore pages from IndexedDB:', err.message);
+      }
     }
   } else {
     // Fresh scanner visit: Purge old unsaved temporary session images
     sessionStorage.removeItem('sg_batch_pages');
+    sessionStorage.removeItem('sg_batch_page_ids');
     sessionStorage.removeItem('sg_scan_count');
   }
 
@@ -116,35 +133,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (capturedPageBlobs.length === 0) return;
 
     try {
-      const localPdfId = window.LocalPdfDB ? window.LocalPdfDB.generateLocalPdfId() : `doc_${Date.now()}`;
       const dateStr = new Date().toLocaleDateString('en-IN').replace(/\//g, '-');
-      const count = capturedPageBlobs.length;
-      const title = originalFilename ? originalFilename.replace(/\.[^/.]+$/, "") : `Scan_${dateStr}_${count}P`;
+      const count   = capturedPageBlobs.length;
+      const baseTitle = originalFilename
+        ? originalFilename.replace(/\.[^/.]+$/, '')
+        : `Scan_${dateStr}_${count}P`;
 
-      // Save primary Blob (first page or merged document) to IndexedDB
-      const primaryBlob = capturedPageBlobs[0];
-      if (window.LocalPdfDB && primaryBlob) {
-        const savedDoc = await window.LocalPdfDB.saveDocument({
-          localPdfId,
-          documentTitle: title,
-          filename: originalFilename || `${title}.jpg`,
-          mimeType: primaryBlob.type || 'image/jpeg',
-          blob: primaryBlob,
-        });
+      // Save ALL pages to IndexedDB (not just the first!)
+      const savedIds = [];
+      for (let i = 0; i < capturedPageBlobs.length; i++) {
+        const blob = capturedPageBlobs[i];
+        const localPdfId = window.LocalPdfDB
+          ? window.LocalPdfDB.generateLocalPdfId()
+          : `doc_${Date.now()}_${i}`;
+        const pageTitle = count === 1 ? baseTitle : `${baseTitle}_p${i + 1}`;
 
-        sessionStorage.setItem('sg_active_doc_id', savedDoc.localPdfId);
-        sessionStorage.setItem('sg_active_doc_title', savedDoc.documentTitle);
+        if (window.LocalPdfDB) {
+          await window.LocalPdfDB.saveDocument({
+            localPdfId,
+            documentTitle: pageTitle,
+            filename: originalFilename || `${pageTitle}.jpg`,
+            mimeType: blob.type || 'image/jpeg',
+            blob,
+          });
+        }
+        savedIds.push(localPdfId);
       }
 
-      sessionStorage.setItem('sg_scan_count', count);
+      // Store primary doc id (first page) for AI features
+      sessionStorage.setItem('sg_active_doc_id',    savedIds[0]);
+      sessionStorage.setItem('sg_active_doc_title', baseTitle);
+      sessionStorage.setItem('sg_scan_count',        count);
 
-      // Store data URLs for multi-page carousel preview in scan-preview.html
-      const dataUrls = await Promise.all(capturedPageBlobs.map(b => new Promise(res => {
-        const reader = new FileReader();
-        reader.onload = () => res(reader.result);
-        reader.readAsDataURL(b);
-      })));
-      sessionStorage.setItem('sg_batch_pages', JSON.stringify(dataUrls));
+      // Store ALL page IDs in sessionStorage (small, just strings)
+      // scan-preview.html loads blobs from IndexedDB using these IDs
+      sessionStorage.setItem('sg_batch_page_ids', JSON.stringify(savedIds));
+
+      // Also store dataURLs for pages up to 10 images (stay under 5MB limit)
+      // For larger batches only IDs are stored
+      if (count <= 10) {
+        try {
+          const dataUrls = await Promise.all(capturedPageBlobs.map(b => new Promise(res => {
+            const reader = new FileReader();
+            reader.onload = () => res(reader.result);
+            reader.readAsDataURL(b);
+          })));
+          sessionStorage.setItem('sg_batch_pages', JSON.stringify(dataUrls));
+        } catch (e) {
+          // If quota exceeded, clear dataURLs and rely on IDs only
+          sessionStorage.removeItem('sg_batch_pages');
+          console.warn('sessionStorage quota exceeded, using IndexedDB IDs only');
+        }
+      } else {
+        sessionStorage.removeItem('sg_batch_pages');
+      }
 
       stopCameraStream();
       window.location.href = 'scan-preview.html';

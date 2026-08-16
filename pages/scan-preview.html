@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Scan Preview & Crop — StudyGen AI</title>
@@ -371,21 +372,41 @@
       let cropPoints = [];
       let draggingPointIndex = -1;
 
-      // Load batch pages array or single document blob from IndexedDB
-      const batchStr = sessionStorage.getItem('sg_batch_pages');
+      // Load batch pages: prefer dataURLs in sessionStorage, fallback to IndexedDB IDs
+      const batchStr   = sessionStorage.getItem('sg_batch_pages');
+      const batchIdStr = sessionStorage.getItem('sg_batch_page_ids');
+
       if (batchStr) {
+        // DataURLs available (≤10 images, within quota)
         try {
           pagesData = JSON.parse(batchStr);
         } catch {}
       }
 
+      if (pagesData.length === 0 && batchIdStr && window.LocalPdfDB) {
+        // Fallback: load all blobs from IndexedDB using stored IDs
+        try {
+          const ids = JSON.parse(batchIdStr);
+          for (const id of ids) {
+            const docRecord = await window.LocalPdfDB.getDocument(id);
+            if (docRecord && docRecord.blob) {
+              pagesData.push(URL.createObjectURL(docRecord.blob));
+            }
+          }
+        } catch (err) {
+          console.warn('Could not load pages from IndexedDB:', err.message);
+        }
+      }
+
+      // Load primary doc metadata (title + blob for export)
       const activeDocId = sessionStorage.getItem('sg_active_doc_id');
       if (activeDocId && window.LocalPdfDB) {
         try {
           const docRecord = await window.LocalPdfDB.getDocument(activeDocId);
           if (docRecord) {
             currentDocTitle = docRecord.documentTitle || 'Scanned_Document';
-            currentBlob = docRecord.blob;
+            currentBlob     = docRecord.blob;
+            // If still no pages loaded at all, show at least the first page
             if (pagesData.length === 0 && docRecord.blob) {
               pagesData = [URL.createObjectURL(docRecord.blob)];
             }

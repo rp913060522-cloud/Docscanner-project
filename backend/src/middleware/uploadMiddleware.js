@@ -22,14 +22,17 @@ const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/msword',
+  'application/octet-stream',   // Mobile browsers often send this for PDFs
   'image/jpeg',
   'image/png',
   'image/jpg',
   'image/webp',
+  'image/heic',                 // iPhone photos
+  'image/heif',
 ]);
 
-// Allowed file extensions as fallback sanity check
-const ALLOWED_EXTENSIONS = new Set(['.pdf', '.docx', '.doc', '.jpg', '.jpeg', '.png', '.webp']);
+// Allowed file extensions — PRIMARY check (mobile MIME types are unreliable)
+const ALLOWED_EXTENSIONS = new Set(['.pdf', '.docx', '.doc', '.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif']);
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -46,15 +49,21 @@ const storage = multer.diskStorage({
 
 function fileFilter(req, file, cb) {
   const mime = (file.mimetype || '').toLowerCase();
-  const ext = path.extname(file.originalname || '').toLowerCase();
+  const ext  = path.extname(file.originalname || '').toLowerCase();
 
-  if (ALLOWED_MIME_TYPES.has(mime) || ALLOWED_EXTENSIONS.has(ext)) {
+  // Extension is the primary check — mobile browsers send unreliable MIME types
+  if (ALLOWED_EXTENSIONS.has(ext)) {
+    return cb(null, true);
+  }
+
+  // Fallback: allow by MIME type if no extension
+  if (ALLOWED_MIME_TYPES.has(mime)) {
     return cb(null, true);
   }
 
   return cb(
     new AppError(
-      'Unsupported file type. Only PDF, DOCX, JPG, and PNG files are allowed.',
+      'Unsupported file type. Please upload a PDF, DOCX, JPG, or PNG file.',
       400,
       'UNSUPPORTED_FILE_TYPE'
     ),

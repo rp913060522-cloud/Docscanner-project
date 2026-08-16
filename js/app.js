@@ -269,6 +269,26 @@ const StudyGenApp = (() => {
       }
     },
 
+    pageExit(el, callback) {
+      if (!el) {
+        if (callback) callback();
+        return;
+      }
+      el.classList.add('page-exit');
+      const done = () => {
+        el.classList.remove('page-exit');
+        if (callback) callback();
+      };
+      // If CSS animation runs, wait for it; otherwise fire immediately
+      const style = window.getComputedStyle(el);
+      const dur = parseFloat(style.animationDuration || '0');
+      if (dur > 0) {
+        el.addEventListener('animationend', done, { once: true });
+      } else {
+        setTimeout(done, 180); // small fallback delay for feel
+      }
+    },
+
     createElement(tag, className, innerHTML = '') {
       const el = document.createElement(tag);
       if (className) el.className = className;

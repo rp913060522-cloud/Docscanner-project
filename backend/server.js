@@ -27,8 +27,14 @@ async function startServer() {
   // ── Step 3: Startup orphan purge (Cleanup Tier 3) ──────────────────────────
   purgeOrphansOnStartup();
 
-  // ── Step 4: Connect to MongoDB Atlas ───────────────────────────────────────
-  await connectDB();
+  // ── Step 4: Connect to MongoDB Atlas (non-fatal if fails) ───────────────────
+  try {
+    await connectDB();
+  } catch (dbErr) {
+    console.warn('⚠  MongoDB connection failed at startup — server will still start.');
+    console.warn('   AI features (mock fallback) will work. Auth/history may fail.');
+    console.warn('   Error:', dbErr.message);
+  }
 
   // ── Step 5: Start HTTP server ───────────────────────────────────────────────
   const server = app.listen(config.port, () => {
@@ -70,10 +76,10 @@ async function startServer() {
   process.on('SIGTERM', () => shutdown('SIGTERM'));
   process.on('SIGINT',  () => shutdown('SIGINT'));
 
-  // Catch unhandled promise rejections — log and exit
+  // Log unhandled rejections but do NOT crash the server — MongoDB reconnect
+  // events can occasionally trigger these in dev mode.
   process.on('unhandledRejection', (reason) => {
-    console.error('✗  Unhandled Rejection:', reason);
-    server.close(() => process.exit(1));
+    console.error('⚠  Unhandled Rejection (non-fatal in dev):', reason?.message || reason);
   });
 }
 
