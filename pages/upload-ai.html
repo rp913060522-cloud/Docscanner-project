@@ -143,6 +143,48 @@
       text-transform: uppercase;
       box-shadow: 0 2px 6px rgba(59,123,248,0.3);
     }
+
+    /* PDF Viewer Bottom Sheet */
+    .pdf-viewer-sheet {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+      animation: fadeIn 0.2s ease;
+    }
+    .pdf-viewer-sheet.open { display: flex; flex-direction: column; justify-content: flex-end; }
+    .pdf-viewer-panel {
+      background: var(--bg);
+      border-radius: 24px 24px 0 0;
+      padding: 0;
+      height: 88vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUp 0.28s cubic-bezier(0.34,1.2,0.64,1);
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .pdf-viewer-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .pdf-viewer-body {
+      flex: 1;
+      overflow: hidden;
+      background: #f0f0f0;
+    }
+    .pdf-viewer-body iframe,
+    .pdf-viewer-body img {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      object-fit: contain;
+    }
   </style>
 </head>
 <body>
@@ -185,21 +227,51 @@
       </div>
 
       <!-- Uploaded Document Success Card (Active State) -->
-      <div class="uploaded-card" id="uploadedDocCard">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:42px;height:42px;background:#fee2e2;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <span class="material-icons-round" style="color:#ef4444;font-size:24px;">picture_as_pdf</span>
-          </div>
-          <div style="overflow:hidden;">
-            <div id="uploadedFileName" style="font-size:14px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">Document.pdf</div>
-            <div style="font-size:12px;color:#16a34a;font-weight:600;display:flex;align-items:center;gap:4px;margin-top:2px;">
-              <span class="material-icons-round" style="font-size:14px;">check_circle</span> Uploaded & Ready ✨
+      <div class="uploaded-card" id="uploadedDocCard" style="flex-direction:column;align-items:stretch;gap:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+            <div style="width:42px;height:42px;background:#fee2e2;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span class="material-icons-round" style="color:#ef4444;font-size:24px;">picture_as_pdf</span>
+            </div>
+            <div style="overflow:hidden;min-width:0;">
+              <div id="uploadedFileName" style="font-size:14px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">Document.pdf</div>
+              <div style="font-size:12px;color:#16a34a;font-weight:600;display:flex;align-items:center;gap:4px;margin-top:2px;">
+                <span class="material-icons-round" style="font-size:14px;">check_circle</span> Uploaded &amp; Ready ✨
+              </div>
             </div>
           </div>
+          <button type="button" id="changeFileBtn" style="background:rgba(59,123,248,0.1);color:#3b7bf8;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">
+            Change
+          </button>
         </div>
-        <button type="button" id="changeFileBtn" style="background:rgba(59,123,248,0.1);color:#3b7bf8;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">
-          Change
+        <!-- View PDF Button -->
+        <button type="button" id="viewPdfBtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#3b7bf8,#7b52f4);color:white;border:none;border-radius:12px;padding:11px 16px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(59,123,248,0.25);">
+          <span class="material-icons-round" style="font-size:18px;">visibility</span>
+          View PDF / Document
         </button>
+      </div>
+
+      <!-- PDF Viewer Bottom Sheet -->
+      <div class="pdf-viewer-sheet" id="pdfViewerSheet">
+        <div class="pdf-viewer-panel">
+          <div class="pdf-viewer-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:32px;height:32px;background:#fee2e2;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                <span class="material-icons-round" style="color:#ef4444;font-size:18px;">picture_as_pdf</span>
+              </div>
+              <div>
+                <div id="pdfViewerTitle" style="font-size:13px;font-weight:700;color:var(--text-primary);">Document Preview</div>
+                <div style="font-size:11px;color:var(--text-secondary);">Pinch to zoom • Scroll to read</div>
+              </div>
+            </div>
+            <button id="closePdfViewer" style="width:34px;height:34px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+              <span class="material-icons-round" style="font-size:20px;color:var(--text-secondary);">close</span>
+            </button>
+          </div>
+          <div class="pdf-viewer-body">
+            <iframe id="pdfViewerFrame" src="" title="PDF Preview" allow="fullscreen"></iframe>
+          </div>
+        </div>
       </div>
 
       <!-- Section: What AI Will Do For You -->
@@ -287,6 +359,71 @@
       const statusBadge     = document.getElementById('aiToolStatusBadge');
 
       const tiles = document.querySelectorAll('.ai-action-tile');
+
+      // PDF Viewer
+      const viewPdfBtn      = document.getElementById('viewPdfBtn');
+      const pdfViewerSheet  = document.getElementById('pdfViewerSheet');
+      const pdfViewerFrame  = document.getElementById('pdfViewerFrame');
+      const pdfViewerTitle  = document.getElementById('pdfViewerTitle');
+      const closePdfViewer  = document.getElementById('closePdfViewer');
+      let currentObjectUrl  = null;
+
+      function openPdfViewer(file) {
+        if (!file || !pdfViewerSheet || !pdfViewerFrame) return;
+        // Revoke old URL to prevent memory leaks
+        if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+        currentObjectUrl = URL.createObjectURL(file);
+
+        if (pdfViewerTitle) pdfViewerTitle.textContent = file.name;
+
+        // Images → show in img tag; PDFs → show in iframe
+        if (file.type.startsWith('image/')) {
+          pdfViewerFrame.style.display = 'none';
+          let imgEl = pdfViewerFrame.parentElement.querySelector('img.pdf-preview-img');
+          if (!imgEl) {
+            imgEl = document.createElement('img');
+            imgEl.className = 'pdf-preview-img';
+            imgEl.alt = 'Document Preview';
+            pdfViewerFrame.parentElement.appendChild(imgEl);
+          }
+          imgEl.src = currentObjectUrl;
+          imgEl.style.display = 'block';
+        } else {
+          const imgEl = pdfViewerFrame.parentElement.querySelector('img.pdf-preview-img');
+          if (imgEl) imgEl.style.display = 'none';
+          pdfViewerFrame.style.display = 'block';
+          pdfViewerFrame.src = currentObjectUrl;
+        }
+
+        pdfViewerSheet.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closePdfViewerFn() {
+        if (pdfViewerSheet) pdfViewerSheet.classList.remove('open');
+        document.body.style.overflow = '';
+        if (pdfViewerFrame) pdfViewerFrame.src = '';
+        if (currentObjectUrl) { URL.revokeObjectURL(currentObjectUrl); currentObjectUrl = null; }
+      }
+
+      if (viewPdfBtn) {
+        viewPdfBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (currentUploadedFile) openPdfViewer(currentUploadedFile);
+          else StudyGenApp.toast.show('Please upload a file first!');
+        });
+      }
+
+      if (closePdfViewer) {
+        closePdfViewer.addEventListener('click', closePdfViewerFn);
+      }
+
+      // Close on backdrop tap
+      if (pdfViewerSheet) {
+        pdfViewerSheet.addEventListener('click', (e) => {
+          if (e.target === pdfViewerSheet) closePdfViewerFn();
+        });
+      }
 
       let currentUploadedFile = null;
 
