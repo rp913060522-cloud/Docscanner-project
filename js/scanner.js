@@ -207,14 +207,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Captures a frame from active live video camera feed
+  // Max resolution capped at 1920px wide to keep file sizes manageable
   async function captureVideoFrame() {
     if (!cameraVideo || !cameraVideo.videoWidth) return null;
+    const MAX_W = 1920;
+    const srcW  = cameraVideo.videoWidth;
+    const srcH  = cameraVideo.videoHeight;
+    const scale = srcW > MAX_W ? MAX_W / srcW : 1;
     const canvas = document.createElement('canvas');
-    canvas.width = cameraVideo.videoWidth;
-    canvas.height = cameraVideo.videoHeight;
+    canvas.width  = Math.round(srcW * scale);
+    canvas.height = Math.round(srcH * scale);
     const ctx = canvas.getContext('2d');
     ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
-    return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+    // 0.75 quality gives good visual quality at ~70% smaller file size
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.75));
   }
 
   // Handle Capture Button click — Continuous capture stays on camera view!
@@ -291,7 +297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ctx.fillStyle = '#333333';
         ctx.font = '20px Inter, sans-serif';
         ctx.fillText(`Scanned Document`, 50, 100);
-        const blob = await new Promise(resolve => dummyCanvas.toBlob(resolve, 'image/jpeg', 0.9));
+        const blob = await new Promise(resolve => dummyCanvas.toBlob(resolve, 'image/jpeg', 0.75));
         addCapturedPage(blob, false);
       }
       await finalizeDocumentAndNavigate();

@@ -63,57 +63,19 @@
         </a>
       </section>
 
-      <!-- Quick Access Grid Section -->
+      <!-- AI Study Start Button -->
       <section class="mb-xl">
-        <div class="section-header">
-          <h3 class="section-header__title">Quick Access</h3>
-        </div>
-        <div class="quick-grid">
-          
-          <a href="pdf-ai.html" class="quick-card">
-            <div class="quick-card__icon ic-pdf">
-              <span class="material-icons-round">picture_as_pdf</span>
+        <a href="upload-ai.html" style="display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#f0f4ff,#e8edff);border:1.5px solid rgba(59,123,248,0.2);border-radius:16px;padding:16px 20px;text-decoration:none;transition:transform 0.15s,box-shadow 0.15s;" id="aiStudyStartBtn">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#3b7bf8,#7b52f4);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span class="material-icons-round" style="color:white;font-size:20px;">auto_awesome</span>
             </div>
-            <span class="quick-card__label">PDF AI</span>
-          </a>
-
-          <a href="ai-study.html" class="quick-card">
-            <div class="quick-card__icon ic-notes">
-              <span class="material-icons-round">description</span>
-            </div>
-            <span class="quick-card__label">AI Notes</span>
-          </a>
-
-          <a href="ai-learning.html" class="quick-card">
-            <div class="quick-card__icon ic-quiz">
-              <span class="material-icons-round">quiz</span>
-            </div>
-            <span class="quick-card__label">Quiz</span>
-          </a>
-
-          <a href="ai-learning.html" class="quick-card">
-            <div class="quick-card__icon ic-flash">
-              <span class="material-icons-round">style</span>
-            </div>
-            <span class="quick-card__label">Flash Cards</span>
-          </a>
-
-          <a href="ai-learning.html" class="quick-card">
-            <div class="quick-card__icon ic-chat">
-              <span class="material-icons-round">forum</span>
-            </div>
-            <span class="quick-card__label">AI Chat</span>
-          </a>
-
-          <a href="ai-learning.html" class="quick-card">
-            <div class="quick-card__icon" style="background:rgba(123,82,244,0.1);color:var(--secondary);">
-              <span class="material-icons-round">more_horiz</span>
-            </div>
-            <span class="quick-card__label">More</span>
-          </a>
-
-        </div>
+            <span style="font-size:15px;font-weight:600;color:#1a1a2e;">Let's start your study with AI</span>
+          </div>
+          <span class="material-icons-round" style="color:#3b7bf8;font-size:22px;">arrow_forward_ios</span>
+        </a>
       </section>
+
 
       <!-- Recent Activity Section -->
       <section class="mb-xl">
@@ -122,29 +84,14 @@
           <a href="history.html" class="section-header__link">See All</a>
         </div>
         <div class="flex-col gap-sm" id="recentActivityList">
-          <!-- Dynamically populated by JS or rendered below -->
-          <a href="ai-study.html" class="list-item">
-            <div class="icon-container ic-notes">
-              <span class="material-icons-round">description</span>
-            </div>
-            <div class="list-item__content">
-              <div class="list-item__title">Biology Ch.4 Summary</div>
-              <div class="list-item__subtitle">Today, 2:16 PM</div>
-            </div>
-            <span class="material-icons-round list-item__trailing">chevron_right</span>
-          </a>
-
-          <a href="ai-learning.html" class="list-item">
-            <div class="icon-container ic-flash">
-              <span class="material-icons-round">style</span>
-            </div>
-            <div class="list-item__content">
-              <div class="list-item__title">European History Flashcards</div>
-              <div class="list-item__subtitle">Yesterday, 10:30 AM</div>
-            </div>
-            <span class="material-icons-round list-item__trailing">chevron_right</span>
-          </a>
+          <!-- Skeleton loading state -->
+          <div id="recentActivitySkeleton" style="display:flex;flex-direction:column;gap:10px;">
+            <div style="height:60px;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:12px;animation:shimmer 1.4s infinite;"></div>
+            <div style="height:60px;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:12px;animation:shimmer 1.4s infinite 0.2s;"></div>
+          </div>
+          <!-- Dynamic items injected by JS -->
         </div>
+        <style>@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}</style>
       </section>
 
       <!-- Premium Upgrade Banner -->
@@ -172,8 +119,71 @@
   <script src="../js/app.js"></script>
   <script src="../js/navigation.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       StudyGenNav.init({ activePage: 'home', requireAuth: false });
+
+      // ── Real-Time Recent Activity Loader ──────────────────────────────────
+      const activityList     = document.getElementById('recentActivityList');
+      const skeletonEl       = document.getElementById('recentActivitySkeleton');
+
+      function iconForItem(item) {
+        if (item.noteId)      return { icon: 'description', cls: 'ic-notes',  href: 'ai-study.html'        };
+        if (item.quizId)      return { icon: 'quiz',        cls: 'ic-quiz',   href: 'ai-learning.html?tab=quiz'  };
+        if (item.flashcardId) return { icon: 'style',       cls: 'ic-flash',  href: 'ai-learning.html?tab=flash' };
+        if (item.chatId)      return { icon: 'forum',       cls: 'ic-notes',  href: 'ai-learning.html?tab=chat'  };
+        return                       { icon: 'picture_as_pdf', cls: 'ic-pdf', href: 'pdf-ai.html'           };
+      }
+
+      function relTime(iso) {
+        if (!iso) return '';
+        const diff = Date.now() - new Date(iso).getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1)   return 'Just now';
+        if (mins < 60)  return `${mins} min ago`;
+        const hrs = Math.floor(mins / 60);
+        if (hrs < 24)   return `${hrs} hr ago`;
+        const days = Math.floor(hrs / 24);
+        if (days === 1) return 'Yesterday';
+        return `${days} days ago`;
+      }
+
+      try {
+        const res = await window.ApiClient.get('/history');
+        const items = (res && res.success && res.data && res.data.history) ? res.data.history.slice(0, 3) : [];
+
+        if (skeletonEl) skeletonEl.remove();
+
+        if (items.length === 0) {
+          activityList.innerHTML = `
+            <div style="text-align:center;padding:24px 0;color:var(--text-secondary);">
+              <span class="material-icons-round" style="font-size:36px;opacity:0.3;display:block;margin-bottom:8px;">history</span>
+              <span style="font-size:13px;">No recent activity yet.<br/>Start scanning or upload a document!</span>
+            </div>`;
+        } else {
+          activityList.innerHTML = items.map(item => {
+            const { icon, cls, href } = iconForItem(item);
+            const title = item.documentTitle || item.title || 'Untitled Document';
+            const time  = relTime(item.lastAccessedAt || item.updatedAt || item.createdAt);
+            return `
+              <a href="${href}" class="list-item">
+                <div class="icon-container ${cls}">
+                  <span class="material-icons-round">${icon}</span>
+                </div>
+                <div class="list-item__content">
+                  <div class="list-item__title">${title}</div>
+                  <div class="list-item__subtitle">${time}</div>
+                </div>
+                <span class="material-icons-round list-item__trailing">chevron_right</span>
+              </a>`;
+          }).join('');
+        }
+      } catch (err) {
+        if (skeletonEl) skeletonEl.remove();
+        activityList.innerHTML = `
+          <div style="text-align:center;padding:16px 0;color:var(--text-secondary);font-size:13px;">
+            Could not load recent activity.
+          </div>`;
+      }
     });
   </script>
 </body>

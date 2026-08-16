@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Start Study with AI — StudyGen AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+  <style>
+    .upload-hero {
+      background: linear-gradient(135deg, #3b7bf8 0%, #7b52f4 100%);
+      border-radius: 20px;
+      padding: 24px 20px;
+      margin-bottom: 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .upload-hero::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 120px; height: 120px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 50%;
+    }
+    .upload-hero__icon {
+      width: 56px; height: 56px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+      backdrop-filter: blur(8px);
+    }
+    .upload-drop-zone {
+      border: 2px dashed rgba(59,123,248,0.35);
+      border-radius: 16px;
+      background: linear-gradient(135deg, #f8faff, #f0f4ff);
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 20px;
+    }
+    .upload-drop-zone:hover,
+    .upload-drop-zone.drag-over {
+      border-color: #3b7bf8;
+      background: linear-gradient(135deg, #eef2ff, #e8edff);
+    }
+    .upload-drop-zone__icon {
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, rgba(59,123,248,0.12), rgba(123,82,244,0.12));
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+    }
+    
+    /* Uploaded document card */
+    .uploaded-card {
+      background: linear-gradient(135deg, #f0f7ff, #e8f2ff);
+      border: 1.5px solid #3b7bf8;
+      border-radius: 16px;
+      padding: 16px 18px;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .ai-action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .ai-action-tile {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 14px;
+      text-align: center;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, opacity 0.2s;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      position: relative;
+    }
+    
+    /* Locked state before file upload */
+    .ai-action-tile.disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      background: rgba(245,247,250,0.7);
+    }
+
+    .ai-action-tile.active-ready {
+      opacity: 1 !important;
+      cursor: pointer !important;
+      border-color: #3b7bf8 !important;
+      box-shadow: 0 4px 16px rgba(59,123,248,0.15) !important;
+    }
+
+    .ai-action-tile.active-ready:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(59,123,248,0.25) !important;
+    }
+
+    .ai-action-tile__icon {
+      width: 46px; height: 46px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+
+    .ai-action-tile__label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .ai-action-tile__desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.35;
+    }
+
+    .unlock-badge {
+      position: absolute;
+      top: -8px; right: -6px;
+      background: #3b7bf8;
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+      display: none;
+      text-transform: uppercase;
+      box-shadow: 0 2px 6px rgba(59,123,248,0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="screen screen--with-bar" style="padding-bottom:30px;">
+
+    <!-- Top App Bar -->
+    <header class="app-bar">
+      <button class="app-bar__back" onclick="history.back()" aria-label="Back">
+        <span class="material-icons-round">arrow_back_ios_new</span>
+      </button>
+      <span class="app-bar__center">Start Study with AI</span>
+      <div class="app-bar__actions">
+        <div class="app-bar__avatar avatar-placeholder" id="avatarBtn" style="width:34px;height:34px;font-size:13px;">SG</div>
+      </div>
+    </header>
+
+    <main class="page-scroll page-scroll--no-nav">
+
+      <!-- Hero Banner -->
+      <div class="upload-hero">
+        <div class="upload-hero__icon">
+          <span class="material-icons-round" style="color:white;font-size:30px;">auto_awesome</span>
+        </div>
+        <h2 style="color:white;font-size:19px;font-weight:700;margin:0 0 6px;">Study Smarter with AI</h2>
+        <p style="color:rgba(255,255,255,0.85);font-size:12px;margin:0;line-height:1.5;">Upload your PDF or document, then choose an AI feature below to start learning.</p>
+      </div>
+
+      <!-- Upload Drop Zone (Initial State) -->
+      <div class="upload-drop-zone" id="pdfDropZone">
+        <input type="file" id="pdfFileInput" accept="application/pdf,image/*,.pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" style="display:none;" multiple />
+        <div class="upload-drop-zone__icon">
+          <span class="material-icons-round" style="color:#3b7bf8;font-size:26px;">upload_file</span>
+        </div>
+        <p style="font-size:15px;font-weight:700;color:var(--text-primary);margin:0 0 4px;">Upload PDF or Document</p>
+        <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px;line-height:1.4;">Tap to browse or drop file here<br/>PDF, JPG, PNG, DOC supported</p>
+        <button type="button" class="btn btn-primary btn-sm" id="browsePdfBtn" style="width:auto;margin:0 auto;padding:10px 22px;font-size:13px;">
+          <span class="material-icons-round">folder_open</span>
+          <span>Browse File</span>
+        </button>
+      </div>
+
+      <!-- Uploaded Document Success Card (Active State) -->
+      <div class="uploaded-card" id="uploadedDocCard">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:42px;height:42px;background:#fee2e2;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span class="material-icons-round" style="color:#ef4444;font-size:24px;">picture_as_pdf</span>
+          </div>
+          <div style="overflow:hidden;">
+            <div id="uploadedFileName" style="font-size:14px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">Document.pdf</div>
+            <div style="font-size:12px;color:#16a34a;font-weight:600;display:flex;align-items:center;gap:4px;margin-top:2px;">
+              <span class="material-icons-round" style="font-size:14px;">check_circle</span> Uploaded & Ready ✨
+            </div>
+          </div>
+        </div>
+        <button type="button" id="changeFileBtn" style="background:rgba(59,123,248,0.1);color:#3b7bf8;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">
+          Change
+        </button>
+      </div>
+
+      <!-- Section: What AI Will Do For You -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <p style="font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:0.5px;text-transform:uppercase;margin:0;">What AI Will Do For You</p>
+          <span id="aiToolStatusBadge" style="font-size:11px;color:#f59e0b;font-weight:600;">(Upload file to unlock)</span>
+        </div>
+        
+        <div class="ai-action-row">
+          
+          <!-- Tile 1: AI Summary -->
+          <div class="ai-action-tile disabled" id="tileSummary" data-action="summary">
+            <span class="unlock-badge">READY</span>
+            <div class="ai-action-tile__icon" style="background:rgba(59,123,248,0.12);">
+              <span class="material-icons-round" style="color:#3b7bf8;">short_text</span>
+            </div>
+            <span class="ai-action-tile__label">AI Summary</span>
+            <span class="ai-action-tile__desc">Quick overview of key concepts</span>
+          </div>
+
+          <!-- Tile 2: Study Notes -->
+          <div class="ai-action-tile disabled" id="tileNotes" data-action="notes">
+            <span class="unlock-badge">READY</span>
+            <div class="ai-action-tile__icon" style="background:rgba(34,197,94,0.12);">
+              <span class="material-icons-round" style="color:#16a34a;">description</span>
+            </div>
+            <span class="ai-action-tile__label">Study Notes</span>
+            <span class="ai-action-tile__desc">Detailed structured notes</span>
+          </div>
+
+          <!-- Tile 3: Quiz -->
+          <div class="ai-action-tile disabled" id="tileQuiz" data-action="quiz">
+            <span class="unlock-badge">READY</span>
+            <div class="ai-action-tile__icon" style="background:rgba(245,158,11,0.12);">
+              <span class="material-icons-round" style="color:#d97706;">quiz</span>
+            </div>
+            <span class="ai-action-tile__label">Quiz</span>
+            <span class="ai-action-tile__desc">Test your understanding</span>
+          </div>
+
+          <!-- Tile 4: Flashcards -->
+          <div class="ai-action-tile disabled" id="tileFlash" data-action="flash">
+            <span class="unlock-badge">READY</span>
+            <div class="ai-action-tile__icon" style="background:rgba(123,82,244,0.12);">
+              <span class="material-icons-round" style="color:#7b52f4;">style</span>
+            </div>
+            <span class="ai-action-tile__label">Flashcards</span>
+            <span class="ai-action-tile__desc">Quick revision cards</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Upload Progress Overlay (hidden by default) -->
+      <div id="uploadProgressSection" style="display:none;background:var(--bg);border:1.5px solid #3b7bf8;border-radius:16px;padding:24px 20px;text-align:center;margin-bottom:20px;">
+        <div class="spinner" style="width:38px;height:38px;border:3px solid #e2e8f0;border-top-color:#3b7bf8;border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 14px;"></div>
+        <p id="uploadProgressText" style="font-size:15px;font-weight:700;color:var(--text-primary);margin:0 0 6px;">AI is generating your content...</p>
+        <p style="font-size:12px;color:var(--text-secondary);margin:0;">Reading document details. Please wait standard 2-3 seconds.</p>
+      </div>
+
+      <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+      </style>
+
+    </main>
+  </div>
+
+  <script src="../js/apiClient.js"></script>
+  <script src="../js/db.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      StudyGenNav.init({ activePage: '', showNav: false, requireAuth: false });
+
+      const dropZone        = document.getElementById('pdfDropZone');
+      const uploadedCard    = document.getElementById('uploadedDocCard');
+      const uploadedFileName= document.getElementById('uploadedFileName');
+      const changeFileBtn   = document.getElementById('changeFileBtn');
+      const fileInput       = document.getElementById('pdfFileInput');
+      const browseBtn       = document.getElementById('browsePdfBtn');
+      const progressSec     = document.getElementById('uploadProgressSection');
+      const progressText    = document.getElementById('uploadProgressText');
+      const statusBadge     = document.getElementById('aiToolStatusBadge');
+
+      const tiles = document.querySelectorAll('.ai-action-tile');
+
+      let currentUploadedFile = null;
+
+      // Handle Browse button click
+      if (browseBtn) {
+        browseBtn.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (fileInput) fileInput.click();
+        });
+      }
+
+      // Handle DropZone click
+      if (dropZone) {
+        dropZone.addEventListener('click', () => {
+          if (fileInput) fileInput.click();
+        });
+
+        ['dragenter','dragover'].forEach(ev => {
+          dropZone.addEventListener(ev, e => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+          });
+        });
+
+        ['dragleave','drop'].forEach(ev => {
+          dropZone.addEventListener(ev, e => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+          });
+        });
+
+        dropZone.addEventListener('drop', e => {
+          const f = e.dataTransfer.files[0];
+          if (f) selectFile(f);
+        });
+      }
+
+      if (changeFileBtn) {
+        changeFileBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          if (fileInput) fileInput.click();
+        });
+      }
+
+      if (fileInput) {
+        fileInput.addEventListener('click', () => { fileInput.value = ''; });
+        fileInput.addEventListener('change', (e) => {
+          const files = e.target.files;
+          if (files && files.length > 0) {
+            selectFile(files[0]);
+          }
+        });
+      }
+
+      // ── Select & Register File ─────────────────────────────────────────────
+      async function selectFile(file) {
+        if (!file) return;
+
+        const MAX_SIZE = 25 * 1024 * 1024;
+        if (file.size > MAX_SIZE) {
+          StudyGenApp.toast.show('File is too large. Maximum size is 25 MB.');
+          return;
+        }
+
+        currentUploadedFile = file;
+        const docTitle = file.name.replace(/\.[^/.]+$/, '');
+        const localPdfId = window.LocalPdfDB ? window.LocalPdfDB.generateLocalPdfId() : `doc_${Date.now()}`;
+
+        // Save to IndexedDB locally
+        if (window.LocalPdfDB) {
+          try {
+            const saved = await window.LocalPdfDB.saveDocument({
+              localPdfId,
+              documentTitle: docTitle,
+              filename: file.name,
+              mimeType: file.type || 'application/pdf',
+              blob: file,
+            });
+            sessionStorage.setItem('sg_active_doc_id', saved.localPdfId);
+            sessionStorage.setItem('sg_active_doc_title', saved.documentTitle);
+          } catch (err) {
+            sessionStorage.setItem('sg_active_doc_id', localPdfId);
+            sessionStorage.setItem('sg_active_doc_title', docTitle);
+          }
+        } else {
+          sessionStorage.setItem('sg_active_doc_id', localPdfId);
+          sessionStorage.setItem('sg_active_doc_title', docTitle);
+        }
+
+        // Show Uploaded Document Success Card
+        if (uploadedFileName) uploadedFileName.textContent = file.name;
+        if (dropZone) dropZone.style.display = 'none';
+        if (uploadedCard) uploadedCard.style.display = 'flex';
+
+        // ENABLE the 4 AI Action Tiles!
+        enableAiTiles();
+
+        StudyGenApp.toast.show('Document uploaded! Select an AI tool below to start ✨');
+      }
+
+      // ── Enable AI Action Tiles ──────────────────────────────────────────────
+      function enableAiTiles() {
+        if (statusBadge) {
+          statusBadge.textContent = '● AI Tools Unlocked ✨';
+          statusBadge.style.color = '#16a34a';
+        }
+
+        tiles.forEach(tile => {
+          tile.classList.remove('disabled');
+          tile.classList.add('active-ready');
+          const badge = tile.querySelector('.unlock-badge');
+          if (badge) badge.style.display = 'block';
+        });
+      }
+
+      // ── Handle AI Action Tile Clicks ───────────────────────────────────────
+      tiles.forEach(tile => {
+        tile.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const actionType = tile.getAttribute('data-action');
+
+          if (!currentUploadedFile) {
+            StudyGenApp.toast.show('Please upload a PDF or Document first! 📄');
+            if (fileInput) fileInput.click();
+            return;
+          }
+
+          runAiAction(actionType, currentUploadedFile);
+        });
+      });
+
+      // ── Run AI Action on Selected File ─────────────────────────────────────
+      async function runAiAction(actionType, file) {
+        if (progressSec) progressSec.style.display = 'block';
+        if (uploadedCard) uploadedCard.style.display = 'none';
+
+        const actionNames = {
+          summary: 'Analyzing & Generating AI Summary...',
+          notes:   'Reading PDF & Creating Study Notes...',
+          quiz:    'Reading PDF & Building Quiz Questions...',
+          flash:   'Reading PDF & Crafting Flashcards...'
+        };
+
+        if (progressText) progressText.textContent = actionNames[actionType] || 'AI is communicating with server...';
+
+        const localPdfId = sessionStorage.getItem('sg_active_doc_id') || `doc_${Date.now()}`;
+        const docTitle   = file.name.replace(/\.[^/.]+$/, '');
+
+        try {
+          const formData = new FormData();
+          formData.append('file', file, file.name);
+
+          // Route to exact backend AI endpoint
+          let endpoint = '/ai/study-notes';
+          if (actionType === 'summary') endpoint = '/ai/summary';
+          if (actionType === 'notes')   endpoint = '/ai/study-notes';
+          if (actionType === 'quiz')    endpoint = '/ai/quiz';
+          if (actionType === 'flash')   endpoint = '/ai/flashcards';
+
+          StudyGenApp.toast.show(`Uploading "${file.name}" to AI server... 📡`, 3000);
+          const res = await window.ApiClient.uploadFile(endpoint, formData);
+
+          if (res && res.success && res.data) {
+            sessionStorage.setItem('sg_study_output', JSON.stringify({
+              localPdfId,
+              documentTitle: docTitle,
+              actionType,
+              ...res.data,
+            }));
+
+            StudyGenApp.toast.show('AI Response Received! Opening... ✨');
+            setTimeout(() => {
+              if (actionType === 'quiz') {
+                window.location.href = 'ai-learning.html?tab=quiz';
+              } else if (actionType === 'flash') {
+                window.location.href = 'ai-learning.html?tab=flash';
+              } else {
+                window.location.href = 'ai-study.html';
+              }
+            }, 300);
+            return;
+          }
+        } catch (apiErr) {
+          console.warn('AI Processing Notice:', apiErr.message);
+          StudyGenApp.toast.show(`AI Notice: ${apiErr.message || 'Opening Workspace...'}`);
+        }
+
+        // Fallback Navigation if AI server is offline or mock mode
+        setTimeout(() => {
+          if (actionType === 'quiz') {
+            window.location.href = 'ai-learning.html?tab=quiz';
+          } else if (actionType === 'flash') {
+            window.location.href = 'ai-learning.html?tab=flash';
+          } else {
+            window.location.href = 'ai-study.html';
+          }
+        }, 300);
+      }
+    });
+  </script>
+</body>
+</html>

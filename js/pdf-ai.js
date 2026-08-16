@@ -56,6 +56,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
       scannedPdfPagesContainer.appendChild(pageFrame);
     });
+  } else {
+    // Fallback: Check if active document exists in IndexedDB
+    const activeDocId = sessionStorage.getItem('sg_active_doc_id');
+    if (activeDocId && window.LocalPdfDB && scannedPdfCard) {
+      scannedPdfCard.style.display = 'block';
+      window.LocalPdfDB.getDocument(activeDocId).then(docRecord => {
+        if (docRecord) {
+          const docTitle = docRecord.documentTitle || sessionStorage.getItem('sg_active_doc_title') || 'Document.pdf';
+          if (scannedPdfTitle) scannedPdfTitle.textContent = docTitle.endsWith('.pdf') ? docTitle : `${docTitle}.pdf`;
+          if (scannedPdfMeta) scannedPdfMeta.textContent = `${docRecord.filename || 'PDF Document'} • Ready`;
+
+          if (scannedPdfPagesContainer) {
+            scannedPdfPagesContainer.innerHTML = '';
+            const frame = document.createElement('div');
+            frame.className = 'pdf-page-frame';
+            frame.style.padding = '24px';
+            frame.style.textAlign = 'center';
+            frame.style.background = '#0f0f18';
+            frame.style.color = 'white';
+            const sizeMb = docRecord.blob ? (docRecord.blob.size / (1024 * 1024)).toFixed(2) : '1.5';
+            frame.innerHTML = `
+              <span class="material-icons-round" style="font-size:64px;color:#ef4444;margin-bottom:12px;display:block;">picture_as_pdf</span>
+              <div style="font-size:15px;font-weight:600;margin-bottom:6px;">${docTitle}</div>
+              <div style="font-size:12px;color:#94a3b8;">${sizeMb} MB PDF Document</div>
+            `;
+            scannedPdfPagesContainer.appendChild(frame);
+          }
+        }
+      }).catch(err => console.warn('Could not load record from LocalPdfDB:', err));
+    }
   }
 
   // Real Multi-Page PDF Compiler & Local Device File Saver
@@ -79,10 +109,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let i = 0; i < pagesData.length; i++) {
           if (i > 0) doc.addPage();
+
+          // Load the original image
           const img = new Image();
           img.src = pagesData[i];
-          await new Promise(resolve => img.onload = resolve);
+          await new Promise(resolve => { img.onload = resolve; });
 
+          // Calculate fit dimensions for A4 page
           const imgRatio = img.height / img.width;
           let printWidth = pdfWidth;
           let printHeight = pdfWidth * imgRatio;
@@ -93,7 +126,19 @@ document.addEventListener('DOMContentLoaded', () => {
           const xOffset = (pdfWidth - printWidth) / 2;
           const yOffset = (pdfHeight - printHeight) / 2;
 
-          doc.addImage(pagesData[i], 'JPEG', xOffset, yOffset, printWidth, printHeight);
+          // Re-draw onto a compressed canvas (A4 px @ 96dpi) to reduce file size
+          // A4 at 96dpi = 794×1123px — much smaller than full camera resolution
+          const A4_W = Math.round(printWidth);
+          const A4_H = Math.round(printHeight);
+          const offCanvas = document.createElement('canvas');
+          offCanvas.width  = A4_W;
+          offCanvas.height = A4_H;
+          const offCtx = offCanvas.getContext('2d');
+          offCtx.drawImage(img, 0, 0, A4_W, A4_H);
+          // 0.72 quality = sharp enough for reading, ~80% smaller than raw
+          const compressedDataUrl = offCanvas.toDataURL('image/jpeg', 0.72);
+
+          doc.addImage(compressedDataUrl, 'JPEG', xOffset, yOffset, printWidth, printHeight);
         }
 
         doc.save(filename);
