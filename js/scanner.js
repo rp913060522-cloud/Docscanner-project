@@ -261,6 +261,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Handle Mobile Gallery Selection (Both galleryBtn and galleryThumb)
   function triggerGalleryPicker() {
     if (galleryInput) {
+      galleryInput.value = '';
       galleryInput.click();
     } else {
       StudyGenApp.toast.show('Gallery picker unavailable on this browser.');

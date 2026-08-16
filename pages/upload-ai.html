@@ -471,20 +471,16 @@
             return;
           }
         } catch (apiErr) {
-          console.warn('AI Processing Notice:', apiErr.message);
-          StudyGenApp.toast.show(`AI Notice: ${apiErr.message || 'Opening Workspace...'}`);
-        }
+          console.warn('AI API Error:', apiErr.message);
 
-        // Fallback Navigation if AI server is offline or mock mode
-        setTimeout(() => {
-          if (actionType === 'quiz') {
-            window.location.href = 'ai-learning.html?tab=quiz';
-          } else if (actionType === 'flash') {
-            window.location.href = 'ai-learning.html?tab=flash';
-          } else {
-            window.location.href = 'ai-study.html';
-          }
-        }, 300);
+          // Show error state — do NOT silently navigate
+          if (progressSec) progressSec.style.display = 'none';
+          if (uploadedCard) uploadedCard.style.display = 'flex';
+
+          const errMsg = apiErr.message || 'AI server error';
+          StudyGenApp.toast.show(`⚠️ AI Error: ${errMsg}. Please try again.`, 5000);
+          return;
+        }
       }
     });
   </script>

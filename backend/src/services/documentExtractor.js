@@ -34,27 +34,35 @@ async function extractDocumentContent(filePath, mimeType) {
       const data = await pdfParse(fileBuffer);
       const text = (data.text || '').trim();
 
-      if (!text || text.length === 0) {
-        throw new AppError(
-          'Document contains no readable text or is a scanned image PDF.',
-          400,
-          'EXTRACTION_FAILED'
-        );
+      // If PDF has readable text, return it directly
+      if (text && text.length > 20) {
+        return {
+          text,
+          isImage: false,
+          numPages: data.numpages,
+          mimeType: 'application/pdf',
+        };
       }
 
+      // Scanned/image-only PDF: pass as image buffer for Gemini Vision
+      // Gemini accepts PDF bytes directly as application/pdf inline data
+      console.log('ℹ️  Scanned PDF detected — sending as Vision image to Gemini...');
       return {
-        text,
-        isImage: false,
-        numPages: data.numpages,
+        text: '',
+        isImage: true,
+        buffer: fileBuffer,
         mimeType: 'application/pdf',
       };
     } catch (err) {
       if (err instanceof AppError) throw err;
-      throw new AppError(
-        `Failed to parse PDF document: ${err.message}`,
-        400,
-        'EXTRACTION_FAILED'
-      );
+      // If pdf-parse itself fails, still try to send raw bytes to Gemini
+      console.warn('⚠️  pdf-parse failed, attempting Vision fallback:', err.message);
+      return {
+        text: '',
+        isImage: true,
+        buffer: fileBuffer,
+        mimeType: 'application/pdf',
+      };
     }
   }
 

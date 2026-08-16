@@ -44,6 +44,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  // Handle URL query parameter tab auto-selection (?tab=quiz, ?tab=flash, ?tab=chat)
+  const urlTab = new URLSearchParams(window.location.search).get('tab');
+  if (urlTab === 'quiz') showTab('quiz');
+  else if (urlTab === 'flash' || urlTab === 'flashcards') showTab('flashcards');
+  else if (urlTab === 'chat') showTab('chat');
+
   document.getElementById('featQuizBtn')?.addEventListener('click', () => showTab('quiz'));
   document.getElementById('featFlashBtn')?.addEventListener('click', () => showTab('flashcards'));
   document.getElementById('featChatBtn')?.addEventListener('click', () => showTab('chat'));
@@ -68,11 +74,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('featAskBtn')?.addEventListener('click', () => showTab('chat'));
   document.getElementById('featHomeworkBtn')?.addEventListener('click', () => StudyGenApp.toast.show('Homework help assistant activated! 📚'));
 
+  // ── Parse AI output from upload-ai.html if present ────────────────────────
+  const storedOutputStr = sessionStorage.getItem('sg_study_output');
+  let dynamicQuizQuestions = null;
+  let dynamicFlashcards = null;
+
+  if (storedOutputStr) {
+    try {
+      const parsedOutput = JSON.parse(storedOutputStr);
+      if (parsedOutput.questions && Array.isArray(parsedOutput.questions) && parsedOutput.questions.length > 0) {
+        dynamicQuizQuestions = parsedOutput.questions;
+      }
+      if (parsedOutput.cards && Array.isArray(parsedOutput.cards) && parsedOutput.cards.length > 0) {
+        dynamicFlashcards = parsedOutput.cards;
+      }
+    } catch (e) {
+      console.warn('sg_study_output parse warning:', e.message);
+    }
+  }
+
   // ── 2. QUIZ GAME LOGIC (POST /api/ai/quiz & POST /api/quizzes) ────────────
   let currentQuizIdx = 0;
-  let quizQuestions = [
-    { question: 'What is the powerhouse of the cell?', options: ['Nucleus', 'Mitochondria', 'Ribosome', 'Golgi Apparatus'], correctIndex: 1, explanation: 'Mitochondria generate ATP.' },
-    { question: 'What is the formula for water?', options: ['H2O2', 'CO2', 'H2O', 'HCl'], correctIndex: 2, explanation: 'Water is H2O.' },
+  let quizQuestions = dynamicQuizQuestions || [
+    { question: 'What is the primary concept covered in this document?', options: ['Core Theory', 'Historical Context', 'Practical Method', 'General Overview'], correctIndex: 0, explanation: 'The document outlines core foundational concepts.' },
+    { question: 'What is the main takeaway from Section 1?', options: ['Key Definitions', 'Experimental Data', 'Formula Derivation', 'Practice Exercises'], correctIndex: 0, explanation: 'Section 1 introduces fundamental definitions.' },
+    { question: 'What is the recommended application of the principles?', options: ['Practical Exercises', 'Further Research', 'Reviewing Formulae', 'Self-Assessment'], correctIndex: 0, explanation: 'Practical application reinforces theoretical learning.' },
   ];
   let userScore = 0;
 
@@ -156,9 +182,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── 3. FLASHCARD LOGIC (POST /api/ai/flashcards & POST /api/flashcards) ────
   let currentCardIdx = 0;
-  let flashcards = [
-    { front: 'What is ATP?', back: 'Adenosine Triphosphate — cellular energy currency.' },
-    { front: 'What is photosynthesis?', back: 'Conversion of sunlight and CO2 into glucose and O2.' },
+  let flashcards = dynamicFlashcards || [
+    { front: 'Primary Subject', back: 'Core document concepts and fundamental definitions.' },
+    { front: 'Key Metric', back: 'Quantifiable measures and performance indicators.' },
+    { front: 'Central Principle', back: 'The governing rule or foundational law described in the material.' },
   ];
 
   const cardElement   = document.getElementById('flashcardElement');

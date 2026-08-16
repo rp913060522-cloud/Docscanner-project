@@ -57,7 +57,7 @@ const config = {
 
   // Gemini AI
   geminiApiKey: process.env.GEMINI_API_KEY,
-  geminiModel: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+  geminiModel: process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite',
 
   // File upload limits
   maxUploadSizeBytes: parseInt(process.env.MAX_UPLOAD_SIZE_BYTES, 10) || 26214400, // 25 MB

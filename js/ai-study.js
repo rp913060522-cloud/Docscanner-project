@@ -49,6 +49,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
   }
 
+  // Track whether we have real AI data or are showing demo fallback
+  const hasRealData = Boolean(storedStr && studyData && studyData.shortNotes);
+
+  // Populate document title in page header from AI data or sessionStorage
+  const docTitleEl = document.getElementById('docTitle');
+  if (docTitleEl) {
+    docTitleEl.textContent = studyData.documentTitle || sessionStorage.getItem('sg_active_doc_title') || 'Study Notes';
+  }
+
+  // Show demo banner if no real AI output was loaded
+  const analysisSection = document.querySelector('.card.card-surface');
+  if (analysisSection && !hasRealData) {
+    analysisSection.innerHTML = `
+      <div style="text-align:center;padding:8px 0;">
+        <div style="width:52px;height:52px;background:rgba(245,158,11,0.12);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
+          <span class="material-icons-round" style="color:#d97706;font-size:28px;">info</span>
+        </div>
+        <h3 style="color:var(--text-primary);font-size:15px;font-weight:700;margin:0 0 6px;">Demo Mode</h3>
+        <p style="color:var(--text-secondary);font-size:12px;margin:0 0 14px;line-height:1.5;">No AI output loaded. Showing example content.<br>Upload a document to get real AI study notes.</p>
+        <a href="upload-ai.html" style="display:inline-flex;align-items:center;gap:6px;background:#3b7bf8;color:white;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;text-decoration:none;">
+          <span class="material-icons-round" style="font-size:18px;">upload_file</span>
+          Upload Document
+        </a>
+      </div>
+    `;
+  }
+
   // UI Element bindings
   const displayArea  = document.getElementById('materialDisplayArea');
   const displayTitle = document.getElementById('displayTitle');

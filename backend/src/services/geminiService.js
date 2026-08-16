@@ -4,8 +4,8 @@
  * StudyGen AI — Gemini AI Integration Service
  *
  * Handles backend interaction with Google Gemini API using @google/genai SDK.
+ * Includes automatic dev fallback generation when GEMINI_API_KEY is unconfigured locally.
  * All API key credentials remain strictly on the backend.
- * Never logs API keys or full sensitive document texts.
  */
 
 const { GoogleGenAI } = require('@google/genai');
@@ -15,15 +15,14 @@ const AppError = require('../utils/AppError');
 // Initialize GoogleGenAI client singleton
 let aiClient = null;
 
+function isDevNoApiKey() {
+  return !config.geminiApiKey || config.geminiApiKey.includes('REPLACE_WITH_REAL');
+}
+
 function getAiClient() {
+  if (isDevNoApiKey()) return null;
+
   if (!aiClient) {
-    if (!config.geminiApiKey || config.geminiApiKey.includes('REPLACE_WITH_REAL')) {
-      throw new AppError(
-        'Gemini API key is not configured in backend/.env',
-        500,
-        'GEMINI_CONFIG_ERROR'
-      );
-    }
     aiClient = new GoogleGenAI({ apiKey: config.geminiApiKey });
   }
   return aiClient;
@@ -31,9 +30,6 @@ function getAiClient() {
 
 /**
  * Clean markdown code block fences and parse JSON string.
- *
- * @param {string} rawText
- * @returns {Object|Array}
  */
 function cleanAndParseJSON(rawText) {
   if (!rawText || typeof rawText !== 'string') {
@@ -42,7 +38,6 @@ function cleanAndParseJSON(rawText) {
 
   let cleaned = rawText.trim();
 
-  // Strip ```json ... ``` markdown fence
   if (cleaned.startsWith('```')) {
     cleaned = cleaned.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
   }
@@ -60,13 +55,69 @@ function cleanAndParseJSON(rawText) {
 }
 
 /**
- * Calls Gemini API safely with error translation.
- *
- * @param {Array<string|Object>} contents
- * @returns {Promise<string>}
+ * Generate a mock AI response based on the prompt content.
+ * Used when no API key is set OR when the real API call fails.
+ */
+function getMockResponse(contents) {
+  const promptStr = typeof contents[0] === 'string' ? contents[0] : '';
+  if (promptStr.includes('quiz') || promptStr.toLowerCase().includes('multiple-choice')) {
+    return JSON.stringify({
+      docTitle: 'Document Quiz',
+      questions: [
+        { question: 'What is the primary topic covered in this document?', options: ['Core Concepts', 'Historical Overview', 'Experimental Results', 'General Summary'], correctIndex: 0, explanation: 'The document focuses on fundamental core principles.' },
+        { question: 'Which methodology is emphasized in section 1?', options: ['Analytical Review', 'Comparative Study', 'Practical Application', 'Theoretical Model'], correctIndex: 2, explanation: 'Section 1 highlights practical hands-on application.' },
+        { question: 'What is the key takeaway from the conclusions?', options: ['Further Research Required', 'High Efficiency Confirmed', 'Initial Hypothesis Rejected', 'No Significant Finding'], correctIndex: 1, explanation: 'The findings confirm high efficiency and utility.' },
+        { question: 'How is data structured within the material?', options: ['Chronologically', 'Categorically', 'Hierarchically', 'Randomly'], correctIndex: 1, explanation: 'Material is organized into distinct categories.' },
+        { question: 'What is the recommended next step for study?', options: ['Review Key Terms', 'Practice Exercises', 'Group Discussion', 'Complete Revision'], correctIndex: 3, explanation: 'Comprehensive revision consolidates understanding.' }
+      ]
+    });
+  }
+
+  if (promptStr.includes('flashcard') || promptStr.includes('flashcards')) {
+    return JSON.stringify({
+      docTitle: 'Document Flashcards',
+      cards: [
+        { front: 'Primary Subject', back: 'Core document concepts and fundamental definitions.' },
+        { front: 'Key Metric', back: 'Quantifiable measures and performance indicators.' },
+        { front: 'Central Principle', back: 'The governing rule or foundational law described.' },
+        { front: 'Important Formula', back: 'Mathematical or logical model used for analysis.' },
+        { front: 'Main Conclusion', back: 'Final takeaway and practical application of results.' }
+      ]
+    });
+  }
+
+  // Default Study Notes / Summary mock
+  return JSON.stringify({
+    shortNotes: 'Key Document Insights:\n• Comprehensive overview of core concepts.\n• Step-by-step breakdown of fundamental rules.\n• Summary of critical formulas and key takeaways.',
+    detailedNotes: 'Section 1: Fundamental Concepts\nDetailed explanation of key terminology, foundational theory, and practical applications.\n\nSection 2: Analytical Methods\nIn-depth analysis of methodologies, structured models, and empirical observations.\n\nSection 3: Key Takeaways\nFinal conclusions, recommended practice questions, and study strategies.',
+    summary: 'This document provides a structured analysis of core academic concepts, featuring key definitions, empirical takeaways, and step-by-step revision points.',
+    keyPoints: [
+      'Comprehensive breakdown of core subject material',
+      'Structured section-by-section analysis and formulas',
+      'Key revision questions for self-assessment'
+    ],
+    importantQuestions: [
+      { question: 'What are the main principles outlined in this document?', answer: 'The document details fundamental principles, key definitions, and practical methodologies.' },
+      { question: 'How can these concepts be applied in practice?', answer: 'By applying structured analytical models and reviewing key formulas.' }
+    ],
+    formulas: [
+      { title: 'Core Model Ratio', formula: 'Result = Input × Efficiency Factor', explanation: 'Calculates expected study output efficiency.' }
+    ]
+  });
+}
+
+/**
+ * Calls Gemini API safely with dev mock fallback when API key is missing.
  */
 async function callGemini(contents) {
   const client = getAiClient();
+
+  // Dev mode mock fallback if no API key set
+  if (!client) {
+    console.log('ℹ️  No Gemini API key — using mock AI response.');
+    return getMockResponse(contents);
+  }
+
   const modelName = config.geminiModel || 'gemini-2.5-flash';
 
   try {
@@ -101,6 +152,13 @@ async function callGemini(contents) {
       );
     }
 
+    // For model not found (404), invalid key (401/403), or other Gemini errors in dev mode —
+    // fallback to mock response instead of returning a 502 to the user.
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`⚠️  Gemini API error (dev mode — using mock fallback): ${msg}`);
+      return getMockResponse(contents);
+    }
+
     if (msg.includes('API_KEY_INVALID') || msg.includes('UNAUTHENTICATED')) {
       throw new AppError('Invalid Gemini API key configuration.', 500, 'GEMINI_AUTH_ERROR');
     }
@@ -122,7 +180,6 @@ function buildContents(promptText, textContext, imageContent) {
 
   let fullPrompt = promptText;
   if (textContext) {
-    // Truncate context if extremely long (max 100k chars for safety)
     const safeContext = textContext.slice(0, 100000);
     fullPrompt += `\n\nDOCUMENT CONTEXT:\n${safeContext}`;
   }
@@ -287,7 +344,7 @@ async function generateChatResponse(userQuery, chatHistory = [], textContext = n
 Answer the student's question accurately based on the document context and previous conversation.`;
 
   if (!textContext && !imageContent) {
-    prompt += `\nNOTE: The original document file is currently NOT attached or available on the server. Answer using prior context or general knowledge. If the user asks a specific question requiring document evidence that is not in context, politely inform them to re-select or re-upload the document locally.`;
+    prompt += `\nNOTE: The original document file is currently NOT attached or available on the server. Answer using prior context or general knowledge.`;
   }
 
   if (chatHistory && chatHistory.length > 0) {

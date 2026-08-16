@@ -39,11 +39,19 @@ async function protect(req, res, next) {
     let token = req.cookies[COOKIE_NAME];
 
     if (!token && process.env.NODE_ENV !== 'production') {
-      const devUser = await User.findOne({ email: 'demo@studygen.ai' }) || await User.findOne();
-      if (devUser) {
-        req.user = devUser;
-        return next();
-      }
+      // Dev mode: attach a synthetic guest user — no DB lookup required.
+      // This ensures all AI endpoints work locally without needing a login session.
+      req.user = {
+        id: 'dev_guest_user_000',
+        name: 'Dev Guest',
+        email: 'guest@studygen.local',
+        authProvider: 'local',
+        avatar: null,
+        isPremium: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      return next();
     }
 
     if (!token) {
