@@ -177,6 +177,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     searchInput.addEventListener('input', () => renderAll());
   }
 
+  const filterModalBtn = document.getElementById('filterModalBtn');
+  if (filterModalBtn) {
+    filterModalBtn.addEventListener('click', () => {
+      const cats = ['all', 'notes', 'pdfs', 'guides'];
+      const nextIdx = (cats.indexOf(activeCat) + 1) % cats.length;
+      activeCat = cats[nextIdx];
+
+      chips.forEach(c => {
+        const isMatch = c.getAttribute('data-cat') === activeCat;
+        c.classList.toggle('active', isMatch);
+      });
+
+      renderAll();
+      const catNames = { all: 'All Items', notes: 'Notes', pdfs: 'PDFs', guides: 'AI Study Guides' };
+      StudyGenApp.toast.show(`Filter: ${catNames[activeCat]}`);
+    });
+  }
+
   if (clearSearch) {
     clearSearch.addEventListener('click', () => {
       if (searchInput) {

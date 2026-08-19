@@ -259,6 +259,12 @@ const StudyGenNav = (() => {
     }
   }
 
+  function confirm(message, onConfirm) {
+    if (window.confirm(message)) {
+      if (onConfirm) onConfirm();
+    }
+  }
+
   return {
     init,
     injectBottomNav,
@@ -269,6 +275,7 @@ const StudyGenNav = (() => {
     getCurrentPage,
     initScrollBehavior,
     updateHeaderAndGreeting,
+    confirm,
   };
 
 })();

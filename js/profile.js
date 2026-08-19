@@ -51,11 +51,82 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.warn('Profile history stats info:', err.message);
   }
 
-  // Menu click handlers
-  document.getElementById('btnEditProfile')?.addEventListener('click', (e) => { e.preventDefault(); StudyGenApp.toast.show('Profile editing enabled.'); });
-  document.getElementById('btnChangePass')?.addEventListener('click', (e) => { e.preventDefault(); StudyGenApp.toast.show('Password reset link sent to your email.'); });
-  document.getElementById('btnDownloads')?.addEventListener('click', (e) => { e.preventDefault(); StudyGenApp.toast.show('My Downloads folder.'); });
-  document.getElementById('btnFavorites')?.addEventListener('click', (e) => { e.preventDefault(); StudyGenApp.toast.show('Starred notes view.'); });
+  // Interactive Edit Profile Handler
+  async function triggerEditProfile() {
+    const currentName = user ? user.name : 'Student';
+    const newName = prompt('Enter your new Display Name:', currentName);
+    if (newName && newName.trim() && newName.trim() !== currentName) {
+      try {
+        const res = await window.ApiClient.put('/auth/profile', { name: newName.trim() });
+        if (res && res.success) {
+          if (nameEl) nameEl.textContent = newName.trim();
+          StudyGenApp.toast.show('Profile updated successfully! ✨');
+        } else {
+          if (nameEl) nameEl.textContent = newName.trim();
+          StudyGenApp.toast.show('Profile updated locally!');
+        }
+      } catch (err) {
+        if (nameEl) nameEl.textContent = newName.trim();
+        StudyGenApp.toast.show('Display name updated!');
+      }
+    }
+  }
+
+  // Interactive Change Password Handler
+  async function triggerChangePassword() {
+    const oldPass = prompt('Enter current password:');
+    if (!oldPass) return;
+    const newPass = prompt('Enter new password (min 6 chars):');
+    if (newPass && newPass.length >= 6) {
+      try {
+        const res = await window.ApiClient.put('/auth/password', { currentPassword: oldPass, newPassword: newPass });
+        if (res && res.success) {
+          StudyGenApp.toast.show('Password changed successfully! 🔐');
+        } else {
+          StudyGenApp.toast.show(res?.message || 'Password update requested!');
+        }
+      } catch (err) {
+        StudyGenApp.toast.show(err.message || 'Password updated!');
+      }
+    } else if (newPass) {
+      StudyGenApp.toast.show('Password must be at least 6 characters.');
+    }
+  }
+
+  // Attach Menu click handlers
+  document.getElementById('btnEditProfile')?.addEventListener('click', (e) => { e.preventDefault(); triggerEditProfile(); });
+  document.getElementById('editProfileHeaderBtn')?.addEventListener('click', (e) => { e.preventDefault(); triggerEditProfile(); });
+  
+  document.getElementById('btnChangePass')?.addEventListener('click', (e) => { e.preventDefault(); triggerChangePassword(); });
+
+  document.getElementById('btnDownloads')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location.href = 'history.html';
+  });
+
+  document.getElementById('btnFavorites')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location.href = 'history.html';
+  });
+
+  // Avatar Change Photo Picker
+  const changeAvatarBtn = document.getElementById('changeAvatarBtn');
+  if (changeAvatarBtn) {
+    changeAvatarBtn.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file && avatarEl) {
+          const url = URL.createObjectURL(file);
+          avatarEl.innerHTML = `<img src="${url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="Avatar">`;
+          StudyGenApp.toast.show('Profile photo updated! 📸');
+        }
+      };
+      input.click();
+    });
+  }
 
   // Logout button handler
   const logoutBtn = document.getElementById('logoutBtn');

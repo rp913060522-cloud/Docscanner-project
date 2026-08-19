@@ -42,7 +42,7 @@ async function protect(req, res, next) {
       // Dev mode: attach a synthetic guest user — no DB lookup required.
       // This ensures all AI endpoints work locally without needing a login session.
       req.user = {
-        id: 'dev_guest_user_000',
+        id: '000000000000000000000000',
         name: 'Dev Guest',
         email: 'guest@studygen.local',
         authProvider: 'local',

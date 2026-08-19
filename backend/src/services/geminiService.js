@@ -204,14 +204,22 @@ function buildContents(promptText, textContext, imageContent) {
 
 async function generateSummary(textContext, imageContent) {
   const prompt = `You are an expert AI study assistant.
-Summarize the provided document accurately.
-Return ONLY valid JSON in the following exact format without extra commentary:
+Analyze and summarize the provided document thoroughly.
+Return ONLY valid JSON in the following exact format without extra text:
 {
+  "shortNotes": "Quick revision notes bullet points...",
+  "detailedNotes": "Detailed section breakdown of concepts...",
   "summary": "Clear, concise overview of the document contents...",
   "keyPoints": [
     "Key takeaway point 1",
     "Key takeaway point 2",
     "Key takeaway point 3"
+  ],
+  "importantQuestions": [
+    { "question": "Key question 1?", "answer": "Detailed answer 1" }
+  ],
+  "formulas": [
+    { "title": "Key Concept / Formula 1", "formula": "Formula or Rule", "explanation": "Explanation..." }
   ]
 }`;
 
@@ -219,9 +227,16 @@ Return ONLY valid JSON in the following exact format without extra commentary:
   const rawResponse = await callGemini(contents);
   const result = cleanAndParseJSON(rawResponse);
 
+  const summary = result.summary || 'Summary unavailable.';
+  const keyPoints = Array.isArray(result.keyPoints) ? result.keyPoints : [];
+
   return {
-    summary: result.summary || 'Summary unavailable.',
-    keyPoints: Array.isArray(result.keyPoints) ? result.keyPoints : [],
+    summary,
+    keyPoints,
+    shortNotes: result.shortNotes || (keyPoints.length > 0 ? keyPoints.map(k => `• ${k}`).join('\n') : summary),
+    detailedNotes: result.detailedNotes || summary,
+    importantQuestions: Array.isArray(result.importantQuestions) ? result.importantQuestions : [],
+    formulas: Array.isArray(result.formulas) ? result.formulas : [],
   };
 }
 
