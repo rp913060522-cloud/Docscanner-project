@@ -19,24 +19,24 @@
       <!-- Top Logo & Header -->
       <div style="text-align:center;margin-bottom:var(--sp-2xl);">
         <div style="width:72px;height:72px;border-radius:18px;background:white;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 12px 32px rgba(59,123,248,0.18);margin-bottom:var(--sp-lg);">
-          <span class="material-icons-round gradient-text" style="font-size:40px;">menu_book</span>
+          <span class="material-icons-round gradient-text" style="font-size:40px;">person_add</span>
         </div>
         <h1 class="text-headline-lg" style="color:var(--text-primary);margin-bottom:6px;">Create Account</h1>
-        <p class="text-body-sm text-secondary">Join StudyGen AI and start learning smarter.</p>
+        <p class="text-body-sm text-secondary">Join StudyGen AI to sync your study guides (Optional)</p>
       </div>
 
-      <!-- Sign Up Form -->
+      <!-- Signup Form -->
       <form id="signupForm" class="flex-col gap-lg" novalidate>
         
         <!-- Full Name Input -->
         <div class="form-group">
           <div class="input-wrapper">
             <span class="material-icons-round input-icon input-icon--left">person</span>
-            <input type="text" id="fullname" class="input-field input-field--icon-left" placeholder="Full name" autocomplete="name" required />
+            <input type="text" id="name" class="input-field input-field--icon-left" placeholder="Full name" autocomplete="name" required />
           </div>
           <div class="form-error hidden" id="nameError">
             <span class="material-icons-round">error_outline</span>
-            <span>Please enter your full name.</span>
+            <span>Please enter your name.</span>
           </div>
         </div>
 
@@ -56,7 +56,7 @@
         <div class="form-group">
           <div class="input-wrapper">
             <span class="material-icons-round input-icon input-icon--left">lock</span>
-            <input type="password" id="password" class="input-field input-field--icon-left input-field--icon-right" placeholder="Password (min 6 chars)" autocomplete="new-password" required />
+            <input type="password" id="password" class="input-field input-field--icon-left input-field--icon-right" placeholder="Password (min 6 characters)" autocomplete="new-password" required />
             <button type="button" class="input-icon input-icon--right" id="togglePassword" aria-label="Toggle password visibility">
               <span class="material-icons-round" id="togglePasswordIcon">visibility_off</span>
             </button>
@@ -80,9 +80,10 @@
 
       </form>
 
-      <!-- Bottom Log In Link -->
-      <div style="text-align:center;margin-top:var(--sp-2xl);" class="text-body-sm text-secondary">
-        Already have an account? <a href="login.html" class="text-primary" style="font-weight:600;">Log In</a>
+      <!-- Bottom Log In & Skip Links -->
+      <div style="text-align:center;margin-top:var(--sp-xl);display:flex;flex-direction:column;gap:12px;" class="text-body-sm text-secondary">
+        <div>Already have an account? <a href="login.html" class="text-primary" style="font-weight:600;">Log In</a></div>
+        <div><a href="home.html" style="color:var(--primary);font-weight:600;text-decoration:none;">Skip & Continue as Guest &rarr;</a></div>
       </div>
 
     </div>

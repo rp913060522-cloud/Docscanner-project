@@ -298,16 +298,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  if (chatSendBtn) {
-    chatSendBtn.addEventListener('click', sendChatMessage);
+  const chatForm = document.getElementById('chatForm');
+  if (chatForm) {
+    chatForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      sendChatMessage();
+    });
   }
 
-  if (chatInput) {
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        sendChatMessage();
-      }
+  if (chatSendBtn) {
+    chatSendBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      sendChatMessage();
     });
   }
 

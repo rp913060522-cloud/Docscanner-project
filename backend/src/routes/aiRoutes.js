@@ -19,7 +19,7 @@ const router = express.Router();
 // Strict AI-specific rate limiter (15 requests per 15 minutes per IP)
 const aiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 15,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

@@ -15,9 +15,16 @@
 const ApiClient = (() => {
   // Dynamically resolve backend API origin: use localhost:5000 ONLY when on local dev servers
   const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0';
-  const isDevPort = typeof window !== 'undefined' && isLocalhost && window.location.port !== '5000';
-  const BASE_URL = isDevPort ? `http://${hostname}:5000/api` : '/api';
+  const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:';
+  const port = typeof window !== 'undefined' ? window.location.port : '5000';
+
+  const isFileProtocol = protocol === 'file:';
+  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0' || hostname === '';
+  const isDevPort = isLocalhost && port !== '5000';
+
+  const BASE_URL = (isFileProtocol || isDevPort || (isLocalhost && port === '5000')) 
+    ? `http://${hostname || 'localhost'}:5000/api` 
+    : '/api';
 
   /**
    * Helper to handle response parsing and standardized errors.

@@ -4,7 +4,7 @@
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>History — StudyGen AI</title>
+  <title>My Documents — StudyGen AI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
@@ -20,7 +20,7 @@
       <button class="app-bar__back" onclick="location.href='home.html'" aria-label="Back">
         <span class="material-icons-round">arrow_back_ios_new</span>
       </button>
-      <span class="app-bar__center">History</span>
+      <span class="app-bar__center" id="myDocsTitle">My Documents (0)</span>
       <div class="app-bar__actions">
         <button class="app-bar__action-btn" id="filterModalBtn" aria-label="Filter">
           <span class="material-icons-round">filter_list</span>
@@ -35,7 +35,7 @@
       <section class="mb-xl">
         <div class="search-bar">
           <span class="material-icons-round">search</span>
-          <input type="search" id="historySearch" placeholder="Search history..." aria-label="Search history" />
+          <input type="search" id="historySearch" placeholder="Search documents..." aria-label="Search documents" />
           <button class="btn-icon" id="clearSearchBtn" style="width:28px;height:28px;" title="Clear search">
             <span class="material-icons-round" style="font-size:18px;">close</span>
           </button>
@@ -45,44 +45,27 @@
       <!-- Category Filter Chips -->
       <section class="mb-lg">
         <div class="filter-row" id="historyFilterChips">
-          <span class="chip active" data-cat="all">All Items</span>
-          <span class="chip" data-cat="notes">Notes</span>
-          <span class="chip" data-cat="pdfs">PDFs</span>
-          <span class="chip" data-cat="guides">AI Study Guides</span>
+          <span class="chip active" data-cat="all">All Documents</span>
+          <span class="chip" data-cat="recent">Recent</span>
+          <span class="chip" data-cat="favorite">Favorites</span>
         </div>
       </section>
 
-      <!-- Category 1: RECENT NOTES -->
-      <section class="mb-xl" id="secNotes">
-        <div class="text-label-sm text-secondary mb-sm" style="letter-spacing:1px;font-weight:700;">RECENT NOTES</div>
-        <div class="flex-col gap-sm" id="notesList">
-          <!-- Rendered by js/history.js -->
-        </div>
-      </section>
-
-      <!-- Category 2: RECENT PDFS -->
+      <!-- Document List Container -->
       <section class="mb-xl" id="secPdfs">
-        <div class="text-label-sm text-secondary mb-sm" style="letter-spacing:1px;font-weight:700;">RECENT PDFS</div>
+        <div class="text-label-sm text-secondary mb-sm" style="letter-spacing:1px;font-weight:700;" id="secHeaderLabel">ALL DOCUMENTS</div>
         <div class="flex-col gap-sm" id="pdfsList">
           <!-- Rendered by js/history.js -->
         </div>
       </section>
 
-      <!-- Category 3: AI STUDY GUIDES -->
-      <section class="mb-xl" id="secGuides">
-        <div class="text-label-sm text-secondary mb-sm" style="letter-spacing:1px;font-weight:700;">AI STUDY GUIDES</div>
-        <div class="flex-col gap-sm" id="guidesList">
-          <!-- Rendered by js/history.js -->
-        </div>
-      </section>
-
-      <!-- Empty State View (hidden unless search yields 0 items) -->
+      <!-- Empty State View -->
       <section class="empty-state hidden" id="emptyHistoryState">
         <div class="empty-state__icon">
-          <span class="material-icons-round">history</span>
+          <span class="material-icons-round">folder_open</span>
         </div>
-        <h4 class="empty-state__title">No history found</h4>
-        <p class="empty-state__subtitle">Scan a document or upload a PDF to generate notes.</p>
+        <h4 class="empty-state__title" id="emptyTitle">No documents found</h4>
+        <p class="empty-state__subtitle" id="emptySubtitle">Scan or import a document to build your local library.</p>
         <a href="scanner.html" class="btn btn-primary btn-sm mt-md" style="text-decoration:none;width:auto;">
           <span class="material-icons-round">photo_camera</span>
           <span>Start Scanning</span>
@@ -90,6 +73,19 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- Document Rename Modal -->
+  <div id="renameDocModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:250;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);">
+    <div style="background:var(--surface);border-radius:20px;padding:24px;width:100%;max-width:360px;box-shadow:var(--shadow-xl);border:1px solid var(--border);">
+      <h3 style="font-size:17px;font-weight:700;margin:0 0 8px;color:var(--text-primary);">Rename Document</h3>
+      <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px;">Enter a new title for this document:</p>
+      <input type="text" id="renameDocInput" class="input" style="width:100%;margin-bottom:20px;padding:12px;" placeholder="Document Name" />
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button type="button" class="btn btn-secondary btn-sm" id="cancelRenameBtn" style="width:auto;padding:8px 16px;">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" id="confirmRenameBtn" style="width:auto;padding:8px 16px;">Save</button>
+      </div>
+    </div>
   </div>
 
   <script src="../js/apiClient.js"></script>

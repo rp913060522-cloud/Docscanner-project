@@ -176,7 +176,7 @@
   <script src="js/db.js"></script>
   <script src="js/app.js"></script>
   <script>
-    // Splash logic — check session via /api/auth/me -> redirect
+    // Splash logic — check session via /api/auth/me -> redirect directly to home.html
     const statuses = ['Initializing...', 'Loading resources...', 'Almost ready...'];
     let si = 0;
     const statusEl = document.getElementById('splashStatus');
@@ -189,14 +189,13 @@
     setTimeout(async () => {
       clearInterval(statusInterval);
       statusEl.textContent = 'Ready!';
-      // Check real backend session
-      const user = await StudyGenApp.auth.checkSession();
+      await StudyGenApp.auth.checkSession();
       document.getElementById('splashScreen').style.opacity = '0';
       document.getElementById('splashScreen').style.transition = 'opacity 0.4s ease';
       setTimeout(() => {
-        window.location.href = user ? 'pages/home.html' : 'pages/login.html';
+        window.location.href = 'pages/home.html';
       }, 400);
-    }, 2600);
+    }, 2400);
   </script>
 </body>
 </html>

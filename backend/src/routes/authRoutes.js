@@ -64,4 +64,11 @@ router.post('/google', authController.googleSignIn);
 /** GET /api/auth/me — requires valid session */
 router.get('/me', protect, authController.getMe);
 
+/** PUT /api/auth/me & PUT /api/auth/profile — update profile details */
+router.put('/me', protect, authController.updateProfile);
+router.put('/profile', protect, authController.updateProfile);
+
+/** PUT /api/auth/password — change user password */
+router.put('/password', protect, authController.changePassword);
+
 module.exports = router;

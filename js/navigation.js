@@ -53,16 +53,13 @@ const StudyGenNav = (() => {
       timeGreeting = 'Good Night';
     }
 
-    // Determine display name & initials
-    let displayName = 'Student';
-    let userInitials = 'SG';
+    // Determine display name & initials: 'New User' for new/unauthenticated users, real name for registered users
+    let displayName = 'New User';
+    let userInitials = 'NU';
 
-    if (user && user.name) {
+    if (user && user.name && user.name !== 'Dev Guest' && user.email !== 'guest@studygen.local') {
       displayName = user.name.split(' ')[0];
       userInitials = getInitials(user.name);
-    } else if (StudyGenApp.MOCK && StudyGenApp.MOCK.user && StudyGenApp.MOCK.user.name) {
-      displayName = StudyGenApp.MOCK.user.name.split(' ')[0];
-      userInitials = getInitials(StudyGenApp.MOCK.user.name);
     }
 
     // 1. Update Greeting Banner Text (#greetingText)
@@ -73,8 +70,9 @@ const StudyGenNav = (() => {
 
     // 2. Update Header Avatar Badge Elements (.app-bar__avatar, #avatarBtn)
     document.querySelectorAll('.app-bar__avatar, #avatarBtn').forEach(el => {
-      if (user && user.avatarUrl) {
-        el.innerHTML = `<img src="${user.avatarUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
+      const imgUrl = (user && (user.avatar || user.avatarUrl)) ? (user.avatar || user.avatarUrl) : null;
+      if (imgUrl) {
+        el.innerHTML = `<img src="${imgUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
       } else {
         el.textContent = userInitials;
       }

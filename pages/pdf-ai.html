@@ -90,16 +90,31 @@
           <!-- Generated PDF pages rendered dynamically via JS -->
         </div>
 
-        <!-- Prominent Save PDF to Device Action Button -->
+        <!-- Action Buttons Group -->
         <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
           <button class="btn btn-primary btn-md" id="cardSaveDeviceBtn" style="width:100%;background:linear-gradient(135deg, #2563eb, #1d4ed8);border:none;border-radius:12px;font-weight:700;font-size:16px;padding:14px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(37,99,235,0.4);">
             <span class="material-icons-round" style="font-size:24px;">download</span>
             <span>Save PDF to Device 💾</span>
           </button>
+
+          <button class="btn btn-outlined btn-sm" id="pdfViewBtn" style="width:100%;color:white;border-color:rgba(255,255,255,0.3);border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:14px;background:rgba(255,255,255,0.06);">
+            <span class="material-icons-round" style="font-size:20px;color:#3b7bf8;">visibility</span>
+            <span>View as PDF</span>
+          </button>
           
+          <button class="btn btn-outlined btn-sm" id="pdfRenameBtn" style="width:100%;color:white;border-color:rgba(255,255,255,0.25);border-radius:10px;padding:10px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;background:rgba(255,255,255,0.04);">
+            <span class="material-icons-round" style="font-size:18px;color:#f59e0b;">edit</span>
+            <span>Rename Document</span>
+          </button>
+
           <button class="btn btn-outlined btn-sm" id="pdfShareBtn" style="width:100%;color:white;border-color:rgba(255,255,255,0.2);border-radius:10px;padding:10px;display:flex;align-items:center;justify-content:center;gap:8px;">
             <span class="material-icons-round" style="font-size:18px;">share</span>
             <span>Share Document</span>
+          </button>
+
+          <button class="btn btn-outlined btn-sm" id="pdfDeleteBtn" style="width:100%;color:#ef4444;border-color:rgba(239,68,68,0.4);border-radius:10px;padding:10px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;background:rgba(239,68,68,0.06);">
+            <span class="material-icons-round" style="font-size:18px;color:#ef4444;">delete_outline</span>
+            <span>Delete Document</span>
           </button>
         </div>
       </section>

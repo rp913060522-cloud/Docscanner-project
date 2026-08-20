@@ -216,121 +216,141 @@
           <span class="material-icons-round" style="color:white;font-size:30px;">auto_awesome</span>
         </div>
         <h2 style="color:white;font-size:19px;font-weight:700;margin:0 0 6px;">Study Smarter with AI</h2>
-        <p style="color:rgba(255,255,255,0.85);font-size:12px;margin:0;line-height:1.5;">Upload your PDF or document, then choose an AI feature below to start learning.</p>
+        <p style="color:rgba(255,255,255,0.85);font-size:12px;margin:0;line-height:1.5;">Next-gen AI Study Suite — coming soon to StudyGen AI.</p>
       </div>
 
-      <!-- Upload Drop Zone (Initial State) -->
-      <div class="upload-drop-zone" id="pdfDropZone">
-        <input type="file" id="pdfFileInput" accept="application/pdf,image/*,.pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" style="display:none;" multiple />
-        <div class="upload-drop-zone__icon">
-          <span class="material-icons-round" style="color:#3b7bf8;font-size:26px;">upload_file</span>
+      <!-- Coming Soon Card Banner -->
+      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:20px;padding:32px 24px;text-align:center;margin-bottom:24px;box-shadow:var(--shadow-md);">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,rgba(59,123,248,0.15),rgba(123,82,244,0.15));border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+          <span class="material-icons-round" style="font-size:36px;color:#3b7bf8;">rocket_launch</span>
         </div>
-        <p style="font-size:15px;font-weight:700;color:var(--text-primary);margin:0 0 4px;">Upload PDF or Document</p>
-        <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px;line-height:1.4;">Tap to browse or drop file here<br/>PDF, JPG, PNG, DOC supported</p>
-        <button type="button" class="btn btn-primary btn-sm" id="browsePdfBtn" style="width:auto;margin:0 auto;padding:10px 22px;font-size:13px;">
-          <span class="material-icons-round">folder_open</span>
-          <span>Browse File</span>
-        </button>
-      </div>
+        <h2 style="font-size:22px;font-weight:800;color:var(--text-primary);margin:0 0 8px;">Coming Soon 🚀</h2>
+        <p style="font-size:14px;color:var(--text-secondary);margin:0 0 20px;line-height:1.5;max-width:340px;margin-left:auto;margin-right:auto;">
+          We're working hard to bring you our full AI Study Suite. This feature will be available soon!
+        </p>
 
-      <!-- Uploaded Document Success Card (Active State) -->
-      <div class="uploaded-card" id="uploadedDocCard" style="flex-direction:column;align-items:stretch;gap:12px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-            <div style="width:42px;height:42px;background:#fee2e2;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <span class="material-icons-round" style="color:#ef4444;font-size:24px;">picture_as_pdf</span>
-            </div>
-            <div style="overflow:hidden;min-width:0;">
-              <div id="uploadedFileName" style="font-size:14px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">Document.pdf</div>
-              <div style="font-size:12px;color:#16a34a;font-weight:600;display:flex;align-items:center;gap:4px;margin-top:2px;">
-                <span class="material-icons-round" style="font-size:14px;">check_circle</span> Uploaded &amp; Ready ✨
-              </div>
-            </div>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:24px;">
+          <span style="background:rgba(59,123,248,0.1);color:#3b7bf8;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">📝 AI Summaries</span>
+          <span style="background:rgba(34,197,94,0.1);color:#16a34a;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">📚 Study Notes</span>
+          <span style="background:rgba(245,158,11,0.1);color:#d97706;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">🧠 Quizzes</span>
+          <span style="background:rgba(123,82,244,0.1);color:#7b52f4;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">🎴 Flashcards</span>
+        </div>
+
+        <a href="home.html" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:700;font-size:14px;width:auto;">
+          <span class="material-icons-round" style="font-size:18px;">arrow_back</span>
+          <span>Back to Home</span>
+        </a>
+
+        <!-- ── AI UPLOAD & TILES SECTION (TEMPORARILY COMMENTED OUT FOR COMING SOON RELEASE) ── -->
+        <!--
+        <div class="upload-drop-zone" id="pdfDropZone">
+          <input type="file" id="pdfFileInput" accept="application/pdf,image/*,.pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" style="display:none;" multiple />
+          <div class="upload-drop-zone__icon">
+            <span class="material-icons-round" style="color:#3b7bf8;font-size:26px;">upload_file</span>
           </div>
-          <button type="button" id="changeFileBtn" style="background:rgba(59,123,248,0.1);color:#3b7bf8;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">
-            Change
+          <p style="font-size:15px;font-weight:700;color:var(--text-primary);margin:0 0 4px;">Upload PDF or Document</p>
+          <p style="font-size:12px;color:var(--text-secondary);margin:0 0 16px;line-height:1.4;">Tap to browse or drop file here<br/>PDF, JPG, PNG, DOC supported</p>
+          <button type="button" class="btn btn-primary btn-sm" id="browsePdfBtn" style="width:auto;margin:0 auto;padding:10px 22px;font-size:13px;">
+            <span class="material-icons-round">folder_open</span>
+            <span>Browse File</span>
           </button>
         </div>
-        <!-- View PDF Button -->
-        <button type="button" id="viewPdfBtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#3b7bf8,#7b52f4);color:white;border:none;border-radius:12px;padding:11px 16px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(59,123,248,0.25);">
-          <span class="material-icons-round" style="font-size:18px;">open_in_new</span>
-          View PDF / Document
-        </button>
-      </div>
 
-      <!-- PDF Viewer Bottom Sheet -->
-      <div class="pdf-viewer-sheet" id="pdfViewerSheet">
-        <div class="pdf-viewer-panel">
-          <div class="pdf-viewer-header">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div style="width:32px;height:32px;background:#fee2e2;border-radius:10px;display:flex;align-items:center;justify-content:center;">
-                <span class="material-icons-round" style="color:#ef4444;font-size:18px;">picture_as_pdf</span>
+        <div class="uploaded-card" id="uploadedDocCard" style="flex-direction:column;align-items:stretch;gap:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+              <div style="width:42px;height:42px;background:#fee2e2;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <span class="material-icons-round" style="color:#ef4444;font-size:24px;">picture_as_pdf</span>
               </div>
-              <div>
-                <div id="pdfViewerTitle" style="font-size:13px;font-weight:700;color:var(--text-primary);">Document Preview</div>
-                <div style="font-size:11px;color:var(--text-secondary);">Pinch to zoom • Scroll to read</div>
+              <div style="overflow:hidden;min-width:0;">
+                <div id="uploadedFileName" style="font-size:14px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">Document.pdf</div>
+                <div style="font-size:12px;color:#16a34a;font-weight:600;display:flex;align-items:center;gap:4px;margin-top:2px;">
+                  <span class="material-icons-round" style="font-size:14px;">check_circle</span> Uploaded &amp; Ready ✨
+                </div>
               </div>
             </div>
-            <button id="closePdfViewer" style="width:34px;height:34px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
-              <span class="material-icons-round" style="font-size:20px;color:var(--text-secondary);">close</span>
-            </button>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button type="button" id="changeFileBtn" style="background:rgba(59,123,248,0.1);color:#3b7bf8;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">
+                Change
+              </button>
+              <button type="button" id="removeFileBtn" title="Remove File" style="background:rgba(239,68,68,0.1);color:#ef4444;border:none;border-radius:10px;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                <span class="material-icons-round" style="font-size:16px;">delete_outline</span>
+              </button>
+            </div>
           </div>
-          <div class="pdf-viewer-body">
-            <iframe id="pdfViewerFrame" src="" title="PDF Preview" allow="fullscreen"></iframe>
-          </div>
+          <button type="button" id="viewPdfBtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#3b7bf8,#7b52f4);color:white;border:none;border-radius:12px;padding:11px 16px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(59,123,248,0.25);">
+            <span class="material-icons-round" style="font-size:18px;">open_in_new</span>
+            View PDF / Document
+          </button>
         </div>
-      </div>
 
-      <!-- Section: What AI Will Do For You -->
-      <div style="margin-bottom:16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <p style="font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:0.5px;text-transform:uppercase;margin:0;">What AI Will Do For You</p>
-          <span id="aiToolStatusBadge" style="font-size:11px;color:#f59e0b;font-weight:600;">(Upload file to unlock)</span>
+        <div class="pdf-viewer-sheet" id="pdfViewerSheet">
+          <div class="pdf-viewer-panel">
+            <div class="pdf-viewer-header">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:32px;height:32px;background:#fee2e2;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                  <span class="material-icons-round" style="color:#ef4444;font-size:18px;">picture_as_pdf</span>
+                </div>
+                <div>
+                  <div id="pdfViewerTitle" style="font-size:13px;font-weight:700;color:var(--text-primary);">Document Preview</div>
+                  <div style="font-size:11px;color:var(--text-secondary);">Pinch to zoom • Scroll to read</div>
+                </div>
+              </div>
+              <button id="closePdfViewer" style="width:34px;height:34px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                <span class="material-icons-round" style="font-size:20px;color:var(--text-secondary);">close</span>
+              </button>
+            </div>
+            <div class="pdf-viewer-body">
+              <iframe id="pdfViewerFrame" src="" title="PDF Preview" allow="fullscreen"></iframe>
+            </div>
+          </div>
         </div>
-        
-        <div class="ai-action-row">
+
+        <div style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <p style="font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:0.5px;text-transform:uppercase;margin:0;">What AI Will Do For You</p>
+            <span id="aiToolStatusBadge" style="font-size:11px;color:#f59e0b;font-weight:600;">(Upload file to unlock)</span>
+          </div>
           
-          <!-- Tile 1: AI Summary -->
-          <div class="ai-action-tile disabled" id="tileSummary" data-action="summary">
-            <span class="unlock-badge">READY</span>
-            <div class="ai-action-tile__icon" style="background:rgba(59,123,248,0.12);">
-              <span class="material-icons-round" style="color:#3b7bf8;">short_text</span>
+          <div class="ai-action-row">
+            <div class="ai-action-tile disabled" id="tileSummary" data-action="summary">
+              <span class="unlock-badge">READY</span>
+              <div class="ai-action-tile__icon" style="background:rgba(59,123,248,0.12);">
+                <span class="material-icons-round" style="color:#3b7bf8;">short_text</span>
+              </div>
+              <span class="ai-action-tile__label">AI Summary</span>
+              <span class="ai-action-tile__desc">Quick overview of key concepts</span>
             </div>
-            <span class="ai-action-tile__label">AI Summary</span>
-            <span class="ai-action-tile__desc">Quick overview of key concepts</span>
-          </div>
 
-          <!-- Tile 2: Study Notes -->
-          <div class="ai-action-tile disabled" id="tileNotes" data-action="notes">
-            <span class="unlock-badge">READY</span>
-            <div class="ai-action-tile__icon" style="background:rgba(34,197,94,0.12);">
-              <span class="material-icons-round" style="color:#16a34a;">description</span>
+            <div class="ai-action-tile disabled" id="tileNotes" data-action="notes">
+              <span class="unlock-badge">READY</span>
+              <div class="ai-action-tile__icon" style="background:rgba(34,197,94,0.12);">
+                <span class="material-icons-round" style="color:#16a34a;">description</span>
+              </div>
+              <span class="ai-action-tile__label">Study Notes</span>
+              <span class="ai-action-tile__desc">Detailed structured notes</span>
             </div>
-            <span class="ai-action-tile__label">Study Notes</span>
-            <span class="ai-action-tile__desc">Detailed structured notes</span>
-          </div>
 
-          <!-- Tile 3: Quiz -->
-          <div class="ai-action-tile disabled" id="tileQuiz" data-action="quiz">
-            <span class="unlock-badge">READY</span>
-            <div class="ai-action-tile__icon" style="background:rgba(245,158,11,0.12);">
-              <span class="material-icons-round" style="color:#d97706;">quiz</span>
+            <div class="ai-action-tile disabled" id="tileQuiz" data-action="quiz">
+              <span class="unlock-badge">READY</span>
+              <div class="ai-action-tile__icon" style="background:rgba(245,158,11,0.12);">
+                <span class="material-icons-round" style="color:#d97706;">quiz</span>
+              </div>
+              <span class="ai-action-tile__label">Quiz</span>
+              <span class="ai-action-tile__desc">Test your understanding</span>
             </div>
-            <span class="ai-action-tile__label">Quiz</span>
-            <span class="ai-action-tile__desc">Test your understanding</span>
-          </div>
 
-          <!-- Tile 4: Flashcards -->
-          <div class="ai-action-tile disabled" id="tileFlash" data-action="flash">
-            <span class="unlock-badge">READY</span>
-            <div class="ai-action-tile__icon" style="background:rgba(123,82,244,0.12);">
-              <span class="material-icons-round" style="color:#7b52f4;">style</span>
+            <div class="ai-action-tile disabled" id="tileFlash" data-action="flash">
+              <span class="unlock-badge">READY</span>
+              <div class="ai-action-tile__icon" style="background:rgba(123,82,244,0.12);">
+                <span class="material-icons-round" style="color:#7b52f4;">style</span>
+              </div>
+              <span class="ai-action-tile__label">Flashcards</span>
+              <span class="ai-action-tile__desc">Quick revision cards</span>
             </div>
-            <span class="ai-action-tile__label">Flashcards</span>
-            <span class="ai-action-tile__desc">Quick revision cards</span>
           </div>
-
         </div>
+        -->
       </div>
 
       <!-- Upload Progress Overlay (hidden by default) -->
@@ -338,6 +358,28 @@
         <div class="spinner" style="width:38px;height:38px;border:3px solid #e2e8f0;border-top-color:#3b7bf8;border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 14px;"></div>
         <p id="uploadProgressText" style="font-size:15px;font-weight:700;color:var(--text-primary);margin:0 0 6px;">AI is generating your content...</p>
         <p style="font-size:12px;color:var(--text-secondary);margin:0;">Reading document details. Please wait standard 2-3 seconds.</p>
+      </div>
+
+      <!-- Inline AI Result Display Container -->
+      <div id="aiResultContainer" style="display:none;background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:30px;box-shadow:var(--shadow-md);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div id="aiResultIconBg" style="width:38px;height:38px;background:rgba(59,123,248,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+              <span class="material-icons-round" style="color:#3b7bf8;font-size:22px;" id="aiResultIcon">auto_awesome</span>
+            </div>
+            <div>
+              <h3 id="aiResultTitle" style="font-size:16px;font-weight:700;color:var(--text-primary);margin:0;">AI Result</h3>
+              <p id="aiResultSubtitle" style="font-size:12px;color:var(--text-secondary);margin:2px 0 0;">Generated from document</p>
+            </div>
+          </div>
+          <button type="button" id="closeResultBtn" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;color:var(--text-secondary);">
+            <span class="material-icons-round" style="font-size:16px;">close</span> Close
+          </button>
+        </div>
+
+        <div id="aiResultContent" style="font-size:14px;color:var(--text-primary);line-height:1.6;">
+          <!-- Dynamically populated -->
+        </div>
       </div>
 
       <style>
@@ -480,6 +522,44 @@
         });
       }
 
+      if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          clearUploadedDocument();
+        });
+      }
+
+      function clearUploadedDocument() {
+        currentUploadedFile = null;
+        sessionStorage.removeItem('sg_active_doc_id');
+        sessionStorage.removeItem('sg_active_doc_title');
+        sessionStorage.removeItem('sg_study_output');
+
+        if (fileInput) fileInput.value = '';
+        if (dropZone) dropZone.style.display = 'block';
+        if (uploadedCard) uploadedCard.style.display = 'none';
+
+        const resultContainer = document.getElementById('aiResultContainer');
+        if (resultContainer) resultContainer.style.display = 'none';
+
+        disableAiTiles();
+        StudyGenApp.toast.show('Document cleared. Please upload a new file 📄');
+      }
+
+      function disableAiTiles() {
+        if (statusBadge) {
+          statusBadge.textContent = '(Upload file to unlock)';
+          statusBadge.style.color = '#f59e0b';
+        }
+
+        tiles.forEach(tile => {
+          tile.classList.add('disabled');
+          tile.classList.remove('active-ready');
+          const badge = tile.querySelector('.unlock-badge');
+          if (badge) badge.style.display = 'none';
+        });
+      }
+
       if (fileInput) {
         fileInput.addEventListener('click', () => { fileInput.value = ''; });
         fileInput.addEventListener('change', (e) => {
@@ -536,6 +616,34 @@
         StudyGenApp.toast.show('Document uploaded! Select an AI tool below to start ✨');
       }
 
+      // ── Auto-Restore Active Document from IndexedDB if Returning ──────────
+      async function restoreActiveDoc() {
+        const activeDocId = sessionStorage.getItem('sg_active_doc_id');
+        if (!currentUploadedFile && activeDocId && window.LocalPdfDB) {
+          try {
+            const docRecord = await window.LocalPdfDB.getDocument(activeDocId);
+            if (docRecord && docRecord.blob) {
+              const fileName = docRecord.filename || `${docRecord.documentTitle || 'document'}.pdf`;
+              currentUploadedFile = new File([docRecord.blob], fileName, {
+                type: docRecord.mimeType || 'application/pdf'
+              });
+              if (uploadedFileName) uploadedFileName.textContent = fileName;
+              if (dropZone) dropZone.style.display = 'none';
+              if (uploadedCard) uploadedCard.style.display = 'flex';
+              enableAiTiles();
+            } else {
+              disableAiTiles();
+            }
+          } catch (err) {
+            console.warn('Doc restore warning:', err.message);
+            disableAiTiles();
+          }
+        } else if (!currentUploadedFile) {
+          disableAiTiles();
+        }
+      }
+      restoreActiveDoc();
+
       // ── Enable AI Action Tiles ──────────────────────────────────────────────
       function enableAiTiles() {
         if (statusBadge) {
@@ -546,29 +654,23 @@
         tiles.forEach(tile => {
           tile.classList.remove('disabled');
           tile.classList.add('active-ready');
-          const badge = tile.querySelector('.unlock-badge');
-          if (badge) badge.style.display = 'block';
         });
       }
 
-      // ── Handle AI Action Tile Clicks ───────────────────────────────────────
+      // ── Handle AI Action Tile Clicks (Temporarily Disabled - Coming Soon) ─
       tiles.forEach(tile => {
-        tile.addEventListener('click', async (e) => {
+        tile.addEventListener('click', (e) => {
           e.preventDefault();
-          const actionType = tile.getAttribute('data-action');
-
-          if (!currentUploadedFile) {
-            StudyGenApp.toast.show('Please upload a PDF or Document first! 📄');
-            if (fileInput) fileInput.click();
-            return;
-          }
-
-          runAiAction(actionType, currentUploadedFile);
+          e.stopPropagation();
+          StudyGenApp.toast.show('🚀 Coming Soon: We are working on this feature. It will be available soon!', 4000);
         });
       });
 
       // ── Run AI Action on Selected File ─────────────────────────────────────
       async function runAiAction(actionType, file) {
+        const localPdfId = sessionStorage.getItem('sg_active_doc_id') || `doc_${Date.now()}`;
+        const docTitle   = file.name.replace(/\.[^/.]+$/, '');
+
         if (progressSec) progressSec.style.display = 'block';
         if (uploadedCard) uploadedCard.style.display = 'none';
 
@@ -580,9 +682,6 @@
         };
 
         if (progressText) progressText.textContent = actionNames[actionType] || 'AI is communicating with server...';
-
-        const localPdfId = sessionStorage.getItem('sg_active_doc_id') || `doc_${Date.now()}`;
-        const docTitle   = file.name.replace(/\.[^/.]+$/, '');
 
         try {
           const formData = new FormData();
@@ -596,6 +695,7 @@
           if (actionType === 'flash')   endpoint = '/ai/flashcards';
 
           StudyGenApp.toast.show(`Uploading "${file.name}" to AI server... 📡`, 3000);
+
           const res = await window.ApiClient.uploadFile(endpoint, formData);
 
           if (res && res.success && res.data) {
@@ -606,20 +706,17 @@
               ...res.data,
             }));
 
-            StudyGenApp.toast.show('AI Response Received! Opening... ✨');
-            setTimeout(() => {
-              if (actionType === 'quiz') {
-                window.location.href = 'ai-learning.html?tab=quiz';
-              } else if (actionType === 'flash') {
-                window.location.href = 'ai-learning.html?tab=flash';
-              } else {
-                window.location.href = 'ai-study.html';
-              }
-            }, 300);
+            if (progressSec) progressSec.style.display = 'none';
+            if (uploadedCard) uploadedCard.style.display = 'flex';
+
+            renderInlineAiResult(actionType, docTitle, res.data);
+            StudyGenApp.toast.show('AI Response Received! Scroll down to see result ✨');
             return;
+          } else {
+            console.error('API Response success is false:', res);
           }
         } catch (apiErr) {
-          console.warn('AI API Error:', apiErr.message);
+          console.error('AI API Error:', apiErr.message || apiErr);
 
           // Show error state — do NOT silently navigate
           if (progressSec) progressSec.style.display = 'none';
@@ -629,6 +726,199 @@
           StudyGenApp.toast.show(`⚠️ AI Error: ${errMsg}. Please try again.`, 5000);
           return;
         }
+      }
+
+      // ── Render Inline AI Result ─────────────────────────────────────────────
+      function renderInlineAiResult(actionType, docTitle, data) {
+        const resultContainer = document.getElementById('aiResultContainer');
+        const resultTitle = document.getElementById('aiResultTitle');
+        const resultSubtitle = document.getElementById('aiResultSubtitle');
+        const resultIcon = document.getElementById('aiResultIcon');
+        const resultIconBg = document.getElementById('aiResultIconBg');
+        const resultContent = document.getElementById('aiResultContent');
+        const closeBtn = document.getElementById('closeResultBtn');
+
+        if (!resultContainer || !resultContent) return;
+
+        if (closeBtn) {
+          closeBtn.onclick = () => { resultContainer.style.display = 'none'; };
+        }
+
+        if (actionType === 'summary') {
+          if (resultTitle) resultTitle.textContent = 'AI Document Summary';
+          if (resultSubtitle) resultSubtitle.textContent = docTitle;
+          if (resultIcon) resultIcon.textContent = 'short_text';
+          if (resultIconBg) resultIconBg.style.background = 'rgba(59,123,248,0.12)';
+
+          const summaryText = data.summary || 'Summary unavailable.';
+          const keyPoints = Array.isArray(data.keyPoints) ? data.keyPoints : [];
+          const shortNotes = data.shortNotes || '';
+
+          resultContent.innerHTML = `
+            <div style="background:var(--bg);padding:14px;border-radius:12px;margin-bottom:14px;border-left:4px solid #3b7bf8;">
+              <h4 style="font-size:13px;font-weight:700;color:#3b7bf8;text-transform:uppercase;margin:0 0 6px;">Overview</h4>
+              <p style="margin:0;font-size:14px;line-height:1.5;">${summaryText}</p>
+            </div>
+
+            ${keyPoints.length > 0 ? `
+              <div style="margin-bottom:14px;">
+                <h4 style="font-size:13px;font-weight:700;color:var(--text-primary);margin:0 0 8px;">Key Takeaways:</h4>
+                <ul style="padding-left:18px;margin:0;display:flex;flex-direction:column;gap:6px;">
+                  ${keyPoints.map(k => `<li style="color:var(--text-primary);">${k}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
+
+            ${shortNotes ? `
+              <div style="background:rgba(59,123,248,0.05);padding:12px;border-radius:10px;font-size:13px;white-space:pre-line;">
+                <b>Quick Notes:</b>\n${shortNotes}
+              </div>
+            ` : ''}
+          `;
+        } else if (actionType === 'notes') {
+          if (resultTitle) resultTitle.textContent = 'Study Notes';
+          if (resultSubtitle) resultSubtitle.textContent = docTitle;
+          if (resultIcon) resultIcon.textContent = 'description';
+          if (resultIconBg) resultIconBg.style.background = 'rgba(34,197,94,0.12)';
+
+          const detailed = data.detailedNotes || data.shortNotes || data.summary || 'Notes unavailable.';
+          const questions = Array.isArray(data.importantQuestions) ? data.importantQuestions : [];
+
+          resultContent.innerHTML = `
+            <div style="background:var(--bg);padding:14px;border-radius:12px;margin-bottom:14px;border-left:4px solid #16a34a;white-space:pre-line;">
+              <h4 style="font-size:13px;font-weight:700;color:#16a34a;text-transform:uppercase;margin:0 0 6px;">Detailed Section Notes</h4>
+              <p style="margin:0;font-size:14px;line-height:1.6;">${detailed}</p>
+            </div>
+
+            ${questions.length > 0 ? `
+              <div>
+                <h4 style="font-size:13px;font-weight:700;color:var(--text-primary);margin:0 0 8px;">Important Questions:</h4>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  ${questions.map((q, i) => `
+                    <div style="background:var(--bg);padding:10px 12px;border-radius:8px;">
+                      <div style="font-weight:700;font-size:13px;color:var(--text-primary);">Q${i+1}: ${q.question}</div>
+                      <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${q.answer}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          `;
+        } else if (actionType === 'quiz') {
+          if (resultTitle) resultTitle.textContent = 'Interactive Quiz Game';
+          if (resultSubtitle) resultSubtitle.textContent = docTitle;
+          if (resultIcon) resultIcon.textContent = 'quiz';
+          if (resultIconBg) resultIconBg.style.background = 'rgba(245,158,11,0.12)';
+
+          const questions = Array.isArray(data.questions) ? data.questions : [];
+          if (questions.length === 0) {
+            resultContent.innerHTML = '<p>No quiz questions generated.</p>';
+          } else {
+            let qHtml = `<div style="display:flex;flex-direction:column;gap:16px;">`;
+            questions.forEach((q, i) => {
+              qHtml += `
+                <div style="background:var(--bg);padding:14px;border-radius:12px;border:1px solid var(--border);">
+                  <div style="font-weight:700;font-size:14px;margin-bottom:10px;color:var(--text-primary);">Q${i+1}: ${q.question}</div>
+                  <div style="display:flex;flex-direction:column;gap:6px;">
+                    ${(q.options || []).map((opt, optIdx) => `
+                      <button type="button" class="quiz-inline-opt" data-qidx="${i}" data-oidx="${optIdx}" data-correct="${q.correctIndex || 0}" style="text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;transition:background 0.15s;">
+                        <span style="font-weight:700;margin-right:6px;">${['A','B','C','D'][optIdx] || optIdx+1}.</span> ${opt}
+                      </button>
+                    `).join('')}
+                  </div>
+                  ${q.explanation ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:8px;">💡 ${q.explanation}</div>` : ''}
+                </div>
+              `;
+            });
+            qHtml += `</div>`;
+            resultContent.innerHTML = qHtml;
+
+            resultContent.querySelectorAll('.quiz-inline-opt').forEach(btn => {
+              btn.addEventListener('click', () => {
+                const qidx = btn.getAttribute('data-qidx');
+                const oidx = parseInt(btn.getAttribute('data-oidx'), 10);
+                const correct = parseInt(btn.getAttribute('data-correct'), 10);
+                const siblings = resultContent.querySelectorAll(`.quiz-inline-opt[data-qidx="${qidx}"]`);
+                siblings.forEach(s => { s.style.pointerEvents = 'none'; });
+
+                if (oidx === correct) {
+                  btn.style.background = 'rgba(34,197,94,0.15)';
+                  btn.style.borderColor = '#16a34a';
+                  btn.style.color = '#16a34a';
+                  StudyGenApp.toast.show('Correct Answer! 🎉');
+                } else {
+                  btn.style.background = 'rgba(239,68,68,0.15)';
+                  btn.style.borderColor = '#ef4444';
+                  btn.style.color = '#ef4444';
+                  if (siblings[correct]) {
+                    siblings[correct].style.background = 'rgba(34,197,94,0.15)';
+                    siblings[correct].style.borderColor = '#16a34a';
+                  }
+                  StudyGenApp.toast.show('Incorrect answer.');
+                }
+              });
+            });
+          }
+        } else if (actionType === 'flash') {
+          if (resultTitle) resultTitle.textContent = 'Revision Flashcards';
+          if (resultSubtitle) resultSubtitle.textContent = docTitle;
+          if (resultIcon) resultIcon.textContent = 'style';
+          if (resultIconBg) resultIconBg.style.background = 'rgba(123,82,244,0.12)';
+
+          const cards = Array.isArray(data.cards) ? data.cards : [];
+          if (cards.length === 0) {
+            resultContent.innerHTML = '<p>No flashcards generated.</p>';
+          } else {
+            let cardIdx = 0;
+            resultContent.innerHTML = `
+              <div style="text-align:center;">
+                <div id="inlineCardBox" style="background:linear-gradient(135deg,#3b7bf8,#7b52f4);color:white;padding:24px 16px;border-radius:14px;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 14px rgba(59,123,248,0.3);margin-bottom:12px;user-select:none;">
+                  <span style="font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:0.8;margin-bottom:6px;" id="inlineCardSide">TAP TO REVEAL ANSWER</span>
+                  <div style="font-size:16px;font-weight:700;line-height:1.4;" id="inlineCardText">${cards[0].front}</div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <button type="button" id="prevInlineCard" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;">Previous</button>
+                  <span id="inlineCardCount" style="font-size:12px;color:var(--text-secondary);font-weight:600;">Card 1 of ${cards.length}</span>
+                  <button type="button" id="nextInlineCard" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;">Next</button>
+                </div>
+              </div>
+            `;
+
+            let showingFront = true;
+            const cardBox = document.getElementById('inlineCardBox');
+            const cardText = document.getElementById('inlineCardText');
+            const cardSide = document.getElementById('inlineCardSide');
+            const countEl = document.getElementById('inlineCardCount');
+
+            const updateCard = () => {
+              showingFront = true;
+              cardSide.textContent = 'TAP TO REVEAL ANSWER';
+              cardText.textContent = cards[cardIdx].front;
+              countEl.textContent = `Card ${cardIdx + 1} of ${cards.length}`;
+            };
+
+            cardBox.onclick = () => {
+              showingFront = !showingFront;
+              if (showingFront) {
+                cardSide.textContent = 'TAP TO REVEAL ANSWER';
+                cardText.textContent = cards[cardIdx].front;
+              } else {
+                cardSide.textContent = 'ANSWER';
+                cardText.textContent = cards[cardIdx].back;
+              }
+            };
+
+            document.getElementById('prevInlineCard').onclick = () => {
+              if (cardIdx > 0) { cardIdx--; updateCard(); }
+            };
+            document.getElementById('nextInlineCard').onclick = () => {
+              if (cardIdx < cards.length - 1) { cardIdx++; updateCard(); }
+            };
+          }
+        }
+
+        resultContainer.style.display = 'block';
+        resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
   </script>

@@ -102,6 +102,7 @@ app.use('/api/health',     healthRoutes);
 app.use('/api/auth',       authRoutes);
 app.use('/api/notes',      noteRoutes);
 app.use('/api/quizzes',    quizRoutes);
+app.use('/api/quiz',       quizRoutes);
 app.use('/api/flashcards', flashcardRoutes);
 app.use('/api/chats',      chatRoutes);
 app.use('/api/history',    historyRoutes);

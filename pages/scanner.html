@@ -70,6 +70,13 @@
     .doc-frame.detected {
       box-shadow: inset 0 0 0 1000px rgba(59,123,248,0.08);
     }
+    .doc-frame.auto-locking {
+      box-shadow: inset 0 0 0 1000px rgba(34, 197, 94, 0.12), 0 0 24px rgba(34, 197, 94, 0.5);
+      border-color: #22c55e !important;
+    }
+    .doc-frame.auto-locking .doc-corner {
+      border-color: #22c55e !important;
+    }
 
     .doc-corner {
       position: absolute;
@@ -77,6 +84,7 @@
       height: 24px;
       border-color: var(--primary);
       border-style: solid;
+      transition: border-color 0.2s ease;
     }
     .doc-corner-tl { top: -2px; left: -2px; border-width: 4px 0 0 4px; border-radius: 4px 0 0 0; }
     .doc-corner-tr { top: -2px; right: -2px; border-width: 4px 4px 0 0; border-radius: 0 4px 0 0; }
@@ -195,7 +203,10 @@
       <button class="app-bar__back" id="closeBtn" aria-label="Close scanner" style="color:white">
         <span class="material-icons-round">close</span>
       </button>
-      <span style="font-weight:700;font-size:17px;letter-spacing:-0.2px;">Document Scanner</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-weight:700;font-size:17px;letter-spacing:-0.2px;">Document Scanner</span>
+        <span id="autoBadge" style="display:none;background:#22c55e;color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">AUTO ON 🎯</span>
+      </div>
       <button class="app-bar__action-btn" id="flashToggle" aria-label="Toggle Flashlight" style="color:white">
         <span class="material-icons-round" id="flashIcon">flash_off</span>
       </button>
@@ -207,6 +218,9 @@
       <!-- Real Mobile HTML5 Camera Video Stream -->
       <video id="cameraVideo" autoplay playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;display:none;"></video>
       
+      <!-- Live Real-Time Document Boundary Canvas Overlay -->
+      <canvas id="detectionCanvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5;"></canvas>
+
       <!-- Edge Detection Frame -->
       <div class="doc-frame detected" id="docFrame" style="z-index:10;">
         <div class="doc-corner doc-corner-tl"></div>
@@ -226,9 +240,9 @@
       </div>
 
       <!-- Hint Text Below Frame -->
-      <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;font-size:13px;color:rgba(255,255,255,0.8);font-weight:500;z-index:15;">
+      <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;font-size:13px;color:rgba(255,255,255,0.9);font-weight:600;z-index:15;text-shadow:0 2px 4px rgba(0,0,0,0.8);" id="scannerHint">
         <span class="material-icons-round" style="font-size:16px;vertical-align:middle;margin-right:4px;color:var(--primary);">crop_free</span>
-        Align document within frame
+        <span>Align document within frame</span>
       </div>
 
       <!-- Floating Right Toolbar -->
@@ -275,7 +289,7 @@
       <!-- Continue / Page Counter -->
       <div id="continueBtn" style="min-width:60px;text-align:center;cursor:pointer;">
         <button class="btn btn-primary btn-sm hidden" id="doneBtn" style="padding:8px 16px;">
-          <span>Continue</span>
+          <span>Done / Create PDF</span>
           <span class="material-icons-round" style="font-size:18px;">arrow_forward</span>
         </button>
         <div id="pageCounter" class="text-label-md" style="color:rgba(255,255,255,0.6)">0 Pages</div>

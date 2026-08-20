@@ -38,12 +38,11 @@ async function protect(req, res, next) {
     // ── Step 1: Extract token from HttpOnly cookie ──────────────────────────
     let token = req.cookies[COOKIE_NAME];
 
-    if (!token && process.env.NODE_ENV !== 'production') {
-      // Dev mode: attach a synthetic guest user — no DB lookup required.
-      // This ensures all AI endpoints work locally without needing a login session.
+    if (!token) {
+      // Attach guest user session when no authentication cookie is set
       req.user = {
         id: '000000000000000000000000',
-        name: 'Dev Guest',
+        name: 'Guest User',
         email: 'guest@studygen.local',
         authProvider: 'local',
         avatar: null,
@@ -52,12 +51,6 @@ async function protect(req, res, next) {
         updatedAt: new Date(),
       };
       return next();
-    }
-
-    if (!token) {
-      return next(
-        new AppError('Not authenticated. Please log in.', 401, 'UNAUTHORIZED')
-      );
     }
 
     // ── Step 2: Verify JWT (throws AppError on invalid/expired) ─────────────

@@ -4,7 +4,7 @@
  * StudyGen AI — PDF AI Import & Scanned PDF Viewer Logic
  * Renders compiled multi-page scanned PDF document card,
  * generates real compiled PDF download to local device via jsPDF,
- * supports local IndexedDB saving, sharing, and AI study guide generation.
+ * supports local IndexedDB saving, native "View as PDF", sharing, and AI study guide generation.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,9 +16,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const scannedPdfMeta           = document.getElementById('scannedPdfMeta');
   const scannedPdfPagesContainer = document.getElementById('scannedPdfPagesContainer');
   const cardSaveDeviceBtn        = document.getElementById('cardSaveDeviceBtn');
+  const pdfViewBtn               = document.getElementById('pdfViewBtn');
   const pdfDownloadBtn           = document.getElementById('pdfDownloadBtn');
   const pdfSaveBtn               = document.getElementById('pdfSaveBtn');
   const pdfShareBtn              = document.getElementById('pdfShareBtn');
+  const pdfDeleteBtn             = document.getElementById('pdfDeleteBtn');
+
+  // Cached PDF Blob & Object URL references to prevent redundant compilations
+  let cachedPdfBlob              = null;
+  let cachedObjectUrl            = null;
 
   // Check if user came from Scanner / Scan Preview with batch scanned pages
   const batchPagesStr = sessionStorage.getItem('sg_batch_pages');
@@ -61,8 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeDocId = sessionStorage.getItem('sg_active_doc_id');
     if (activeDocId && window.LocalPdfDB && scannedPdfCard) {
       scannedPdfCard.style.display = 'block';
+      window.LocalPdfDB.touchLastOpened(activeDocId);
       window.LocalPdfDB.getDocument(activeDocId).then(docRecord => {
         if (docRecord) {
+          if (docRecord.blob && docRecord.blob.type === 'application/pdf') {
+            cachedPdfBlob = docRecord.blob;
+          }
           const docTitle = docRecord.documentTitle || sessionStorage.getItem('sg_active_doc_title') || 'Document.pdf';
           if (scannedPdfTitle) scannedPdfTitle.textContent = docTitle.endsWith('.pdf') ? docTitle : `${docTitle}.pdf`;
           if (scannedPdfMeta) scannedPdfMeta.textContent = `${docRecord.filename || 'PDF Document'} • Ready`;
@@ -88,77 +98,150 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Real Multi-Page PDF Compiler & Local Device File Saver
-  async function compileAndSavePdfToDevice() {
-    if (pagesData.length === 0) {
-      StudyGenApp.toast.show('No active scanned pages to save.');
-      return;
+  /**
+   * Generates or retrieves compiled PDF Blob in memory without redundant compilations.
+   */
+  async function getOrCreatePdfBlob() {
+    if (cachedPdfBlob) return cachedPdfBlob;
+
+    // 1. Check IndexedDB record
+    const activeDocId = sessionStorage.getItem('sg_active_doc_id');
+    if (activeDocId && window.LocalPdfDB) {
+      try {
+        const docRecord = await window.LocalPdfDB.getDocument(activeDocId);
+        if (docRecord && docRecord.blob) {
+          cachedPdfBlob = docRecord.blob;
+          return cachedPdfBlob;
+        }
+      } catch (err) {
+        console.warn('IndexedDB Blob retrieval note:', err.message);
+      }
     }
 
+    // 2. Compile PDF Blob using jsPDF from pagesData
+    if (pagesData && pagesData.length > 0 && window.jspdf && window.jspdf.jsPDF) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
+      const pdfWidth = doc.internal.pageSize.getWidth();
+      const pdfHeight = doc.internal.pageSize.getHeight();
+
+      for (let i = 0; i < pagesData.length; i++) {
+        if (i > 0) doc.addPage();
+        const img = new Image();
+        img.src = pagesData[i];
+        await new Promise(resolve => { img.onload = resolve; });
+
+        const imgRatio = img.height / img.width;
+        let printWidth = pdfWidth;
+        let printHeight = pdfWidth * imgRatio;
+        if (printHeight > pdfHeight) {
+          printHeight = pdfHeight;
+          printWidth = pdfHeight / imgRatio;
+        }
+        const xOffset = (pdfWidth - printWidth) / 2;
+        const yOffset = (pdfHeight - printHeight) / 2;
+
+        const A4_W = Math.round(printWidth);
+        const A4_H = Math.round(printHeight);
+        const offCanvas = document.createElement('canvas');
+        offCanvas.width  = A4_W;
+        offCanvas.height = A4_H;
+        const offCtx = offCanvas.getContext('2d');
+        offCtx.drawImage(img, 0, 0, A4_W, A4_H);
+        const compressedDataUrl = offCanvas.toDataURL('image/jpeg', 0.75);
+
+        doc.addImage(compressedDataUrl, 'JPEG', xOffset, yOffset, printWidth, printHeight);
+      }
+
+      cachedPdfBlob = doc.output('blob');
+      return cachedPdfBlob;
+    }
+
+    return null;
+  }
+
+  // Real Multi-Page PDF Compiler & Local Device File Saver
+  async function compileAndSavePdfToDevice() {
     const rawTitle = sessionStorage.getItem('sg_active_doc_title') || `Scanned_Document_${Date.now()}`;
     const filename = rawTitle.endsWith('.pdf') ? rawTitle : `${rawTitle}.pdf`;
 
     StudyGenApp.toast.show('Compiling PDF & Saving to Local Device... 💾', 4000);
 
     try {
-      if (window.jspdf && window.jspdf.jsPDF) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
-        const pdfWidth = doc.internal.pageSize.getWidth();
-        const pdfHeight = doc.internal.pageSize.getHeight();
-
-        for (let i = 0; i < pagesData.length; i++) {
-          if (i > 0) doc.addPage();
-
-          // Load the original image
-          const img = new Image();
-          img.src = pagesData[i];
-          await new Promise(resolve => { img.onload = resolve; });
-
-          // Calculate fit dimensions for A4 page
-          const imgRatio = img.height / img.width;
-          let printWidth = pdfWidth;
-          let printHeight = pdfWidth * imgRatio;
-          if (printHeight > pdfHeight) {
-            printHeight = pdfHeight;
-            printWidth = pdfHeight / imgRatio;
-          }
-          const xOffset = (pdfWidth - printWidth) / 2;
-          const yOffset = (pdfHeight - printHeight) / 2;
-
-          // Re-draw onto a compressed canvas (A4 px @ 96dpi) to reduce file size
-          // A4 at 96dpi = 794×1123px — much smaller than full camera resolution
-          const A4_W = Math.round(printWidth);
-          const A4_H = Math.round(printHeight);
-          const offCanvas = document.createElement('canvas');
-          offCanvas.width  = A4_W;
-          offCanvas.height = A4_H;
-          const offCtx = offCanvas.getContext('2d');
-          offCtx.drawImage(img, 0, 0, A4_W, A4_H);
-          // 0.72 quality = sharp enough for reading, ~80% smaller than raw
-          const compressedDataUrl = offCanvas.toDataURL('image/jpeg', 0.72);
-
-          doc.addImage(compressedDataUrl, 'JPEG', xOffset, yOffset, printWidth, printHeight);
-        }
-
-        doc.save(filename);
-        StudyGenApp.toast.show(`Saved "${filename}" to your Downloads folder! 📄🎉`);
-      } else {
-        // Fallback multi-image download if jsPDF is loading
-        pagesData.forEach((dataUrl, idx) => {
-          const link = document.createElement('a');
-          link.href = dataUrl;
-          link.download = `${filename.replace(/\.pdf$/i, '')}_Page_${idx + 1}.jpg`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        });
-        StudyGenApp.toast.show(`Saved ${pagesData.length} page files to your device! 📄✨`);
+      const pdfBlob = await getOrCreatePdfBlob();
+      if (pdfBlob) {
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(pdfBlob);
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        StudyGenApp.toast.show(`Saved "${filename}" to your device! 📄🎉`);
+        return;
       }
+
+      if (pagesData.length === 0) {
+        StudyGenApp.toast.show('No active scanned pages to save.');
+        return;
+      }
+
+      // Fallback page-by-page save
+      pagesData.forEach((dataUrl, idx) => {
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `${filename.replace(/\.pdf$/i, '')}_Page_${idx + 1}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+      StudyGenApp.toast.show(`Saved ${pagesData.length} page files to your device! 📄✨`);
     } catch (err) {
       console.error('PDF generation error:', err);
       StudyGenApp.toast.show('Error compiling PDF. Saved image pages directly.');
     }
+  }
+
+  // ── "VIEW AS PDF" Action Handler ───────────────────────────────────────────
+  if (pdfViewBtn) {
+    pdfViewBtn.addEventListener('click', async () => {
+      // 1. Open target popup synchronously to prevent browser popup blocker
+      let newWindow = null;
+      try {
+        newWindow = window.open('about:blank', '_blank');
+      } catch (e) {
+        console.warn('Popup window blocked:', e.message);
+      }
+
+      StudyGenApp.toast.show('Opening PDF in native viewer... 📄');
+
+      try {
+        const pdfBlob = await getOrCreatePdfBlob();
+        if (!pdfBlob) {
+          if (newWindow) newWindow.close();
+          StudyGenApp.toast.show('PDF is not ready yet. Please try again.');
+          return;
+        }
+
+        if (!cachedObjectUrl) {
+          cachedObjectUrl = URL.createObjectURL(pdfBlob);
+        }
+
+        if (newWindow) {
+          newWindow.location.href = cachedObjectUrl;
+        } else {
+          // Popup blocked fallback (Requirement: "Please allow pop-ups to view the PDF.")
+          StudyGenApp.toast.show('Please allow pop-ups to view the PDF.');
+          // Mobile / WebView Fallback
+          window.location.href = cachedObjectUrl;
+        }
+      } catch (err) {
+        console.error('View as PDF error:', err);
+        if (newWindow) newWindow.close();
+        StudyGenApp.toast.show('Could not open PDF viewer. Please try again.');
+      }
+    });
   }
 
   // Wire up "Save PDF to Device" button inside Card
@@ -193,6 +276,91 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } else {
         StudyGenApp.toast.show('Document link copied to clipboard! 📋');
+      }
+    });
+  }
+
+  // ── "RENAME DOCUMENT" Action Handler ───────────────────────────────────────
+  const pdfRenameBtn = document.getElementById('pdfRenameBtn');
+  if (pdfRenameBtn) {
+    pdfRenameBtn.addEventListener('click', async () => {
+      const activeDocId = sessionStorage.getItem('sg_active_doc_id');
+      const currentTitle = sessionStorage.getItem('sg_active_doc_title') || (scannedPdfTitle ? scannedPdfTitle.textContent : 'Scanned Document');
+      const cleanCurrent = currentTitle.replace(/\.pdf$/i, '');
+
+      const newTitle = window.prompt('Rename Document:', cleanCurrent);
+      if (newTitle === null) return; // User cancelled
+
+      const trimmed = newTitle.trim();
+      if (!trimmed) {
+        StudyGenApp.toast.show('Document name cannot be empty.');
+        return;
+      }
+
+      const finalName = trimmed.endsWith('.pdf') ? trimmed : `${trimmed}.pdf`;
+
+      try {
+        if (activeDocId && window.LocalPdfDB) {
+          await window.LocalPdfDB.renameDocument(activeDocId, finalName);
+        }
+
+        sessionStorage.setItem('sg_active_doc_title', finalName);
+        if (scannedPdfTitle) scannedPdfTitle.textContent = finalName;
+
+        StudyGenApp.toast.show(`Document renamed to "${finalName}" ✏️`);
+      } catch (err) {
+        console.error('Rename error:', err);
+        StudyGenApp.toast.show('Could not rename document. Please try again.');
+      }
+    });
+  }
+
+  // ── "DELETE DOCUMENT" Action Handler ───────────────────────────────────────
+  if (pdfDeleteBtn) {
+    pdfDeleteBtn.addEventListener('click', () => {
+      const activeDocId = sessionStorage.getItem('sg_active_doc_id');
+      const docTitle = sessionStorage.getItem('sg_active_doc_title') || (scannedPdfTitle ? scannedPdfTitle.textContent : 'Scanned Document');
+
+      const performDeletion = async () => {
+        try {
+          if (activeDocId && window.LocalPdfDB) {
+            await window.LocalPdfDB.deleteDocument(activeDocId);
+          }
+
+          // Revoke active Object URL to prevent memory leaks
+          if (cachedObjectUrl) {
+            try { URL.revokeObjectURL(cachedObjectUrl); } catch (e) {}
+            cachedObjectUrl = null;
+          }
+          cachedPdfBlob = null;
+
+          // Clear active document session state
+          sessionStorage.removeItem('sg_active_doc_id');
+          sessionStorage.removeItem('sg_active_doc_title');
+          sessionStorage.removeItem('sg_batch_pages');
+          sessionStorage.removeItem('sg_batch_page_ids');
+          sessionStorage.removeItem('sg_scan_count');
+
+          StudyGenApp.toast.show('Document deleted successfully.');
+
+          // Return to Home / Recent Documents screen
+          setTimeout(() => {
+            window.location.href = 'home.html';
+          }, 400);
+        } catch (err) {
+          console.error('Delete error:', err);
+          StudyGenApp.toast.show('Unable to delete document. Please try again.');
+        }
+      };
+
+      if (window.StudyGenNav && window.StudyGenNav.confirm) {
+        window.StudyGenNav.confirm(
+          `Delete Document?`,
+          performDeletion,
+          `Are you sure you want to permanently delete "${docTitle}"? This action cannot be undone.`
+        );
+      } else if (confirm(`Delete Document?\n\nAre you sure you want to permanently delete "${docTitle}"?\nThis action cannot be undone.`)) {
+        performDeletion();
       }
     });
   }

@@ -1,208 +1,329 @@
 'use strict';
 
 /**
- * StudyGen AI — History Screen Logic
- * Connects real backend GET /api/history and DELETE /api/history/:id APIs.
- * Checks local IndexedDB for PDF existence and displays `[Local File Deleted]` badge if removed locally,
- * while keeping saved Notes, Quizzes, Flashcards, and Chat accessible from MongoDB.
+ * StudyGen AI — My Documents Library Manager (`js/history.js`)
+ *
+ * Provides complete local document management:
+ * - Real-time display of all IndexedDB saved documents
+ * - Instant live search filtering by title & filename
+ * - Category filter chips (All, Recent, Favorites)
+ * - Dynamic database document counts (My Documents (X))
+ * - Single source of truth event listening (`studygen:doc-changed`)
+ * - Document actions: Open, Rename, Favorite toggle, Delete with confirmation dialog
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Navigation Init
+  if (window.StudyGenNav) {
+    StudyGenNav.init({ activePage: 'history', requireAuth: false });
+  }
 
-  const searchInput = document.getElementById('historySearch');
-  const clearSearch = document.getElementById('clearSearchBtn');
-  const notesList   = document.getElementById('notesList');
-  const pdfsList    = document.getElementById('pdfsList');
-  const guidesList  = document.getElementById('guidesList');
-  const emptyState  = document.getElementById('emptyHistoryState');
+  // DOM Elements
+  const searchInput    = document.getElementById('historySearch');
+  const clearSearch    = document.getElementById('clearSearchBtn');
+  const pdfsList       = document.getElementById('pdfsList');
+  const emptyState     = document.getElementById('emptyHistoryState');
+  const titleCountEl   = document.getElementById('myDocsTitle');
+  const headerLabelEl  = document.getElementById('secHeaderLabel');
 
-  const secNotes  = document.getElementById('secNotes');
-  const secPdfs   = document.getElementById('secPdfs');
-  const secGuides = document.getElementById('secGuides');
+  // Rename Modal Elements
+  const renameModal    = document.getElementById('renameDocModal');
+  const renameInput    = document.getElementById('renameDocInput');
+  const cancelRename   = document.getElementById('cancelRenameBtn');
+  const confirmRename  = document.getElementById('confirmRenameBtn');
+  let activeRenameId   = null;
 
-  let activeCat = 'all';
-  let historyItems = [];
-  let localPdfPresenceMap = {};
+  let activeCat = 'all'; // 'all', 'recent', 'favorite'
+
+  function formatSize(bytes) {
+    if (!bytes) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  function relTime(iso) {
+    if (!iso) return '';
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1)   return 'Just now';
+    if (mins < 60)  return `${mins} min ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24)   return `${hrs} hr ago`;
+    const days = Math.floor(hrs / 24);
+    if (days === 1) return 'Yesterday';
+    return `${days} days ago`;
+  }
 
   async function loadHistory() {
+    if (!pdfsList) return;
+
     try {
-      const res = await window.ApiClient.get('/history');
-      if (res && res.success && res.data) {
-        historyItems = res.data.history || [];
+      const q = searchInput ? searchInput.value.trim() : '';
+      const filterFav = activeCat === 'favorite';
+      const sortBy = activeCat === 'recent' ? 'lastOpenedAt' : 'updatedAt';
+
+      let docs = [];
+      let totalCount = 0;
+
+      if (window.LocalPdfDB) {
+        docs = await window.LocalPdfDB.listDocuments({
+          searchQuery: q,
+          filterFavorite: filterFav,
+          sortBy: sortBy,
+        });
+        totalCount = await window.LocalPdfDB.getDocumentCount();
       }
+
+      // Check backend history for any saved items
+      try {
+        const res = await window.ApiClient.get('/history');
+        if (res && res.success && res.data && Array.isArray(res.data.history)) {
+          for (const item of res.data.history) {
+            if (item.localPdfId) {
+              const exists = await window.LocalPdfDB.documentExists(item.localPdfId);
+              if (!exists && !docs.some(d => d.localPdfId === item.localPdfId)) {
+                docs.push({
+                  localPdfId: item.localPdfId,
+                  documentTitle: item.documentTitle || item.title || 'Untitled Document',
+                  filename: item.filename || 'document.pdf',
+                  isDeletedLocally: true,
+                  updatedAt: item.updatedAt || item.createdAt,
+                });
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Backend history sync note:', err.message);
+      }
+
+      // Update Header Title with Real-Time Database Count (Requirement 6)
+      if (titleCountEl) {
+        titleCountEl.textContent = `My Documents (${totalCount})`;
+      }
+
+      // Section Header Label
+      if (headerLabelEl) {
+        if (activeCat === 'recent') headerLabelEl.textContent = 'RECENTLY OPENED';
+        else if (activeCat === 'favorite') headerLabelEl.textContent = 'FAVORITE DOCUMENTS';
+        else headerLabelEl.textContent = 'ALL DOCUMENTS';
+      }
+
+      if (!docs || docs.length === 0) {
+        pdfsList.innerHTML = '';
+        if (emptyState) emptyState.classList.remove('hidden');
+        return;
+      }
+
+      if (emptyState) emptyState.classList.add('hidden');
+
+      pdfsList.innerHTML = docs.map(doc => {
+        const title = doc.documentTitle || doc.filename || 'Untitled Document';
+        const timeStr = relTime(doc.lastOpenedAt || doc.updatedAt || doc.createdAt);
+        const sizeStr = formatSize(doc.sizeBytes);
+        const pagesStr = doc.pageCount ? `${doc.pageCount} ${doc.pageCount === 1 ? 'page' : 'pages'}` : 'PDF';
+        const metaInfo = [pagesStr, sizeStr, timeStr].filter(Boolean).join(' • ');
+
+        const thumbHtml = doc.thumbnail
+          ? `<img src="${doc.thumbnail}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="Thumbnail" />`
+          : `<span class="material-icons-round">picture_as_pdf</span>`;
+
+        const favIcon = doc.isFavorite ? 'star' : 'star_outline';
+        const favStyle = doc.isFavorite ? 'color:#f59e0b;' : 'color:var(--text-secondary);';
+
+        return `
+          <div class="list-item doc-card-item" data-id="${doc.localPdfId}" data-title="${title}" style="cursor:pointer;position:relative;">
+            <div class="icon-container ic-pdf" style="overflow:hidden;">
+              ${thumbHtml}
+            </div>
+            <div class="list-item__content">
+              <div class="list-item__title" style="font-weight:700;">
+                ${title} ${doc.isDeletedLocally ? '<span class="badge" style="background:rgba(255,59,48,0.12);color:var(--error);font-size:10px;margin-left:6px;">[Local File Deleted]</span>' : ''}
+              </div>
+              <div class="list-item__subtitle">${metaInfo}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <button type="button" class="btn-icon fav-btn" data-id="${doc.localPdfId}" title="Favorite" style="width:34px;height:34px;">
+                <span class="material-icons-round" style="${favStyle}">${favIcon}</span>
+              </button>
+              <button type="button" class="btn-icon doc-options-btn" data-id="${doc.localPdfId}" data-title="${title}" title="Options" style="width:34px;height:34px;">
+                <span class="material-icons-round">more_vert</span>
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+
+      _attachItemHandlers();
     } catch (err) {
-      console.error('Failed to load history:', err);
-      StudyGenApp.toast.show(err.message || 'Failed to load history from server.');
-      historyItems = [];
+      console.warn('My Documents load error:', err.message);
     }
-
-    // Check IndexedDB for each item's localPdfId
-    localPdfPresenceMap = {};
-    for (const item of historyItems) {
-      if (item.localPdfId) {
-        const exists = await window.LocalPdfDB.documentExists(item.localPdfId);
-        localPdfPresenceMap[item.localPdfId] = exists;
-      }
-    }
-
-    renderAll();
-  }
-
-  function renderItem(item) {
-    const isPdfAvailable = localPdfPresenceMap[item.localPdfId] === true;
-    const dateFormatted = StudyGenApp.utils.relativeTime(item.lastAccessedAt || item.updatedAt);
-    const pdfBadgeHtml = !isPdfAvailable
-      ? `<span class="badge" style="background:rgba(255,59,48,0.12);color:var(--error);font-size:10px;margin-left:6px;">[Local File Deleted]</span>`
-      : '';
-
-    let type = 'pdf';
-    let iconName = 'picture_as_pdf';
-    let iconClass = 'ic-pdf';
-    let routeTarget = 'pdf-ai.html';
-
-    if (item.noteId) {
-      type = 'note';
-      iconName = 'description';
-      iconClass = 'ic-notes';
-      routeTarget = `ai-study.html?id=${item.noteId._id || item.noteId}`;
-    } else if (item.quizId) {
-      type = 'quiz';
-      iconName = 'quiz';
-      iconClass = 'ic-quiz';
-      routeTarget = 'ai-learning.html?tab=quiz';
-    } else if (item.chatId) {
-      type = 'chat';
-      iconName = 'forum';
-      iconClass = 'ic-notes';
-      routeTarget = 'ai-learning.html?tab=chat';
-    }
-
-    return `
-      <div class="list-item" data-id="${item._id}" data-localpdfid="${item.localPdfId}" data-type="${type}" data-title="${item.documentTitle}" data-route="${routeTarget}" data-pdfavailable="${isPdfAvailable}">
-        <div class="icon-container ${iconClass}">
-          <span class="material-icons-round">${iconName}</span>
-        </div>
-        <div class="list-item__content">
-          <div class="list-item__title">${item.documentTitle} ${pdfBadgeHtml}</div>
-          <div class="list-item__subtitle">${dateFormatted}</div>
-        </div>
-        <button class="dot-menu-btn item-menu-btn" title="Options">
-          <span class="material-icons-round">more_vert</span>
-        </button>
-      </div>
-    `;
-  }
-
-  function renderAll() {
-    const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-    const filterFn = (item) => !query || (item.documentTitle || '').toLowerCase().includes(query);
-
-    const filtered = historyItems.filter(filterFn);
-
-    const filteredNotes  = filtered.filter(i => i.noteId);
-    const filteredGuides = filtered.filter(i => i.quizId || i.chatId || i.flashcardId);
-    const filteredPdfs   = filtered.filter(i => !i.noteId && !i.quizId && !i.chatId);
-
-    const showNotes  = (activeCat === 'all' || activeCat === 'notes') && filteredNotes.length > 0;
-    const showPdfs   = (activeCat === 'all' || activeCat === 'pdfs') && filteredPdfs.length > 0;
-    const showGuides = (activeCat === 'all' || activeCat === 'guides') && filteredGuides.length > 0;
-
-    if (secNotes) secNotes.classList.toggle('hidden', !showNotes);
-    if (secPdfs) secPdfs.classList.toggle('hidden', !showPdfs);
-    if (secGuides) secGuides.classList.toggle('hidden', !showGuides);
-
-    if (notesList)  notesList.innerHTML  = filteredNotes.map(renderItem).join('');
-    if (pdfsList)   pdfsList.innerHTML   = filteredPdfs.map(renderItem).join('');
-    if (guidesList) guidesList.innerHTML = filteredGuides.map(renderItem).join('');
-
-    const totalVisible = (showNotes ? filteredNotes.length : 0) + (showPdfs ? filteredPdfs.length : 0) + (showGuides ? filteredGuides.length : 0);
-    if (emptyState) emptyState.classList.toggle('hidden', totalVisible > 0);
-
-    _attachItemHandlers();
   }
 
   function _attachItemHandlers() {
-    document.querySelectorAll('.list-item').forEach(el => {
-      el.addEventListener('click', (e) => {
-        if (e.target.closest('.item-menu-btn')) {
-          e.stopPropagation();
-          const title = el.getAttribute('data-title');
-          const id = el.getAttribute('data-id');
-          _openItemMenu(id, title);
+    // Open Document Handler
+    document.querySelectorAll('.doc-card-item').forEach(el => {
+      el.addEventListener('click', async (e) => {
+        if (e.target.closest('.fav-btn') || e.target.closest('.doc-options-btn')) return;
+
+        const id = el.getAttribute('data-id');
+        if (id && window.LocalPdfDB) {
+          await window.LocalPdfDB.touchLastOpened(id);
+          sessionStorage.setItem('sg_active_doc_id', id);
+          window.location.href = 'pdf-ai.html';
+        }
+      });
+    });
+
+    // Favorite Toggle Handler
+    document.querySelectorAll('.fav-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        if (id && window.LocalPdfDB) {
+          const updated = await window.LocalPdfDB.toggleFavorite(id);
+          StudyGenApp.toast.show(updated?.isFavorite ? 'Added to Favorites ⭐' : 'Removed from Favorites');
+          loadHistory();
+        }
+      });
+    });
+
+    // Options Menu (Rename / Delete / Open)
+    document.querySelectorAll('.doc-options-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        const title = btn.getAttribute('data-title');
+
+        if (window.StudyGenNav && window.StudyGenNav.showActionSheet) {
+          window.StudyGenNav.showActionSheet({
+            title: title,
+            actions: [
+              {
+                label: '👁️ Open / View Document',
+                onClick: async () => {
+                  if (window.LocalPdfDB) await window.LocalPdfDB.touchLastOpened(id);
+                  sessionStorage.setItem('sg_active_doc_id', id);
+                  window.location.href = 'pdf-ai.html';
+                }
+              },
+              {
+                label: '✏️ Rename Document',
+                onClick: () => _openRenameModal(id, title)
+              },
+              {
+                label: '⭐ Toggle Favorite',
+                onClick: async () => {
+                  if (window.LocalPdfDB) {
+                    const u = await window.LocalPdfDB.toggleFavorite(id);
+                    StudyGenApp.toast.show(u?.isFavorite ? 'Added to Favorites ⭐' : 'Removed from Favorites');
+                    loadHistory();
+                  }
+                }
+              },
+              {
+                label: '🗑️ Delete Document',
+                danger: true,
+                onClick: () => _confirmDeleteDoc(id, title)
+              }
+            ]
+          });
         } else {
-          const route = el.getAttribute('data-route');
-          const isPdfAvailable = el.getAttribute('data-pdfavailable') === 'true';
-          const localPdfId = el.getAttribute('data-localpdfid');
-
-          if (localPdfId) sessionStorage.setItem('sg_active_doc_id', localPdfId);
-
-          if (!isPdfAvailable && route === 'pdf-ai.html') {
-            StudyGenApp.toast.show('The original PDF file was deleted from this device. Saved notes & chats remain accessible.', 5000);
-            return;
-          }
-
-          window.location.href = route;
+          // Fallback confirmation dialog (Requirement 4)
+          _confirmDeleteDoc(id, title);
         }
       });
     });
   }
 
-  function _openItemMenu(id, title) {
-    StudyGenNav.confirm(
-      `Delete history entry for "${title}"?`,
-      async () => {
-        try {
-          await window.ApiClient.delete(`/history/${id}`);
-          historyItems = historyItems.filter(i => i._id !== id);
-          renderAll();
-          StudyGenApp.toast.show('History entry deleted.');
-        } catch (err) {
-          StudyGenApp.toast.show(err.message || 'Failed to delete history record.');
-        }
-      }
-    );
+  // Rename Modal Functions
+  function _openRenameModal(id, currentTitle) {
+    activeRenameId = id;
+    if (renameInput) renameInput.value = currentTitle || '';
+    if (renameModal) renameModal.style.display = 'flex';
   }
 
+  function _closeRenameModal() {
+    activeRenameId = null;
+    if (renameModal) renameModal.style.display = 'none';
+  }
+
+  if (cancelRename) {
+    cancelRename.addEventListener('click', _closeRenameModal);
+  }
+
+  if (confirmRename) {
+    confirmRename.addEventListener('click', async () => {
+      const newTitle = renameInput ? renameInput.value.trim() : '';
+      if (!newTitle) {
+        StudyGenApp.toast.show('Please enter a valid document name.');
+        return;
+      }
+
+      if (activeRenameId && window.LocalPdfDB) {
+        await window.LocalPdfDB.renameDocument(activeRenameId, newTitle);
+        StudyGenApp.toast.show('Document renamed successfully ✨');
+        _closeRenameModal();
+        loadHistory();
+      }
+    });
+  }
+
+  // Delete Confirmation Dialog (Requirement 4)
+  function _confirmDeleteDoc(id, title) {
+    if (window.StudyGenNav && window.StudyGenNav.confirm) {
+      window.StudyGenNav.confirm(
+        `Delete this document?`,
+        async () => {
+          if (window.LocalPdfDB) {
+            await window.LocalPdfDB.deleteDocument(id);
+          }
+          StudyGenApp.toast.show('Document deleted from device 🗑️');
+          loadHistory();
+        },
+        'This document will be removed from this device.'
+      );
+    } else if (confirm(`Delete "${title}"?\nThis document will be removed from this device.`)) {
+      (async () => {
+        if (window.LocalPdfDB) {
+          await window.LocalPdfDB.deleteDocument(id);
+        }
+        StudyGenApp.toast.show('Document deleted 🗑️');
+        loadHistory();
+      })();
+    }
+  }
+
+  // Filter Chips Listener
   const chips = document.querySelectorAll('#historyFilterChips .chip');
   chips.forEach(chip => {
     chip.addEventListener('click', () => {
       chips.forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       activeCat = chip.getAttribute('data-cat');
-      renderAll();
+      loadHistory();
     });
   });
 
+  // Live Instant Search Listener (Requirement 5)
   if (searchInput) {
-    searchInput.addEventListener('input', () => renderAll());
-  }
-
-  const filterModalBtn = document.getElementById('filterModalBtn');
-  if (filterModalBtn) {
-    filterModalBtn.addEventListener('click', () => {
-      const cats = ['all', 'notes', 'pdfs', 'guides'];
-      const nextIdx = (cats.indexOf(activeCat) + 1) % cats.length;
-      activeCat = cats[nextIdx];
-
-      chips.forEach(c => {
-        const isMatch = c.getAttribute('data-cat') === activeCat;
-        c.classList.toggle('active', isMatch);
-      });
-
-      renderAll();
-      const catNames = { all: 'All Items', notes: 'Notes', pdfs: 'PDFs', guides: 'AI Study Guides' };
-      StudyGenApp.toast.show(`Filter: ${catNames[activeCat]}`);
-    });
+    searchInput.addEventListener('input', () => loadHistory());
   }
 
   if (clearSearch) {
     clearSearch.addEventListener('click', () => {
       if (searchInput) {
         searchInput.value = '';
-        renderAll();
+        loadHistory();
       }
     });
   }
 
+  // Initial Data Load (Requirement 9)
   await loadHistory();
+
+  // Single Source of Truth Real-time UI Synchronization (Requirement 7)
+  window.addEventListener('studygen:doc-changed', () => {
+    loadHistory();
+  });
 });

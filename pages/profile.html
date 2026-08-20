@@ -17,7 +17,7 @@
     
     <!-- Top App Bar -->
     <header class="app-bar">
-      <button class="app-bar__back" onclick="location.href='home.html'" aria-label="Back">
+      <button class="app-bar__back" onclick="if (history.length > 1) history.back(); else location.href='home.html';" aria-label="Back">
         <span class="material-icons-round">arrow_back_ios_new</span>
       </button>
       <span class="app-bar__center">Profile</span>
@@ -34,20 +34,21 @@
       <!-- Profile Header Area -->
       <section class="flex-col items-center text-center mb-xl">
         <div style="position:relative;margin-bottom:var(--sp-md);">
-          <div class="avatar-placeholder" id="profileAvatar" style="width:88px;height:88px;font-size:32px;border:3px solid white;box-shadow:var(--shadow-md);">
+          <div class="avatar-placeholder" id="profileAvatar" style="width:88px;height:88px;font-size:32px;border:3px solid white;box-shadow:var(--shadow-md);overflow:hidden;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;border-radius:50%;">
             --
           </div>
-          <button id="changeAvatarBtn" style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-xs);">
+          <button id="changeAvatarBtn" aria-label="Change photo" style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-xs);border:none;cursor:pointer;">
             <span class="material-icons-round" style="font-size:16px;">photo_camera</span>
           </button>
+          <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" />
         </div>
         
         <h2 class="text-headline-sm" id="userName" style="color:var(--text-primary);">Loading...</h2>
         <p class="text-body-sm text-secondary mb-sm" id="userEmail">Loading session...</p>
         
         <span class="badge badge-secondary" id="userBadge">
-          <span class="material-icons-round" style="font-size:14px;">star</span>
-          <span>Free Member</span>
+          <span class="material-icons-round" style="font-size:14px;">person</span>
+          <span>Member</span>
         </span>
       </section>
 
@@ -118,14 +119,6 @@
           <span class="material-icons-round settings-item__chevron">chevron_right</span>
         </a>
 
-        <a href="premium.html" class="settings-item" style="color:var(--secondary);">
-          <div class="icon-container ic-secondary icon-container--sm">
-            <span class="material-icons-round">star_outline</span>
-          </div>
-          <span class="settings-item__content" style="color:var(--secondary);font-weight:700;">Upgrade to Premium</span>
-          <span class="material-icons-round settings-item__chevron" style="color:var(--secondary);">chevron_right</span>
-        </a>
-
         <a href="#" class="settings-item" id="btnDownloads">
           <div class="icon-container ic-pdf icon-container--sm">
             <span class="material-icons-round">cloud_download</span>
@@ -154,13 +147,83 @@
 
       <!-- Logout Action Button -->
       <section class="mb-xl">
-        <button class="btn btn-danger" id="logoutBtn">
+        <button class="btn btn-danger" id="logoutBtn" style="width:100%;">
           <span class="material-icons-round">logout</span>
           <span>Logout</span>
         </button>
       </section>
 
     </main>
+  </div>
+
+  <!-- Interactive Edit Profile Modal -->
+  <div class="crop-modal-backdrop" id="editProfileModal" style="display:none;z-index:999;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;padding:16px;">
+    <div class="crop-modal-card" style="width:100%;max-width:380px;background:var(--surface);color:var(--text-primary);padding:20px;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,0.3);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h3 style="font-size:18px;font-weight:700;margin:0;">✏️ Edit Profile</h3>
+        <button type="button" id="closeEditProfileModalBtn" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);"><span class="material-icons-round">close</span></button>
+      </div>
+      <form id="editProfileForm" style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;">Display Name</label>
+          <input type="text" id="editNameInput" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text-primary);font-size:14px;box-sizing:border-box;" placeholder="Enter your name" required />
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;">
+          <button type="button" id="cancelEditProfileBtn" class="btn btn-outlined btn-sm" style="flex:1;">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm" style="flex:1;">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Interactive Change Password Modal -->
+  <div class="crop-modal-backdrop" id="changePasswordModal" style="display:none;z-index:999;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;padding:16px;">
+    <div class="crop-modal-card" style="width:100%;max-width:380px;background:var(--surface);color:var(--text-primary);padding:20px;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,0.3);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h3 style="font-size:18px;font-weight:700;margin:0;">🔐 Change Password</h3>
+        <button type="button" id="closeChangePassModalBtn" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);"><span class="material-icons-round">close</span></button>
+      </div>
+      <form id="changePasswordForm" style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;">Current Password</label>
+          <input type="password" id="currentPassInput" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text-primary);font-size:14px;box-sizing:border-box;" placeholder="Current password" required />
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;">New Password (min 6 chars)</label>
+          <input type="password" id="newPassInput" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text-primary);font-size:14px;box-sizing:border-box;" placeholder="New password" required minlength="6" />
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;">
+          <button type="button" id="cancelChangePassBtn" class="btn btn-outlined btn-sm" style="flex:1;">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm" style="flex:1;">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Interactive My Downloads Drawer/Modal -->
+  <div class="crop-modal-backdrop" id="downloadsModal" style="display:none;z-index:999;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;padding:16px;">
+    <div class="crop-modal-card" style="width:100%;max-width:400px;background:var(--surface);color:var(--text-primary);padding:20px;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,0.3);max-height:80vh;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h3 style="font-size:18px;font-weight:700;margin:0;">📥 My Downloads</h3>
+        <button type="button" id="closeDownloadsModalBtn" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);"><span class="material-icons-round">close</span></button>
+      </div>
+      <div id="downloadsList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px;">
+        <p class="text-body-sm text-secondary text-center py-md">Loading downloaded guides...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive My Favorites Drawer/Modal -->
+  <div class="crop-modal-backdrop" id="favoritesModal" style="display:none;z-index:999;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;padding:16px;">
+    <div class="crop-modal-card" style="width:100%;max-width:400px;background:var(--surface);color:var(--text-primary);padding:20px;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,0.3);max-height:80vh;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h3 style="font-size:18px;font-weight:700;margin:0;">⭐ My Favorites</h3>
+        <button type="button" id="closeFavoritesModalBtn" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);"><span class="material-icons-round">close</span></button>
+      </div>
+      <div id="favoritesList" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px;">
+        <p class="text-body-sm text-secondary text-center py-md">No favorite notes starred yet.</p>
+      </div>
+    </div>
   </div>
 
   <script src="../js/apiClient.js"></script>

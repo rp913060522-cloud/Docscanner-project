@@ -455,13 +455,12 @@
         });
       }
 
-      // Rotate image 90° clockwise
+       // Rotate image 90° clockwise
       if (rotateBtn) {
         rotateBtn.addEventListener('click', () => {
-          if (pagesData.length === 0) return;
+          if (!pagesData[currentPageIndex]) return;
 
           const img = new Image();
-          img.crossOrigin = 'anonymous';
           img.onload = () => {
             const canvas = document.createElement('canvas');
             canvas.width = img.height;
@@ -480,6 +479,9 @@
             canvas.toBlob(blob => { if (blob) currentBlob = blob; }, 'image/jpeg', 0.92);
             StudyGenApp.toast.show('Image rotated 90° 🔄');
           };
+          img.onerror = () => {
+            StudyGenApp.toast.show('Could not rotate image');
+          };
           img.src = pagesData[currentPageIndex];
         });
       }
@@ -487,15 +489,18 @@
       // One-Click Auto-Crop / Edge Align
       if (autoCropBtn) {
         autoCropBtn.addEventListener('click', () => {
-          if (pagesData.length === 0) return;
+          if (!pagesData[currentPageIndex]) return;
 
           const img = new Image();
-          img.crossOrigin = 'anonymous';
           img.onload = () => {
-            const marginX = img.width * 0.05;
-            const marginY = img.height * 0.05;
-            const cropW = img.width * 0.90;
-            const cropH = img.height * 0.90;
+            const W = img.width;
+            const H = img.height;
+
+            // Sample edge region (5% border inset for auto alignment)
+            const marginX = Math.round(W * 0.05);
+            const marginY = Math.round(H * 0.05);
+            const cropW = Math.max(50, W - 2 * marginX);
+            const cropH = Math.max(50, H - 2 * marginY);
 
             const canvas = document.createElement('canvas');
             canvas.width = cropW;
@@ -511,6 +516,9 @@
 
             canvas.toBlob(blob => { if (blob) currentBlob = blob; }, 'image/jpeg', 0.92);
             StudyGenApp.toast.show('Document edges auto-cropped & aligned! ✂️');
+          };
+          img.onerror = () => {
+            StudyGenApp.toast.show('Could not auto-crop image');
           };
           img.src = pagesData[currentPageIndex];
         });
@@ -553,7 +561,7 @@
           ctx.stroke();
 
           // 4 corner nodes
-          cropPoints.forEach((p, idx) => {
+          cropPoints.forEach((p) => {
             ctx.beginPath();
             ctx.arc(p.x, p.y, 12, 0, 2 * Math.PI);
             ctx.fillStyle = '#ffffff';
@@ -567,23 +575,25 @@
 
       if (manualCropBtn) {
         manualCropBtn.addEventListener('click', () => {
-          if (pagesData.length === 0) return;
+          if (!pagesData[currentPageIndex]) return;
 
           cropImageObj = new Image();
-          cropImageObj.crossOrigin = 'anonymous';
           cropImageObj.onload = () => {
-            const maxW = 440;
+            const maxW = Math.min(window.innerWidth - 48, 440);
             const maxH = 340;
             let w = cropImageObj.width;
             let h = cropImageObj.height;
 
             const scale = Math.min(maxW / w, maxH / h, 1);
-            cropCanvas.width = w * scale;
-            cropCanvas.height = h * scale;
+            cropCanvas.width = Math.round(w * scale);
+            cropCanvas.height = Math.round(h * scale);
 
             initCropPoints();
             drawCropOverlay();
             cropModal.style.display = 'flex';
+          };
+          cropImageObj.onerror = () => {
+            StudyGenApp.toast.show('Could not open crop interface');
           };
           cropImageObj.src = pagesData[currentPageIndex];
         });
@@ -617,13 +627,13 @@
         draggingPointIndex = -1;
         cropPoints.forEach((p, idx) => {
           const dist = Math.hypot(p.x - pos.x, p.y - pos.y);
-          if (dist < 32) draggingPointIndex = idx;
+          if (dist < 36) draggingPointIndex = idx;
         });
       }
 
       function handleDragMove(e) {
         if (draggingPointIndex === -1) return;
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         const pos = getCanvasCoordinates(e);
         pos.x = Math.max(0, Math.min(cropCanvas.width, pos.x));
         pos.y = Math.max(0, Math.min(cropCanvas.height, pos.y));
@@ -663,11 +673,11 @@
           const srcH = Math.max(20, (maxY - minY) * scaleY);
 
           const canvas = document.createElement('canvas');
-          canvas.width = srcW;
-          canvas.height = srcH;
+          canvas.width = Math.round(srcW);
+          canvas.height = Math.round(srcH);
           const ctx = canvas.getContext('2d');
 
-          ctx.drawImage(cropImageObj, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+          ctx.drawImage(cropImageObj, srcX, srcY, srcW, srcH, 0, 0, canvas.width, canvas.height);
 
           const croppedUrl = canvas.toDataURL('image/jpeg', 0.92);
           pagesData[currentPageIndex] = croppedUrl;
@@ -782,6 +792,9 @@
                 filename: `${docTitle}.pdf`,
                 mimeType: 'application/pdf',
                 blob: primaryBlob,
+                thumbnail: pagesData[0] || null,
+                pageCount: count,
+                lastOpenedAt: new Date().toISOString(),
               });
               sessionStorage.setItem('sg_active_doc_id', savedDoc.localPdfId);
               sessionStorage.setItem('sg_active_doc_title', savedDoc.documentTitle);

@@ -26,12 +26,12 @@ const StudyGenApp = (() => {
     history: 'history.html',
     profile: 'profile.html',
     settings: 'settings.html',
-    premium: 'premium.html',
   };
 
   // State cache for current user session
   let currentUser = null;
   let isSessionChecked = false;
+  let pendingAuthPromise = null;
 
   // ─────────────────────────────────────────────────────────────────────────
   // THEME MANAGER
@@ -111,20 +111,54 @@ const StudyGenApp = (() => {
       return currentUser;
     },
 
-    async checkSession() {
-      try {
-        const res = await window.ApiClient.get('/auth/me');
-        if (res && res.success && res.data && res.data.user) {
-          currentUser = res.data.user;
-        } else {
-          currentUser = null;
-        }
-      } catch {
-        currentUser = null;
-      } finally {
-        isSessionChecked = true;
+    setUser(user) {
+      currentUser = user;
+      isSessionChecked = true;
+    },
+
+    clearCache() {
+      currentUser = null;
+      isSessionChecked = false;
+      pendingAuthPromise = null;
+    },
+
+    /**
+     * Single-flight + in-memory cached session checker.
+     * Prevents duplicate GET /api/auth/me requests across components.
+     */
+    async checkSession(options = {}) {
+      const forceRefresh = options && options.forceRefresh === true;
+
+      // 1. In-memory cached session check (0 network calls)
+      if (!forceRefresh && isSessionChecked && !pendingAuthPromise) {
+        return currentUser;
       }
-      return currentUser;
+
+      // 2. Single-flight deduplication: reuse active pending promise (0 duplicate network calls)
+      if (pendingAuthPromise) {
+        return pendingAuthPromise;
+      }
+
+      // 3. Initiate single-flight GET /api/auth/me request
+      pendingAuthPromise = (async () => {
+        try {
+          const res = await window.ApiClient.get('/auth/me');
+          if (res && res.success && res.data && res.data.user) {
+            currentUser = res.data.user;
+          } else {
+            currentUser = null;
+          }
+        } catch (err) {
+          // If 401 or 429 occurs, set currentUser = null without crashing or looping
+          currentUser = null;
+        } finally {
+          isSessionChecked = true;
+          pendingAuthPromise = null;
+        }
+        return currentUser;
+      })();
+
+      return pendingAuthPromise;
     },
 
     async login(email, password) {
@@ -132,6 +166,7 @@ const StudyGenApp = (() => {
         const res = await window.ApiClient.post('/auth/login', { email, password });
         if (res && res.success && res.data && res.data.user) {
           currentUser = res.data.user;
+          isSessionChecked = true;
           return { success: true, user: currentUser, message: res.message };
         }
         return { success: false, error: res.message || 'Login failed.' };
@@ -145,6 +180,7 @@ const StudyGenApp = (() => {
         const res = await window.ApiClient.post('/auth/register', { name, email, password });
         if (res && res.success && res.data && res.data.user) {
           currentUser = res.data.user;
+          isSessionChecked = true;
           return { success: true, user: currentUser, message: res.message };
         }
         return { success: false, error: res.message || 'Registration failed.' };
@@ -158,6 +194,7 @@ const StudyGenApp = (() => {
         const res = await window.ApiClient.post('/auth/google', { credential });
         if (res && res.success && res.data && res.data.user) {
           currentUser = res.data.user;
+          isSessionChecked = true;
           return { success: true, user: currentUser, message: res.message };
         }
         return { success: false, error: res.message || 'Google Sign-In failed.' };
@@ -172,7 +209,7 @@ const StudyGenApp = (() => {
       } catch (err) {
         console.warn('Logout API warning:', err.message);
       } finally {
-        currentUser = null;
+        this.clearCache();
         window.location.href = ROUTES.login;
       }
     },
@@ -181,11 +218,7 @@ const StudyGenApp = (() => {
       if (!isSessionChecked) {
         await this.checkSession();
       }
-      if (!this.isLoggedIn()) {
-        window.location.href = ROUTES.login;
-        return false;
-      }
-      return true;
+      return this.isLoggedIn();
     },
   };
 

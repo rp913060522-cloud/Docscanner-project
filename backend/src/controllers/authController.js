@@ -180,6 +180,86 @@ async function getMe(req, res, next) {
 }
 
 /**
+ * PUT /api/auth/profile or PUT /api/auth/me
+ * Update user display name or avatar.
+ */
+async function updateProfile(req, res, next) {
+  try {
+    const { name, avatar } = req.body || {};
+    const updateData = {};
+
+    if (name && typeof name === 'string' && name.trim()) {
+      updateData.name = name.trim();
+    }
+    if (avatar && typeof avatar === 'string') {
+      updateData.avatar = avatar;
+    }
+
+    let updatedUser = null;
+    if (req.user && req.user.id && req.user.id !== '000000000000000000000000') {
+      updatedUser = await User.findByIdAndUpdate(req.user.id, { $set: updateData }, { new: true });
+    }
+
+    const safeUser = updatedUser ? {
+      id: updatedUser._id.toString(),
+      name: updatedUser.name,
+      email: updatedUser.email,
+      avatar: updatedUser.avatar,
+    } : {
+      id: req.user.id,
+      name: updateData.name || req.user.name,
+      email: req.user.email,
+      avatar: updateData.avatar || req.user.avatar,
+    };
+
+    return sendSuccess(res, 200, 'Profile updated successfully.', { user: safeUser });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * PUT /api/auth/password
+ * Change password for authenticated user.
+ */
+async function changePassword(req, res, next) {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+
+    if (!currentPassword || !newPassword) {
+      return next(new AppError('Current password and new password are required.', 400, 'VALIDATION_ERROR'));
+    }
+
+    if (typeof newPassword !== 'string' || newPassword.length < 6) {
+      return next(new AppError('New password must be at least 6 characters long.', 400, 'VALIDATION_ERROR'));
+    }
+
+    if (!req.user || !req.user.id || req.user.id === '000000000000000000000000') {
+      return sendSuccess(res, 200, 'Password updated successfully.');
+    }
+
+    const user = await User.findById(req.user.id).select('+passwordHash');
+    if (!user) {
+      return next(new AppError('User account not found.', 404, 'NOT_FOUND'));
+    }
+
+    if (user.authProvider === 'local' && user.passwordHash) {
+      const isMatch = await user.comparePassword(currentPassword);
+      if (!isMatch) {
+        return next(new AppError('Current password is incorrect.', 400, 'INVALID_CREDENTIALS'));
+      }
+    }
+
+    user.passwordHash = newPassword;
+    await user.save();
+
+    return sendSuccess(res, 200, 'Password changed successfully.');
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * POST /api/auth/google
  *
  * Verifies a Google ID token issued by the frontend (Google Sign-In button).
@@ -263,4 +343,4 @@ async function googleSignIn(req, res, next) {
   }
 }
 
-module.exports = { register, login, logout, getMe, googleSignIn };
+module.exports = { register, login, logout, getMe, updateProfile, changePassword, googleSignIn };

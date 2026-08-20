@@ -77,7 +77,6 @@
         </a>
       </section>
 
-
       <!-- Recent Activity Section -->
       <section class="mb-xl">
         <div class="section-header">
@@ -90,25 +89,8 @@
             <div style="height:60px;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:12px;animation:shimmer 1.4s infinite;"></div>
             <div style="height:60px;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;border-radius:12px;animation:shimmer 1.4s infinite 0.2s;"></div>
           </div>
-          <!-- Dynamic items injected by JS -->
         </div>
         <style>@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}</style>
-      </section>
-
-      <!-- Premium Upgrade Banner -->
-      <section class="card-premium p-lg flex-between items-center" id="premiumBanner">
-        <div class="flex items-center gap-md">
-          <div class="icon-container ic-secondary icon-container--circle" style="background:var(--secondary);color:white;">
-            <span class="material-icons-round">star</span>
-          </div>
-          <div>
-            <div class="text-title-md" style="color:var(--text-primary);">Upgrade to Premium</div>
-            <div class="text-body-sm text-secondary">Unlimited AI scans, quizzes & notes</div>
-          </div>
-        </div>
-        <a href="premium.html" class="btn btn-outlined-secondary btn-sm" style="text-decoration:none;white-space:nowrap;margin-left:8px;">
-          Upgrade
-        </a>
       </section>
 
     </main>
@@ -123,16 +105,13 @@
     document.addEventListener('DOMContentLoaded', async () => {
       StudyGenNav.init({ activePage: 'home', requireAuth: false });
 
-      // ── Real-Time Recent Activity Loader ──────────────────────────────────
-      const activityList     = document.getElementById('recentActivityList');
-      const skeletonEl       = document.getElementById('recentActivitySkeleton');
+      const activityList = document.getElementById('recentActivityList');
 
-      function iconForItem(item) {
-        if (item.noteId)      return { icon: 'description', cls: 'ic-notes',  href: 'ai-study.html'        };
-        if (item.quizId)      return { icon: 'quiz',        cls: 'ic-quiz',   href: 'ai-learning.html?tab=quiz'  };
-        if (item.flashcardId) return { icon: 'style',       cls: 'ic-flash',  href: 'ai-learning.html?tab=flash' };
-        if (item.chatId)      return { icon: 'forum',       cls: 'ic-notes',  href: 'ai-learning.html?tab=chat'  };
-        return                       { icon: 'picture_as_pdf', cls: 'ic-pdf', href: 'pdf-ai.html'           };
+      function formatSize(bytes) {
+        if (!bytes) return '';
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
       }
 
       function relTime(iso) {
@@ -148,43 +127,71 @@
         return `${days} days ago`;
       }
 
-      try {
-        const res = await window.ApiClient.get('/history');
-        const items = (res && res.success && res.data && res.data.history) ? res.data.history.slice(0, 3) : [];
+      async function loadRecentDocuments() {
+        if (!activityList) return;
 
-        if (skeletonEl) skeletonEl.remove();
+        try {
+          let docs = [];
+          if (window.LocalPdfDB) {
+            docs = await window.LocalPdfDB.getRecentDocuments(5);
+          }
 
-        if (items.length === 0) {
-          activityList.innerHTML = `
-            <div style="text-align:center;padding:24px 0;color:var(--text-secondary);">
-              <span class="material-icons-round" style="font-size:36px;opacity:0.3;display:block;margin-bottom:8px;">history</span>
-              <span style="font-size:13px;">No recent activity yet.<br/>Start scanning or upload a document!</span>
-            </div>`;
-        } else {
-          activityList.innerHTML = items.map(item => {
-            const { icon, cls, href } = iconForItem(item);
-            const title = item.documentTitle || item.title || 'Untitled Document';
-            const time  = relTime(item.lastAccessedAt || item.updatedAt || item.createdAt);
+          if (!docs || docs.length === 0) {
+            activityList.innerHTML = `
+              <div style="text-align:center;padding:28px 16px;color:var(--text-secondary);background:var(--surface);border-radius:16px;border:1px dashed var(--border);">
+                <span class="material-icons-round" style="font-size:38px;opacity:0.3;display:block;margin-bottom:6px;">history</span>
+                <p style="font-size:14px;font-weight:700;margin:0 0 4px;color:var(--text-primary);">No recent documents yet</p>
+                <p style="font-size:12px;opacity:0.8;margin:0;">Documents you open or scan will appear here.</p>
+              </div>`;
+            return;
+          }
+
+          activityList.innerHTML = docs.map(doc => {
+            const title = doc.documentTitle || doc.filename || 'Untitled Document';
+            const timeStr = relTime(doc.lastOpenedAt || doc.updatedAt || doc.createdAt);
+            const sizeStr = formatSize(doc.sizeBytes);
+            const pagesStr = doc.pageCount ? `${doc.pageCount} ${doc.pageCount === 1 ? 'page' : 'pages'}` : 'PDF';
+            const metaInfo = [pagesStr, sizeStr, timeStr].filter(Boolean).join(' • ');
+
+            const thumbHtml = doc.thumbnail
+              ? `<img src="${doc.thumbnail}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="Preview" />`
+              : `<span class="material-icons-round">picture_as_pdf</span>`;
+
             return `
-              <a href="${href}" class="list-item">
-                <div class="icon-container ${cls}">
-                  <span class="material-icons-round">${icon}</span>
+              <div class="list-item doc-item-row" data-id="${doc.localPdfId}" style="cursor:pointer;">
+                <div class="icon-container ic-pdf" style="overflow:hidden;">
+                  ${thumbHtml}
                 </div>
                 <div class="list-item__content">
-                  <div class="list-item__title">${title}</div>
-                  <div class="list-item__subtitle">${time}</div>
+                  <div class="list-item__title">${title} ${doc.isFavorite ? '⭐' : ''}</div>
+                  <div class="list-item__subtitle">${metaInfo}</div>
                 </div>
                 <span class="material-icons-round list-item__trailing">chevron_right</span>
-              </a>`;
+              </div>`;
           }).join('');
+
+          // Click listener for recent items
+          activityList.querySelectorAll('.doc-item-row').forEach(row => {
+            row.addEventListener('click', async () => {
+              const id = row.getAttribute('data-id');
+              if (id && window.LocalPdfDB) {
+                await window.LocalPdfDB.touchLastOpened(id);
+                sessionStorage.setItem('sg_active_doc_id', id);
+                window.location.href = `pdf-ai.html`;
+              }
+            });
+          });
+        } catch (err) {
+          console.warn('Recent documents load warning:', err.message);
         }
-      } catch (err) {
-        if (skeletonEl) skeletonEl.remove();
-        activityList.innerHTML = `
-          <div style="text-align:center;padding:16px 0;color:var(--text-secondary);font-size:13px;">
-            Could not load recent activity.
-          </div>`;
       }
+
+      await loadRecentDocuments();
+
+      // Real-time UI Sync listener (Requirement 7)
+      window.addEventListener('studygen:doc-changed', () => {
+        loadRecentDocuments();
+      });
     });
   </script>
 </body>
