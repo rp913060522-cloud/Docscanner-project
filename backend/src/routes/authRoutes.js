@@ -28,10 +28,10 @@ const { protect } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // ── Auth-specific rate limiter ────────────────────────────────────────────────
-// Stricter than the global limiter to throttle brute-force login/register attempts.
+// Applied to sensitive authentication endpoints to prevent brute-force attacks.
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,  // 15 minutes
-  max: 20,                    // 20 requests per window per IP
+  max: 60,                    // 60 attempts per 15 min window per IP
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -43,25 +43,23 @@ const authLimiter = rateLimit({
   },
 });
 
-router.use(authLimiter);
-
 // ── Public Routes ─────────────────────────────────────────────────────────────
 
 /** POST /api/auth/register */
-router.post('/register', authController.register);
+router.post('/register', authLimiter, authController.register);
 
 /** POST /api/auth/login */
-router.post('/login', authController.login);
+router.post('/login', authLimiter, authController.login);
 
 /** POST /api/auth/logout */
 router.post('/logout', authController.logout);
 
 /** POST /api/auth/google */
-router.post('/google', authController.googleSignIn);
+router.post('/google', authLimiter, authController.googleSignIn);
 
 // ── Protected Routes ──────────────────────────────────────────────────────────
 
-/** GET /api/auth/me — requires valid session */
+/** GET /api/auth/me — requires valid session (unthrottled for smooth navigation) */
 router.get('/me', protect, authController.getMe);
 
 /** PUT /api/auth/me & PUT /api/auth/profile — update profile details */
@@ -69,6 +67,6 @@ router.put('/me', protect, authController.updateProfile);
 router.put('/profile', protect, authController.updateProfile);
 
 /** PUT /api/auth/password — change user password */
-router.put('/password', protect, authController.changePassword);
+router.put('/password', protect, authLimiter, authController.changePassword);
 
 module.exports = router;

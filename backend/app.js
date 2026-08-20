@@ -60,29 +60,7 @@ app.use(
   })
 );
 
-// ── 2. Body Parsers & Sanitizer ───────────────────────────────────────────────
-app.use(express.json({ limit: '1mb' }));          // JSON body (1 MB cap for JSON payloads)
-app.use(express.urlencoded({ extended: true }));   // URL-encoded form data
-app.use(cookieParser());                           // Parse HttpOnly cookies
-app.use(sanitizeInputMiddleware);                  // Prevent NoSQL operator injection
-
-// ── 3. Global Rate Limiter ────────────────────────────────────────────────────
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    error: {
-      code: 'RATE_LIMIT_EXCEEDED',
-      message: 'Too many requests. Please try again after 15 minutes.',
-    },
-  },
-});
-app.use(globalLimiter);
-
-// ── 4. Production Security Headers & Static File Server ────────────────────────
+// ── 2. Production Security Headers ───────────────────────────────────────────
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -94,11 +72,36 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve frontend static web app UI (HTML, CSS, JS, Assets)
+// ── 3. Serve Frontend Static Web App UI (HTML, CSS, JS, Assets) ───────────────
+// Static assets are served directly without rate limiting so web UI always loads
 app.use(express.static(path.join(__dirname, '../')));
 
-// ── 5. API Routes ─────────────────────────────────────────────────────────────
-app.use('/api/health',     healthRoutes);
+// ── 4. Body Parsers & Sanitizer ───────────────────────────────────────────────
+app.use(express.json({ limit: '1mb' }));          // JSON body (1 MB cap for JSON payloads)
+app.use(express.urlencoded({ extended: true }));   // URL-encoded form data
+app.use(cookieParser());                           // Parse HttpOnly cookies
+app.use(sanitizeInputMiddleware);                  // Prevent NoSQL operator injection
+
+// ── 5. Health Check Route (Unthrottled for cloud monitoring / Render) ─────────
+app.use('/api/health', healthRoutes);
+
+// ── 6. Global API Rate Limiter ────────────────────────────────────────────────
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 600, // Generous 600 requests per 15 min for API operations
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: {
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many requests. Please try again after 15 minutes.',
+    },
+  },
+});
+app.use('/api', globalLimiter);
+
+// ── 7. API Routes ─────────────────────────────────────────────────────────────
 app.use('/api/auth',       authRoutes);
 app.use('/api/notes',      noteRoutes);
 app.use('/api/quizzes',    quizRoutes);
