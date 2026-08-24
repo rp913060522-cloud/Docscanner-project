@@ -1003,6 +1003,20 @@
               <button type="button" class="chip chat-quick-prompt" style="font-size:11px;padding:4px 10px;cursor:pointer;">📖 Key Definitions</button>
             </div>
 
+            <!-- Active Attachment Preview Chip Bar -->
+            <div id="chatAttachmentBar" style="display:none;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:6px 12px;margin-bottom:8px;">
+              <div style="width:28px;height:28px;background:rgba(59,123,248,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;" id="chatAttachmentIcon">
+                <span class="material-icons-round" style="color:#3b7bf8;font-size:18px;">attach_file</span>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div id="chatAttachmentName" style="font-size:12px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Attached File</div>
+                <div id="chatAttachmentSize" style="font-size:10px;color:var(--text-secondary);">Ready for AI</div>
+              </div>
+              <button type="button" id="removeChatAttachmentBtn" style="background:transparent;border:none;color:var(--text-secondary);cursor:pointer;padding:4px;display:flex;align-items:center;">
+                <span class="material-icons-round" style="font-size:18px;color:#ef4444;">close</span>
+              </button>
+            </div>
+
             <!-- Input Bar with + Attachment Menu -->
             <div style="position:relative;display:flex;gap:6px;align-items:center;">
               <button type="button" id="inlineAttachBtn" style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);cursor:pointer;flex-shrink:0;">
@@ -1015,11 +1029,10 @@
               
               <!-- Floating Attachment Menu -->
               <div id="chatAttachMenu" style="display:none;position:absolute;bottom:54px;left:0;background:var(--surface,#ffffff);border:1px solid var(--border,#e2e8f0);border-radius:16px;padding:8px;box-shadow:0 10px 25px rgba(0,0,0,0.2);z-index:20;width:210px;flex-direction:column;gap:4px;">
-                <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-primary);margin:0;">
+                <div id="chatCameraOption" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-primary);margin:0;">
                   <span class="material-icons-round" style="font-size:20px;color:#3b7bf8;">photo_camera</span>
-                  <span>Camera</span>
-                  <input type="file" accept="image/*" capture="environment" style="display:none;" id="chatCameraInput" />
-                </label>
+                  <span>Camera (Live)</span>
+                </div>
                 <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-primary);margin:0;">
                   <span class="material-icons-round" style="font-size:20px;color:#16a34a;">photo_library</span>
                   <span>Photos</span>
@@ -1051,6 +1064,39 @@
         const modeGeneralBtn   = document.getElementById('modeGeneralBtn');
         const deepStudyBadge   = document.getElementById('deepStudyBadge');
         const chatWelcomeMsg   = document.getElementById('chatWelcomeMsg');
+
+        let activeChatAttachmentFile = null;
+
+        function setChatAttachment(file) {
+          activeChatAttachmentFile = file;
+          const bar = document.getElementById('chatAttachmentBar');
+          const nameEl = document.getElementById('chatAttachmentName');
+          const sizeEl = document.getElementById('chatAttachmentSize');
+          const iconEl = document.getElementById('chatAttachmentIcon');
+
+          if (!bar) return;
+
+          bar.style.display = 'flex';
+          if (nameEl) nameEl.textContent = file.name;
+          if (sizeEl) sizeEl.textContent = `${(file.size / 1024).toFixed(1)} KB • Attached for AI`;
+
+          if (iconEl) {
+            if (file.type.startsWith('image/')) {
+              const url = URL.createObjectURL(file);
+              iconEl.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;" />`;
+            } else {
+              iconEl.innerHTML = `<span class="material-icons-round" style="color:#3b7bf8;font-size:18px;">picture_as_pdf</span>`;
+            }
+          }
+        }
+
+        function clearChatAttachment() {
+          activeChatAttachmentFile = null;
+          const bar = document.getElementById('chatAttachmentBar');
+          if (bar) bar.style.display = 'none';
+        }
+
+        document.getElementById('removeChatAttachmentBtn')?.addEventListener('click', clearChatAttachment);
 
         // Mode Switching
         if (modeDocBtn) {
@@ -1094,6 +1140,12 @@
           });
         }
 
+        // Camera Live Option Trigger
+        document.getElementById('chatCameraOption')?.addEventListener('click', () => {
+          if (attachMenu) attachMenu.style.display = 'none';
+          openLiveCameraModal(setChatAttachment);
+        });
+
         // Think Harder Option Toggle
         const thinkHarderOpt = document.getElementById('chatThinkHarderOption');
         if (thinkHarderOpt && deepStudyBadge) {
@@ -1110,12 +1162,13 @@
           if (deepStudyBadge) deepStudyBadge.style.display = 'none';
         });
 
-        // Attachment file handlers
-        ['chatCameraInput', 'chatPhotoInput', 'chatFileInput'].forEach(inputId => {
+        // Attachment file handlers (Photos & Files)
+        ['chatPhotoInput', 'chatFileInput'].forEach(inputId => {
           document.getElementById(inputId)?.addEventListener('change', (e) => {
             if (attachMenu) attachMenu.style.display = 'none';
             const selFile = e.target.files[0];
             if (selFile) {
+              setChatAttachment(selFile);
               selectFile(selFile);
               StudyGenApp.toast.show(`Attached file: "${selFile.name}" 📎`);
             }
@@ -1124,17 +1177,20 @@
 
         async function sendUserMessage(queryText) {
           const text = (queryText || (input ? input.value : '')).trim();
-          if (!text) return;
+          if (!text && !activeChatAttachmentFile) return;
           if (input) input.value = '';
+
+          const attachedFileToSend = activeChatAttachmentFile || currentUploadedFile;
+          const currentAttachedName = activeChatAttachmentFile ? activeChatAttachmentFile.name : null;
 
           // If first message in this session, derive title from question!
           if (messageHistory.length === 0 || currentChatTitle === 'New Chat' || currentChatTitle === 'AI Chat Workspace') {
-            currentChatTitle = text.length > 28 ? text.substring(0, 28) + '...' : text;
+            currentChatTitle = text ? (text.length > 28 ? text.substring(0, 28) + '...' : text) : 'Attached File Chat';
             if (resultTitle) resultTitle.textContent = currentChatTitle;
           }
 
           // Save user message to active history array
-          messageHistory.push({ role: 'user', text });
+          messageHistory.push({ role: 'user', text: currentAttachedName ? `[Attached: ${currentAttachedName}] ${text}` : text });
           LocalChatStore.saveChatSession(currentSessionId, currentChatTitle, messageHistory);
           loadSidebarRecents();
 
@@ -1143,11 +1199,17 @@
           userBubble.style.cssText = 'display:flex;gap:8px;align-items:flex-start;justify-content:flex-end;';
           userBubble.innerHTML = `
             <div style="background:#3b7bf8;color:white;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;max-width:85%;">
-              ${text}
+              ${currentAttachedName ? `<div style="font-size:11px;background:rgba(255,255,255,0.25);padding:2px 8px;border-radius:6px;margin-bottom:6px;display:inline-flex;align-items:center;gap:4px;font-weight:700;">📎 ${currentAttachedName}</div><br/>` : ''}
+              ${text || 'Please analyze this attached file.'}
             </div>
           `;
           chatBox.appendChild(userBubble);
           chatBox.scrollTop = chatBox.scrollHeight;
+
+          // Clear attachment bar after appending user bubble
+          if (activeChatAttachmentFile) {
+            clearChatAttachment();
+          }
 
           // Append loading bubble
           const loadingBubble = document.createElement('div');
@@ -1158,7 +1220,7 @@
               <span class="material-icons-round" style="font-size:16px;">smart_toy</span>
             </div>
             <div style="background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:12px;font-size:13px;color:var(--text-secondary);">
-              ${isDeepStudyMode ? '🧠 Groq Deep AI is reasoning & analyzing...' : 'Groq AI is typing...'}
+              ${isDeepStudyMode ? '🧠 Groq Deep AI is analyzing attachment & reasoning...' : 'Groq AI is reading document & typing...'}
             </div>
           `;
           chatBox.appendChild(loadingBubble);
@@ -1166,15 +1228,16 @@
 
           try {
             const formData = new FormData();
-            formData.append('userQuery', text);
-            if (!isGeneralMode) {
-              formData.append('documentTitle', docTitle);
-              formData.append('localPdfId', sessionStorage.getItem('sg_active_doc_id') || '');
-              if (file) formData.append('file', file, file.name);
+            formData.append('userQuery', text || 'Analyze this document/image and explain its key content.');
+            formData.append('documentTitle', attachedFileToSend ? attachedFileToSend.name.replace(/\.[^/.]+$/, '') : (docTitle || 'General'));
+            formData.append('localPdfId', sessionStorage.getItem('sg_active_doc_id') || '');
+
+            if (attachedFileToSend) {
+              formData.append('file', attachedFileToSend, attachedFileToSend.name);
             }
 
             const res = await window.ApiClient.uploadFile('/ai/chat', formData);
-            const answer = (res && res.data && res.data.answer) || 'Based on your prompt, here is the response generated by AI.';
+            const answer = (res && res.data && res.data.answer) || 'Based on your prompt and document, here is the AI analysis response.';
 
             loadingBubble.remove();
 
@@ -1428,6 +1491,153 @@
         resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
+
+    // ── Live Camera Stream Viewfinder Controller ────────────────────────────
+    let liveCameraStream = null;
+    let currentFacingMode = 'environment';
+    let capturedPhotoBlob = null;
+    let cameraPhotoCallback = null;
+
+    function openLiveCameraModal(onPhotoCaptured) {
+      cameraPhotoCallback = onPhotoCaptured;
+      const modal = document.getElementById('liveCameraModal');
+      const video = document.getElementById('liveCameraVideo');
+      const previewImg = document.getElementById('liveCameraPreviewImg');
+      const controls = document.getElementById('liveCameraControls');
+      const previewControls = document.getElementById('liveCameraPreviewControls');
+
+      if (!modal || !video) return;
+
+      modal.style.display = 'flex';
+      previewImg.style.display = 'none';
+      video.style.display = 'block';
+      controls.style.display = 'flex';
+      previewControls.style.display = 'none';
+
+      startLiveCameraStream(currentFacingMode);
+    }
+
+    async function startLiveCameraStream(facingMode) {
+      const video = document.getElementById('liveCameraVideo');
+      if (liveCameraStream) {
+        liveCameraStream.getTracks().forEach(t => t.stop());
+      }
+
+      try {
+        liveCameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
+          audio: false
+        });
+        video.srcObject = liveCameraStream;
+      } catch (err) {
+        console.warn('Live Camera access error:', err.message);
+        closeLiveCameraModal();
+        StudyGenApp.toast.show('Camera access unavailable. Opening photo picker 📷');
+        document.getElementById('chatPhotoInput')?.click();
+      }
+    }
+
+    function closeLiveCameraModal() {
+      const modal = document.getElementById('liveCameraModal');
+      if (modal) modal.style.display = 'none';
+      if (liveCameraStream) {
+        liveCameraStream.getTracks().forEach(t => t.stop());
+        liveCameraStream = null;
+      }
+    }
+
+    document.getElementById('closeLiveCameraBtn')?.addEventListener('click', closeLiveCameraModal);
+
+    document.getElementById('flipLiveCameraBtn')?.addEventListener('click', () => {
+      currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+      startLiveCameraStream(currentFacingMode);
+    });
+
+    document.getElementById('takeLivePhotoBtn')?.addEventListener('click', () => {
+      const video = document.getElementById('liveCameraVideo');
+      const canvas = document.getElementById('liveCameraCanvas');
+      const previewImg = document.getElementById('liveCameraPreviewImg');
+      const controls = document.getElementById('liveCameraControls');
+      const previewControls = document.getElementById('liveCameraPreviewControls');
+
+      if (!video || !canvas) return;
+
+      canvas.width = video.videoWidth || 1280;
+      canvas.height = video.videoHeight || 720;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        capturedPhotoBlob = blob;
+        const imgUrl = URL.createObjectURL(blob);
+        previewImg.src = imgUrl;
+        video.style.display = 'none';
+        previewImg.style.display = 'block';
+        controls.style.display = 'none';
+        previewControls.style.display = 'flex';
+      }, 'image/jpeg', 0.92);
+    });
+
+    document.getElementById('retakeLivePhotoBtn')?.addEventListener('click', () => {
+      const video = document.getElementById('liveCameraVideo');
+      const previewImg = document.getElementById('liveCameraPreviewImg');
+      const controls = document.getElementById('liveCameraControls');
+      const previewControls = document.getElementById('liveCameraPreviewControls');
+
+      previewImg.style.display = 'none';
+      video.style.display = 'block';
+      controls.style.display = 'flex';
+      previewControls.style.display = 'none';
+    });
+
+    document.getElementById('useLivePhotoBtn')?.addEventListener('click', () => {
+      if (!capturedPhotoBlob) return;
+      const photoFile = new File([capturedPhotoBlob], `camera_${Date.now()}.jpg`, { type: 'image/jpeg' });
+      if (cameraPhotoCallback) {
+        cameraPhotoCallback(photoFile);
+      }
+      closeLiveCameraModal();
+      StudyGenApp.toast.show('Camera photo attached! Ready to send 📸');
+    });
   </script>
+
+  <!-- Live Camera Viewfinder Modal -->
+  <div id="liveCameraModal" style="display:none;position:fixed;inset:0;background:#000;z-index:99999;flex-direction:column;align-items:center;justify-content:space-between;padding:16px;">
+    <!-- Top Bar -->
+    <div style="width:100%;display:flex;align-items:center;justify-content:space-between;z-index:10;padding-top:8px;">
+      <button type="button" id="closeLiveCameraBtn" style="background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:42px;height:42px;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+        <span class="material-icons-round" style="font-size:24px;">close</span>
+      </button>
+      <span style="color:white;font-weight:700;font-size:15px;letter-spacing:0.5px;">Camera Viewfinder</span>
+      <button type="button" id="flipLiveCameraBtn" style="background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:42px;height:42px;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+        <span class="material-icons-round" style="font-size:24px;">flip_camera_ios</span>
+      </button>
+    </div>
+
+    <!-- Video Viewfinder Frame -->
+    <div style="position:relative;width:100%;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;margin:14px 0;border-radius:24px;background:#111;box-shadow:0 10px 30px rgba(0,0,0,0.8);">
+      <video id="liveCameraVideo" autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+      <canvas id="liveCameraCanvas" style="display:none;"></canvas>
+      <img id="liveCameraPreviewImg" style="display:none;width:100%;height:100%;object-fit:contain;background:#000;" alt="Captured Photo" />
+    </div>
+
+    <!-- Bottom Capture Controls -->
+    <div id="liveCameraControls" style="width:100%;display:flex;align-items:center;justify-content:center;gap:20px;padding-bottom:16px;">
+      <button type="button" id="takeLivePhotoBtn" style="width:72px;height:72px;border-radius:50%;background:white;border:4px solid rgba(255,255,255,0.4);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.5);">
+        <div style="width:56px;height:56px;border-radius:50%;background:white;border:2.5px solid #1e293b;"></div>
+      </button>
+    </div>
+
+    <!-- Retake / Use Photo Controls (Hidden initially) -->
+    <div id="liveCameraPreviewControls" style="display:none;width:100%;align-items:center;justify-content:space-around;padding-bottom:16px;">
+      <button type="button" id="retakeLivePhotoBtn" style="background:rgba(255,255,255,0.25);color:white;border:none;border-radius:14px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;">
+        Retake
+      </button>
+      <button type="button" id="useLivePhotoBtn" style="background:linear-gradient(135deg,#3b7bf8,#7b52f4);color:white;border:none;border-radius:14px;padding:12px 28px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(59,123,248,0.5);">
+        Use Photo ✨
+      </button>
+    </div>
+  </div>
 </body>
 </html>
