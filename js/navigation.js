@@ -257,10 +257,167 @@ const StudyGenNav = (() => {
     }
   }
 
-  function confirm(message, onConfirm) {
-    if (window.confirm(message)) {
-      if (onConfirm) onConfirm();
+  function showActionSheet({ title = '', actions = [] }) {
+    const existing = document.getElementById('studygenActionSheet');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'studygenActionSheet';
+    overlay.style.cssText = `
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    `;
+
+    const sheet = document.createElement('div');
+    sheet.style.cssText = `
+      width: 100%;
+      max-width: var(--screen-max, 430px);
+      background: var(--surface, #ffffff);
+      border-radius: 20px 20px 0 0;
+      padding: 16px 20px 24px;
+      box-shadow: var(--shadow-lg, 0 -8px 24px rgba(0,0,0,0.15));
+      transform: translateY(100%);
+      transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1);
+    `;
+
+    let actionsHtml = '';
+    if (title) {
+      actionsHtml += `
+        <div style="text-align:center;padding-bottom:12px;margin-bottom:10px;border-bottom:1px solid var(--border,#e2e8f0);">
+          <div style="width:36px;height:4px;background:var(--border,#cbd5e1);border-radius:2px;margin:0 auto 10px;"></div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-secondary,#64748b);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90%;margin:0 auto;">${title}</div>
+        </div>
+      `;
     }
+
+    sheet.innerHTML = actionsHtml + `
+      <div class="action-sheet-buttons" style="display:flex;flex-direction:column;gap:8px;">
+        ${actions.map((act, index) => `
+          <button type="button" class="btn ${act.danger ? 'btn-outlined' : 'btn-ghost'}" data-index="${index}" style="width:100%;justify-content:flex-start;padding:12px 16px;font-size:14px;border-radius:12px;${act.danger ? 'color:#ef4444;border-color:rgba(239,68,68,0.25);background:rgba(239,68,68,0.04);' : 'color:var(--text-primary,#0f172a);background:var(--bg,#f8fafc);'}">
+            <span>${act.label}</span>
+          </button>
+        `).join('')}
+        <button type="button" class="btn btn-outlined cancel-action-btn" style="width:100%;margin-top:6px;padding:10px;font-size:13px;border-radius:12px;color:var(--text-secondary,#64748b);">
+          Cancel
+        </button>
+      </div>
+    `;
+
+    overlay.appendChild(sheet);
+    document.body.appendChild(overlay);
+
+    requestAnimationFrame(() => {
+      overlay.style.opacity = '1';
+      sheet.style.transform = 'translateY(0)';
+    });
+
+    const closeSheet = () => {
+      overlay.style.opacity = '0';
+      sheet.style.transform = 'translateY(100%)';
+      setTimeout(() => overlay.remove(), 250);
+    };
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeSheet();
+    });
+
+    sheet.querySelector('.cancel-action-btn')?.addEventListener('click', closeSheet);
+
+    sheet.querySelectorAll('[data-index]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-index'), 10);
+        closeSheet();
+        if (actions[idx] && typeof actions[idx].onClick === 'function') {
+          actions[idx].onClick();
+        }
+      });
+    });
+  }
+
+  function confirm(title, onConfirm, description = '') {
+    const existing = document.getElementById('studygen-confirm-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'studygen-confirm-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.65);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      backdrop-filter: blur(4px);
+    `;
+
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      background: var(--surface, #ffffff);
+      color: var(--text-primary, #0f172a);
+      border-radius: 24px;
+      padding: 24px 20px;
+      max-width: 340px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      transform: scale(0.9);
+      transition: transform 0.2s ease;
+      text-align: center;
+    `;
+
+    modal.innerHTML = `
+      <div style="width: 52px; height: 52px; background: rgba(239, 68, 68, 0.12); color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+        <span class="material-icons-round" style="font-size: 28px;">delete_outline</span>
+      </div>
+      <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 8px; color: var(--text-primary, #0f172a);">${title || 'Delete Document?'}</h3>
+      <p style="font-size: 13px; color: var(--text-secondary, #64748b); margin: 0 0 20px; line-height: 1.5;">${description || 'Are you sure you want to delete this document? This action cannot be undone.'}</p>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button type="button" class="btn btn-primary confirm-action-btn" style="width: 100%; background: #ef4444; border: none; padding: 12px; font-size: 14px; font-weight: 700; border-radius: 12px; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);">
+          <span>Delete Permanently</span>
+        </button>
+        <button type="button" class="btn btn-outlined cancel-action-btn" style="width: 100%; border-color: var(--border, #e2e8f0); color: var(--text-secondary, #64748b); padding: 10px; font-size: 13px; border-radius: 12px;">
+          Cancel
+        </button>
+      </div>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    requestAnimationFrame(() => {
+      overlay.style.opacity = '1';
+      modal.style.transform = 'scale(1)';
+    });
+
+    const closeModal = () => {
+      overlay.style.opacity = '0';
+      modal.style.transform = 'scale(0.9)';
+      setTimeout(() => overlay.remove(), 200);
+    };
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    modal.querySelector('.cancel-action-btn')?.addEventListener('click', closeModal);
+
+    modal.querySelector('.confirm-action-btn')?.addEventListener('click', async () => {
+      closeModal();
+      if (typeof onConfirm === 'function') {
+        await onConfirm();
+      }
+    });
   }
 
   return {
@@ -273,6 +430,7 @@ const StudyGenNav = (() => {
     getCurrentPage,
     initScrollBehavior,
     updateHeaderAndGreeting,
+    showActionSheet,
     confirm,
   };
 

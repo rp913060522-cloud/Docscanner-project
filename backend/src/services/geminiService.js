@@ -60,6 +60,13 @@ function cleanAndParseJSON(rawText) {
  */
 function getMockResponse(contents) {
   const promptStr = typeof contents[0] === 'string' ? contents[0] : '';
+
+  if (promptStr.includes('StudyGen AI') || promptStr.includes('USER QUESTION:')) {
+    const questionMatch = promptStr.match(/USER QUESTION:\s*"([^"]+)"/i);
+    const q = questionMatch ? questionMatch[1] : 'your question';
+    return `Based on your document analysis, here is the explanation for "${q}":\n\n• Core Overview: The document covers essential principles, structured section notes, and practical definitions.\n• Key Takeaways: Review the formulas and key takeaways to solidify your understanding.\n\nFeel free to ask for specific section explanations or practice questions!`;
+  }
+
   if (promptStr.includes('quiz') || promptStr.toLowerCase().includes('multiple-choice')) {
     return JSON.stringify({
       docTitle: 'Document Quiz',
@@ -107,14 +114,86 @@ function getMockResponse(contents) {
 }
 
 /**
- * Calls Gemini API safely with dev mock fallback when API key is missing.
+ * Calls Groq Cloud AI API with high-speed models.
+ */
+async function callGroq(contents) {
+  if (!config.groqApiKey || config.groqApiKey.includes('REPLACE_WITH_REAL')) return null;
+
+  const model = config.groqModel || 'openai/gpt-oss-120b';
+
+  let userText = '';
+  for (const item of contents) {
+    if (typeof item === 'string') {
+      userText += item + '\n';
+    } else if (item && item.text) {
+      userText += item.text + '\n';
+    }
+  }
+
+  const isJsonExpected = userText.includes('JSON') || userText.includes('json');
+
+  const messages = [
+    {
+      role: 'system',
+      content: isJsonExpected
+        ? 'You are StudyGen AI, an expert educational AI assistant. Always return valid, clean JSON with no extra conversational preamble or markdown code blocks outside the JSON.'
+        : 'You are StudyGen AI, a friendly, intelligent, and accurate study assistant. Help students understand topics, documents, and exam questions clearly.',
+    },
+    {
+      role: 'user',
+      content: userText.trim(),
+    },
+  ];
+
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.groqApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: isJsonExpected ? 0.2 : 0.6,
+      }),
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      console.warn(`⚠️ Groq API responded with status ${res.status}:`, errBody);
+      return null;
+    }
+
+    const data = await res.json();
+    const reply = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
+    if (reply && reply.trim()) {
+      return reply.trim();
+    }
+    return null;
+  } catch (err) {
+    console.warn('⚠️ Groq API connection error:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Calls AI API (Groq / Gemini) with dev mock fallback when API key is missing.
  */
 async function callGemini(contents) {
+  // 1. Try Groq AI first if key is available (fastest response)
+  if (config.groqApiKey) {
+    const groqReply = await callGroq(contents);
+    if (groqReply) {
+      return groqReply;
+    }
+  }
+
   const client = getAiClient();
 
   // Dev mode mock fallback if no API key set
   if (!client) {
-    console.log('ℹ️  No Gemini API key — using mock AI response.');
+    console.log('ℹ️  Using mock AI response.');
     return getMockResponse(contents);
   }
 

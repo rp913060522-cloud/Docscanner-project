@@ -59,6 +59,10 @@ const config = {
   geminiApiKey: process.env.GEMINI_API_KEY,
   geminiModel: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
 
+  // Groq AI
+  groqApiKey: process.env.GROQ_API_KEY,
+  groqModel: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+
   // File upload limits
   maxUploadSizeBytes: parseInt(process.env.MAX_UPLOAD_SIZE_BYTES, 10) || 26214400, // 25 MB
   tempFileTtlMs: parseInt(process.env.TEMP_FILE_TTL_MS, 10) || 600000, // 10 minutes

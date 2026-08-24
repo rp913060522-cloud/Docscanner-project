@@ -207,17 +207,23 @@ async function chatWithDocument(req, res, next) {
       imageContent = extracted.imageContent;
     }
 
-    // Load existing chat session if chatId is provided
+    // Load existing chat session if chatId is provided (safe for offline/guest mode)
     let chatSession = null;
-    if (chatId) {
-      chatSession = await Chat.findOne({ _id: chatId, userId: req.user.id });
-    } else if (localPdfId) {
-      chatSession = await Chat.findOne({ localPdfId, userId: req.user.id });
+    try {
+      if (req.user && req.user.id !== '000000000000000000000000') {
+        if (chatId) {
+          chatSession = await Chat.findOne({ _id: chatId, userId: req.user.id });
+        } else if (localPdfId) {
+          chatSession = await Chat.findOne({ localPdfId, userId: req.user.id });
+        }
+      }
+    } catch (dbFindErr) {
+      console.warn('DB chat lookup skipped:', dbFindErr.message);
     }
 
     const historyMessages = chatSession ? chatSession.messages : [];
 
-    // Call Gemini Service
+    // Call AI Service (Groq / Gemini)
     const aiResponse = await geminiService.generateChatResponse(
       userQuery.trim(),
       historyMessages,
@@ -225,30 +231,36 @@ async function chatWithDocument(req, res, next) {
       imageContent
     );
 
-    // Save or update Chat document automatically
-    const userMsg = { role: 'user', text: userQuery.trim(), timestamp: new Date() };
-    const assistantMsg = { role: 'assistant', text: aiResponse.answer, timestamp: new Date() };
+    // Save or update Chat document automatically if DB is active
+    try {
+      if (req.user && req.user.id !== '000000000000000000000000') {
+        const userMsg = { role: 'user', text: userQuery.trim(), timestamp: new Date() };
+        const assistantMsg = { role: 'assistant', text: aiResponse.answer, timestamp: new Date() };
 
-    if (!chatSession && localPdfId && documentTitle) {
-      chatSession = await Chat.create({
-        userId: req.user.id,
-        localPdfId,
-        documentTitle,
-        title: `Chat: ${documentTitle}`,
-        messages: [userMsg, assistantMsg],
-      });
-    } else if (chatSession) {
-      chatSession.messages.push(userMsg, assistantMsg);
-      await chatSession.save();
-    }
+        if (!chatSession && localPdfId && documentTitle) {
+          chatSession = await Chat.create({
+            userId: req.user.id,
+            localPdfId,
+            documentTitle,
+            title: `Chat: ${documentTitle}`,
+            messages: [userMsg, assistantMsg],
+          });
+        } else if (chatSession) {
+          chatSession.messages.push(userMsg, assistantMsg);
+          await chatSession.save();
+        }
 
-    if (chatSession) {
-      await upsertHistory({
-        userId: req.user.id,
-        localPdfId: chatSession.localPdfId,
-        documentTitle: chatSession.documentTitle,
-        chatId: chatSession._id,
-      });
+        if (chatSession) {
+          await upsertHistory({
+            userId: req.user.id,
+            localPdfId: chatSession.localPdfId,
+            documentTitle: chatSession.documentTitle,
+            chatId: chatSession._id,
+          });
+        }
+      }
+    } catch (dbSaveErr) {
+      console.warn('DB chat save skipped:', dbSaveErr.message);
     }
 
     return sendSuccess(res, 200, 'Chat response generated.', {

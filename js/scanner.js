@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (isCornersStable(detection.corners, lastCorners)) {
           stableFrameCount++;
           if (scannerHint) {
-            scannerHint.innerHTML = `<span class="material-icons-round" style="font-size:16px;vertical-align:middle;margin-right:4px;color:#22c55e;">lock</span> Document Locked! Capturing... (${stableFrameCount}/3)`;
+            scannerHint.innerHTML = `<span class="material-icons-round" style="font-size:16px;vertical-align:middle;margin-right:4px;color:#22c55e;">lock</span> Document Locked! Capturing (${stableFrameCount}/3)...`;
           }
           if (stableFrameCount >= 3) {
             triggerAutoCapture();
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const avgEdge = sampleCount > 0 ? edgeSum / (sampleCount / 4) : 0;
-    const hasDocument = avgEdge >= 8.0 && avgLuma >= 40 && avgLuma <= 245;
+    const hasDocument = avgEdge >= 6.5 && avgLuma >= 25 && avgLuma <= 250;
 
     if (!hasDocument) return { hasDocument: false };
 
@@ -332,20 +332,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       setTimeout(() => shutterFlash.style.opacity = '0', 150);
     }
 
-    const blob = await captureVideoFrame();
-    if (blob) {
-      addCapturedPage(blob, null, true);
+    const frame = await captureVideoFrame();
+    if (frame && frame.blob) {
+      await addCapturedPage(frame.blob, frame.dataUrl, true);
     }
 
     if (scannerHint) {
-      scannerHint.innerHTML = `<span class="material-icons-round" style="font-size:16px;vertical-align:middle;margin-right:4px;color:#f59e0b;">hourglass_empty</span> Page captured! Position next document...`;
+      scannerHint.innerHTML = `<span class="material-icons-round" style="font-size:16px;vertical-align:middle;margin-right:4px;color:#f59e0b;">hourglass_empty</span> Page ${capturedPageBlobs.length} captured! Move or position next document...`;
     }
 
     cooldownTimer = setTimeout(() => {
       isAutoCaptureCooldown = false;
       stableFrameCount = 0;
       lastCorners = null;
-    }, 2500);
+    }, 3500);
   }
 
   // ── Controls ─────────────────────────────────────────────────────────────
@@ -521,23 +521,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     StudyGenApp.toast.show(`Page ${index + 1} removed.`);
   }
 
-  function addCapturedPage(blob, dataUrl = null, showNotification = true) {
+  async function addCapturedPage(blob, dataUrl = null, showNotification = true) {
     if (!blob) return;
     capturedPageBlobs.push(blob);
 
-    const srcUrl = dataUrl || URL.createObjectURL(blob);
-    capturedPageDataUrls.push(srcUrl);
+    let finalDataUrl = dataUrl;
+    if (!finalDataUrl) {
+      finalDataUrl = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    }
 
+    capturedPageDataUrls.push(finalDataUrl);
     renderThumbnailStrip();
 
     if (showNotification) {
-      StudyGenApp.toast.show(`Page ${capturedPageBlobs.length} captured! Tap 'Done / Create PDF' when finished. 📷`);
+      StudyGenApp.toast.show(`Page ${capturedPageBlobs.length} captured! Tap 'Done' when finished. 📷`);
     }
   }
 
   async function captureVideoFrame() {
     if (!cameraVideo || !cameraVideo.videoWidth) return null;
-    const MAX_W = 1920;
+    const MAX_W = 1600;
     const srcW  = cameraVideo.videoWidth;
     const srcH  = cameraVideo.videoHeight;
     const scale = srcW > MAX_W ? MAX_W / srcW : 1;
@@ -546,7 +554,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     canvas.height = Math.round(srcH * scale);
     const ctx = canvas.getContext('2d');
     ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
-    return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.80));
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+    return { blob, dataUrl };
   }
 
   // ── Shutter Button Manual Capture ────────────────────────────────────────
@@ -560,9 +570,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       if (cameraVideo && cameraVideo.srcObject && cameraVideo.videoWidth > 0) {
-        const frameBlob = await captureVideoFrame();
-        if (frameBlob) {
-          addCapturedPage(frameBlob);
+        const frame = await captureVideoFrame();
+        if (frame && frame.blob) {
+          await addCapturedPage(frame.blob, frame.dataUrl);
           return;
         }
       }
@@ -577,7 +587,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     cameraFileInput.addEventListener('change', async (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
-      addCapturedPage(file);
+      await addCapturedPage(file);
     });
   }
 

@@ -313,4 +313,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // ── Bottom Bar Bookmark & Share Handlers ────────────────────────────────────
+  const bookmarkBtn = document.getElementById('bookmarkBtn');
+  let isBookmarked = false;
+  if (bookmarkBtn) {
+    bookmarkBtn.addEventListener('click', () => {
+      isBookmarked = !isBookmarked;
+      const icon = bookmarkBtn.querySelector('.material-icons-round');
+      if (icon) icon.textContent = isBookmarked ? 'bookmark' : 'bookmark_border';
+      if (isBookmarked) {
+        bookmarkBtn.style.color = '#3b7bf8';
+        StudyGenApp.toast.show('Lesson bookmarked to study collection! 🔖');
+      } else {
+        bookmarkBtn.style.color = '';
+        StudyGenApp.toast.show('Bookmark removed.');
+      }
+    });
+  }
+
+  const shareFeatBtn = document.getElementById('shareFeatBtn');
+  if (shareFeatBtn) {
+    shareFeatBtn.addEventListener('click', async () => {
+      const shareTitle = 'StudyGen AI Interactive Learning';
+      const shareText = `🧠 Check out this interactive StudyGen AI quiz, flashcard deck, and AI tutor!`;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: shareTitle, text: shareText, url: window.location.href });
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            copyShareText(shareText);
+          }
+        }
+      } else {
+        copyShareText(shareText);
+      }
+    });
+  }
+
+  function copyShareText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        StudyGenApp.toast.show('Learning link copied to clipboard! 📋');
+      }).catch(() => {
+        StudyGenApp.toast.show('Share link ready!');
+      });
+    } else {
+      StudyGenApp.toast.show('Learning link ready to share!');
+    }
+  }
+
 });

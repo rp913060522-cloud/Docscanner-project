@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     signupForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const nameEl     = document.getElementById('fullname');
+      const nameEl     = document.getElementById('name') || document.getElementById('fullname');
       const emailEl    = document.getElementById('email');
       const passwordEl = document.getElementById('password');
 

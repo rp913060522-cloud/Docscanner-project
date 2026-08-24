@@ -125,8 +125,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pagesStr = doc.pageCount ? `${doc.pageCount} ${doc.pageCount === 1 ? 'page' : 'pages'}` : 'PDF';
         const metaInfo = [pagesStr, sizeStr, timeStr].filter(Boolean).join(' • ');
 
-        const thumbHtml = doc.thumbnail
-          ? `<img src="${doc.thumbnail}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="Thumbnail" />`
+        const thumbHtml = (doc.thumbnail && (doc.thumbnail.startsWith('data:image') || doc.thumbnail.startsWith('http')))
+          ? `<img src="${doc.thumbnail}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="Thumbnail" onerror="this.style.display='none';this.parentElement.innerHTML='<span class=\\'material-icons-round\\'>picture_as_pdf</span>';" />`
           : `<span class="material-icons-round">picture_as_pdf</span>`;
 
         const favIcon = doc.isFavorite ? 'star' : 'star_outline';
@@ -315,6 +315,41 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (searchInput) {
         searchInput.value = '';
         loadHistory();
+      }
+    });
+  }
+
+  // Filter Modal Header Button Handler
+  const filterModalBtn = document.getElementById('filterModalBtn');
+  if (filterModalBtn) {
+    filterModalBtn.addEventListener('click', () => {
+      if (window.StudyGenNav && window.StudyGenNav.showActionSheet) {
+        window.StudyGenNav.showActionSheet({
+          title: 'Filter Documents',
+          actions: [
+            {
+              label: '📁 All Documents',
+              onClick: () => {
+                const chip = document.querySelector('#historyFilterChips [data-cat="all"]');
+                if (chip) chip.click();
+              }
+            },
+            {
+              label: '🕒 Recent Documents',
+              onClick: () => {
+                const chip = document.querySelector('#historyFilterChips [data-cat="recent"]');
+                if (chip) chip.click();
+              }
+            },
+            {
+              label: '⭐ Starred Favorites',
+              onClick: () => {
+                const chip = document.querySelector('#historyFilterChips [data-cat="favorites"]');
+                if (chip) chip.click();
+              }
+            }
+          ]
+        });
       }
     });
   }

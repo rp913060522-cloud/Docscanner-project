@@ -1242,3 +1242,26 @@
   color: var(--primary);
   flex: 1;
 }
+
+/* ── 25. BOTTOM ACTION BAR (INSIDE FRAME ON ALL SCREENS) ─────────────────── */
+.bottom-action-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 14px var(--screen-pad);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bottom-action-bar--column {
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px var(--screen-pad);
+}

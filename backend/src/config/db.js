@@ -25,12 +25,13 @@ try {
 async function connectDB() {
   try {
     const conn = await mongoose.connect(config.mongoUri, {
-      serverSelectionTimeoutMS: 10000,
+      serverSelectionTimeoutMS: config.isProduction ? 10000 : 3000,
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
     });
 
-    console.log(`✔  MongoDB Atlas connected: ${conn.connection.host}`);
+    console.log(`✔  MongoDB connected: ${conn.connection.host}`);
+    return conn;
   } catch (error) {
     // If SRV lookup failed on local DNS, try setting fallback public DNS servers (8.8.8.8, 1.1.1.1)
     if (error.message && error.message.includes('querySrv')) {
@@ -38,18 +39,29 @@ async function connectDB() {
       try {
         dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
         const conn = await mongoose.connect(config.mongoUri, {
-          serverSelectionTimeoutMS: 10000,
+          serverSelectionTimeoutMS: config.isProduction ? 10000 : 3000,
           socketTimeoutMS: 45000,
           maxPoolSize: 10,
         });
-        console.log(`✔  MongoDB Atlas connected via fallback DNS: ${conn.connection.host}`);
-        return;
+        console.log(`✔  MongoDB connected via fallback DNS: ${conn.connection.host}`);
+        return conn;
       } catch (retryErr) {
         console.error('✗  MongoDB connection error after DNS fallback:', retryErr.message);
       }
     } else {
       console.error('✗  MongoDB connection error:', error.message);
     }
+
+    // Development mode fallback: continue server startup with dev warning
+    if (!config.isProduction) {
+      mongoose.set('bufferCommands', false);
+      console.warn('⚠  Primary MongoDB connection failed in development mode.');
+      console.warn('   Server will start in offline/dev mode without active MongoDB instance.');
+      console.warn('   AI features (mock fallback), static pages, and local IndexedDB will work.');
+      return null;
+    }
+
+    // In production, exit process on database connection failure
     process.exit(1);
   }
 }

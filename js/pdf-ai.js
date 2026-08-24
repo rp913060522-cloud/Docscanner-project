@@ -17,8 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const scannedPdfPagesContainer = document.getElementById('scannedPdfPagesContainer');
   const cardSaveDeviceBtn        = document.getElementById('cardSaveDeviceBtn');
   const pdfViewBtn               = document.getElementById('pdfViewBtn');
-  const pdfDownloadBtn           = document.getElementById('pdfDownloadBtn');
-  const pdfSaveBtn               = document.getElementById('pdfSaveBtn');
   const pdfShareBtn              = document.getElementById('pdfShareBtn');
   const pdfDeleteBtn             = document.getElementById('pdfDeleteBtn');
 
@@ -34,73 +32,95 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch (err) {
     console.warn('Invalid batch pages JSON:', err.message);
   }
-
-  // If scanned pages exist, render the Compiled Multi-Page Scanned PDF Viewer Card!
-  if (pagesData && pagesData.length > 0 && scannedPdfCard && scannedPdfPagesContainer) {
+  // ── 1. Render Document Pages & Metadata ─────────────────────────────────────
+  async function renderDocPages() {
+    if (!scannedPdfCard || !scannedPdfPagesContainer) return;
     scannedPdfCard.style.display = 'block';
 
-    const rawTitle = sessionStorage.getItem('sg_active_doc_title') || `Scanned_PDF_${new Date().toLocaleDateString('en-IN').replace(/\//g, '-')}`;
+    const activeDocId = sessionStorage.getItem('sg_active_doc_id');
+    let docRecord = null;
+
+    if (activeDocId && window.LocalPdfDB) {
+      try {
+        docRecord = await window.LocalPdfDB.getDocument(activeDocId);
+        if (docRecord) {
+          window.LocalPdfDB.touchLastOpened(activeDocId);
+          if (docRecord.blob && docRecord.blob.type === 'application/pdf') {
+            cachedPdfBlob = docRecord.blob;
+          }
+        }
+      } catch (err) {
+        console.warn('LocalPdfDB retrieval warning:', err.message);
+      }
+    }
+
+    const rawTitle = (docRecord && docRecord.documentTitle) || sessionStorage.getItem('sg_active_doc_title') || `Scanned_PDF_${new Date().toLocaleDateString('en-IN').replace(/\//g, '-')}`;
     const docTitle = rawTitle.endsWith('.pdf') ? rawTitle : `${rawTitle}.pdf`;
 
+    // Filter valid base64 data URLs from batch pages
+    const validDataImages = (pagesData || []).filter(p => typeof p === 'string' && p.startsWith('data:image'));
+    const totalPages = validDataImages.length || (docRecord && docRecord.pageCount) || 1;
+
     if (scannedPdfTitle) scannedPdfTitle.textContent = docTitle;
-    if (scannedPdfMeta) scannedPdfMeta.textContent = `${pagesData.length} ${pagesData.length === 1 ? 'Page' : 'Pages'} • PDF Ready`;
+    if (scannedPdfMeta) scannedPdfMeta.textContent = `${totalPages} ${totalPages === 1 ? 'Page' : 'Pages'} • PDF Ready`;
 
     scannedPdfPagesContainer.innerHTML = '';
-    pagesData.forEach((dataUrl, idx) => {
+
+    if (validDataImages.length > 0) {
+      validDataImages.forEach((dataUrl, idx) => {
+        const pageFrame = document.createElement('div');
+        pageFrame.className = 'pdf-page-frame';
+
+        const img = document.createElement('img');
+        img.src = dataUrl;
+        img.alt = `Scanned PDF Page ${idx + 1}`;
+        img.onerror = () => {
+          img.style.display = 'none';
+        };
+        pageFrame.appendChild(img);
+
+        const numBadge = document.createElement('div');
+        numBadge.className = 'pdf-page-num-badge';
+        numBadge.textContent = `Page ${idx + 1} of ${validDataImages.length}`;
+        pageFrame.appendChild(numBadge);
+
+        scannedPdfPagesContainer.appendChild(pageFrame);
+      });
+    } else if (docRecord && docRecord.thumbnail && docRecord.thumbnail.startsWith('data:image')) {
       const pageFrame = document.createElement('div');
       pageFrame.className = 'pdf-page-frame';
 
       const img = document.createElement('img');
-      img.src = dataUrl;
-      img.alt = `Scanned PDF Page ${idx + 1}`;
+      img.src = docRecord.thumbnail;
+      img.alt = `Scanned Document Preview`;
       pageFrame.appendChild(img);
 
       const numBadge = document.createElement('div');
       numBadge.className = 'pdf-page-num-badge';
-      numBadge.textContent = `Page ${idx + 1} of ${pagesData.length}`;
+      numBadge.textContent = `Page 1 of ${totalPages}`;
       pageFrame.appendChild(numBadge);
 
       scannedPdfPagesContainer.appendChild(pageFrame);
-    });
-  } else {
-    // Fallback: Check if active document exists in IndexedDB
-    const activeDocId = sessionStorage.getItem('sg_active_doc_id');
-    if (activeDocId && window.LocalPdfDB && scannedPdfCard) {
-      scannedPdfCard.style.display = 'block';
-      window.LocalPdfDB.touchLastOpened(activeDocId);
-      window.LocalPdfDB.getDocument(activeDocId).then(docRecord => {
-        if (docRecord) {
-          if (docRecord.blob && docRecord.blob.type === 'application/pdf') {
-            cachedPdfBlob = docRecord.blob;
-          }
-          const docTitle = docRecord.documentTitle || sessionStorage.getItem('sg_active_doc_title') || 'Document.pdf';
-          if (scannedPdfTitle) scannedPdfTitle.textContent = docTitle.endsWith('.pdf') ? docTitle : `${docTitle}.pdf`;
-          if (scannedPdfMeta) scannedPdfMeta.textContent = `${docRecord.filename || 'PDF Document'} • Ready`;
-
-          if (scannedPdfPagesContainer) {
-            scannedPdfPagesContainer.innerHTML = '';
-            const frame = document.createElement('div');
-            frame.className = 'pdf-page-frame';
-            frame.style.padding = '24px';
-            frame.style.textAlign = 'center';
-            frame.style.background = '#0f0f18';
-            frame.style.color = 'white';
-            const sizeMb = docRecord.blob ? (docRecord.blob.size / (1024 * 1024)).toFixed(2) : '1.5';
-            frame.innerHTML = `
-              <span class="material-icons-round" style="font-size:64px;color:#ef4444;margin-bottom:12px;display:block;">picture_as_pdf</span>
-              <div style="font-size:15px;font-weight:600;margin-bottom:6px;">${docTitle}</div>
-              <div style="font-size:12px;color:#94a3b8;">${sizeMb} MB PDF Document</div>
-            `;
-            scannedPdfPagesContainer.appendChild(frame);
-          }
-        }
-      }).catch(err => console.warn('Could not load record from LocalPdfDB:', err));
+    } else {
+      const frame = document.createElement('div');
+      frame.className = 'pdf-page-frame';
+      frame.style.padding = '32px 16px';
+      frame.style.textAlign = 'center';
+      frame.style.background = '#0f0f18';
+      frame.style.color = 'white';
+      const sizeMb = docRecord && docRecord.blob ? (docRecord.blob.size / (1024 * 1024)).toFixed(2) : '1.0';
+      frame.innerHTML = `
+        <span class="material-icons-round" style="font-size:56px;color:#ef4444;margin-bottom:10px;display:block;">picture_as_pdf</span>
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px;color:#ffffff;">${docTitle}</div>
+        <div style="font-size:12px;color:#94a3b8;">${sizeMb} MB &bull; ${totalPages} ${totalPages === 1 ? 'Page' : 'Pages'} &bull; PDF Ready</div>
+      `;
+      scannedPdfPagesContainer.appendChild(frame);
     }
   }
 
-  /**
-   * Generates or retrieves compiled PDF Blob in memory without redundant compilations.
-   */
+  renderDocPages();
+
+  // ── 2. Retrieve or Compile PDF Blob ─────────────────────────────────────────
   async function getOrCreatePdfBlob() {
     if (cachedPdfBlob) return cachedPdfBlob;
 
@@ -110,62 +130,79 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const docRecord = await window.LocalPdfDB.getDocument(activeDocId);
         if (docRecord && docRecord.blob) {
-          cachedPdfBlob = docRecord.blob;
-          return cachedPdfBlob;
+          if (docRecord.blob.type === 'application/pdf') {
+            cachedPdfBlob = docRecord.blob;
+            return cachedPdfBlob;
+          }
         }
       } catch (err) {
         console.warn('IndexedDB Blob retrieval note:', err.message);
       }
     }
 
-    // 2. Compile PDF Blob using jsPDF from pagesData
-    if (pagesData && pagesData.length > 0 && window.jspdf && window.jspdf.jsPDF) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
+    // 2. Compile PDF Blob from valid image data URLs
+    const validDataImages = (pagesData || []).filter(p => typeof p === 'string' && p.startsWith('data:image'));
+    const jsPDFClass = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+
+    if (validDataImages.length > 0 && jsPDFClass) {
+      const doc = new jsPDFClass({ orientation: 'portrait', unit: 'pt', format: 'a4' });
       const pdfWidth = doc.internal.pageSize.getWidth();
       const pdfHeight = doc.internal.pageSize.getHeight();
 
-      for (let i = 0; i < pagesData.length; i++) {
+      for (let i = 0; i < validDataImages.length; i++) {
         if (i > 0) doc.addPage();
-        const img = new Image();
-        img.src = pagesData[i];
-        await new Promise(resolve => { img.onload = resolve; });
+        const imgData = validDataImages[i];
+        try {
+          const img = new Image();
+          await new Promise((resolve) => {
+            const timeout = setTimeout(resolve, 2000);
+            img.onload = () => { clearTimeout(timeout); resolve(); };
+            img.onerror = () => { clearTimeout(timeout); resolve(); };
+            img.src = imgData;
+          });
 
-        const imgRatio = img.height / img.width;
-        let printWidth = pdfWidth;
-        let printHeight = pdfWidth * imgRatio;
-        if (printHeight > pdfHeight) {
-          printHeight = pdfHeight;
-          printWidth = pdfHeight / imgRatio;
+          const imgW = img.naturalWidth || 800;
+          const imgH = img.naturalHeight || 1100;
+          const scale = Math.min(pdfWidth / imgW, pdfHeight / imgH);
+          const w = imgW * scale;
+          const h = imgH * scale;
+          const x = (pdfWidth - w) / 2;
+          const y = (pdfHeight - h) / 2;
+
+          doc.addImage(imgData, 'JPEG', x, y, w, h);
+        } catch (e) {
+          console.warn('Page compile note:', e);
         }
-        const xOffset = (pdfWidth - printWidth) / 2;
-        const yOffset = (pdfHeight - printHeight) / 2;
-
-        const A4_W = Math.round(printWidth);
-        const A4_H = Math.round(printHeight);
-        const offCanvas = document.createElement('canvas');
-        offCanvas.width  = A4_W;
-        offCanvas.height = A4_H;
-        const offCtx = offCanvas.getContext('2d');
-        offCtx.drawImage(img, 0, 0, A4_W, A4_H);
-        const compressedDataUrl = offCanvas.toDataURL('image/jpeg', 0.75);
-
-        doc.addImage(compressedDataUrl, 'JPEG', xOffset, yOffset, printWidth, printHeight);
       }
 
       cachedPdfBlob = doc.output('blob');
       return cachedPdfBlob;
     }
 
+    // 3. Fallback: check thumbnail from active document
+    if (activeDocId && window.LocalPdfDB && jsPDFClass) {
+      try {
+        const docRecord = await window.LocalPdfDB.getDocument(activeDocId);
+        if (docRecord && docRecord.thumbnail && docRecord.thumbnail.startsWith('data:image')) {
+          const doc = new jsPDFClass({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+          const pdfWidth = doc.internal.pageSize.getWidth();
+          const pdfHeight = doc.internal.pageSize.getHeight();
+          doc.addImage(docRecord.thumbnail, 'JPEG', 20, 20, pdfWidth - 40, pdfHeight - 40);
+          cachedPdfBlob = doc.output('blob');
+          return cachedPdfBlob;
+        }
+      } catch (e) {}
+    }
+
     return null;
   }
 
-  // Real Multi-Page PDF Compiler & Local Device File Saver
+  // ── 3. Save PDF Document to Local Device ─────────────────────────────────────
   async function compileAndSavePdfToDevice() {
-    const rawTitle = sessionStorage.getItem('sg_active_doc_title') || `Scanned_Document_${Date.now()}`;
+    const rawTitle = sessionStorage.getItem('sg_active_doc_title') || (scannedPdfTitle ? scannedPdfTitle.textContent : 'Scanned_Document');
     const filename = rawTitle.endsWith('.pdf') ? rawTitle : `${rawTitle}.pdf`;
 
-    StudyGenApp.toast.show('Compiling PDF & Saving to Local Device... 💾', 4000);
+    StudyGenApp.toast.show('Compiling PDF & Saving to Local Device... 💾', 3000);
 
     try {
       const pdfBlob = await getOrCreatePdfBlob();
@@ -182,64 +219,43 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      if (pagesData.length === 0) {
-        StudyGenApp.toast.show('No active scanned pages to save.');
-        return;
-      }
-
-      // Fallback page-by-page save
-      pagesData.forEach((dataUrl, idx) => {
-        const link = document.createElement('a');
-        link.href = dataUrl;
-        link.download = `${filename.replace(/\.pdf$/i, '')}_Page_${idx + 1}.jpg`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      });
-      StudyGenApp.toast.show(`Saved ${pagesData.length} page files to your device! 📄✨`);
+      StudyGenApp.toast.show('Document ready. Please try again.');
     } catch (err) {
       console.error('PDF generation error:', err);
-      StudyGenApp.toast.show('Error compiling PDF. Saved image pages directly.');
+      StudyGenApp.toast.show('Error saving PDF document.');
     }
   }
 
-  // ── "VIEW AS PDF" Action Handler ───────────────────────────────────────────
+  // ── 4. "VIEW AS PDF" Action Handler ──────────────────────────────────────────
   if (pdfViewBtn) {
     pdfViewBtn.addEventListener('click', async () => {
-      // 1. Open target popup synchronously to prevent browser popup blocker
-      let newWindow = null;
-      try {
-        newWindow = window.open('about:blank', '_blank');
-      } catch (e) {
-        console.warn('Popup window blocked:', e.message);
-      }
-
-      StudyGenApp.toast.show('Opening PDF in native viewer... 📄');
+      StudyGenApp.toast.show('Opening PDF document... 📄');
 
       try {
         const pdfBlob = await getOrCreatePdfBlob();
         if (!pdfBlob) {
-          if (newWindow) newWindow.close();
-          StudyGenApp.toast.show('PDF is not ready yet. Please try again.');
+          StudyGenApp.toast.show('PDF is preparing. Please try again.');
           return;
         }
 
-        if (!cachedObjectUrl) {
-          cachedObjectUrl = URL.createObjectURL(pdfBlob);
-        }
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        cachedObjectUrl = blobUrl;
 
-        if (newWindow) {
-          newWindow.location.href = cachedObjectUrl;
-        } else {
-          // Popup blocked fallback (Requirement: "Please allow pop-ups to view the PDF.")
-          StudyGenApp.toast.show('Please allow pop-ups to view the PDF.');
-          // Mobile / WebView Fallback
-          window.location.href = cachedObjectUrl;
+        // Open directly in a new browser tab with native PDF reader
+        const win = window.open(blobUrl, '_blank');
+        if (!win || win.closed || typeof win.closed === 'undefined') {
+          // If popup blocker triggered, trigger download/view link
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
         }
       } catch (err) {
         console.error('View as PDF error:', err);
-        if (newWindow) newWindow.close();
-        StudyGenApp.toast.show('Could not open PDF viewer. Please try again.');
+        StudyGenApp.toast.show('Could not open PDF viewer.');
       }
     });
   }
@@ -247,18 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Wire up "Save PDF to Device" button inside Card
   if (cardSaveDeviceBtn) {
     cardSaveDeviceBtn.addEventListener('click', compileAndSavePdfToDevice);
-  }
-
-  // Wire up bottom bar "Save to Device" button
-  if (pdfDownloadBtn) {
-    pdfDownloadBtn.addEventListener('click', compileAndSavePdfToDevice);
-  }
-
-  // Bottom bar "Save History" Button
-  if (pdfSaveBtn) {
-    pdfSaveBtn.addEventListener('click', () => {
-      StudyGenApp.toast.show('Saved to Recent Documents history! 💾');
-    });
   }
 
   // Bottom bar "Share" Button
@@ -327,6 +331,17 @@ document.addEventListener('DOMContentLoaded', () => {
             await window.LocalPdfDB.deleteDocument(activeDocId);
           }
 
+          // Also delete associated batch page IDs if present
+          const batchIdStr = sessionStorage.getItem('sg_batch_page_ids');
+          if (batchIdStr && window.LocalPdfDB) {
+            try {
+              const ids = JSON.parse(batchIdStr);
+              for (const childId of ids) {
+                await window.LocalPdfDB.deleteDocument(childId);
+              }
+            } catch (e) {}
+          }
+
           // Revoke active Object URL to prevent memory leaks
           if (cachedObjectUrl) {
             try { URL.revokeObjectURL(cachedObjectUrl); } catch (e) {}
@@ -341,25 +356,25 @@ document.addEventListener('DOMContentLoaded', () => {
           sessionStorage.removeItem('sg_batch_page_ids');
           sessionStorage.removeItem('sg_scan_count');
 
-          StudyGenApp.toast.show('Document deleted successfully.');
+          StudyGenApp.toast.show('Document deleted successfully 🗑️');
 
           // Return to Home / Recent Documents screen
           setTimeout(() => {
             window.location.href = 'home.html';
-          }, 400);
+          }, 300);
         } catch (err) {
           console.error('Delete error:', err);
-          StudyGenApp.toast.show('Unable to delete document. Please try again.');
+          StudyGenApp.toast.show('Unable to delete document.');
         }
       };
 
       if (window.StudyGenNav && window.StudyGenNav.confirm) {
         window.StudyGenNav.confirm(
-          `Delete Document?`,
+          `Delete "${docTitle}"?`,
           performDeletion,
-          `Are you sure you want to permanently delete "${docTitle}"? This action cannot be undone.`
+          `Are you sure you want to delete this document from your device? This action cannot be undone.`
         );
-      } else if (confirm(`Delete Document?\n\nAre you sure you want to permanently delete "${docTitle}"?\nThis action cannot be undone.`)) {
+      } else {
         performDeletion();
       }
     });

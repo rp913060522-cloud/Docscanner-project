@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               ${doc.documentTitle || doc.filename || 'Scanned PDF'}
             </span>
           </div>
-          <button onclick="location.href='ai-study.html?pdfId=${doc.localPdfId}'" class="btn btn-outlined btn-sm" style="padding:4px 8px;font-size:12px;">
+          <button onclick="sessionStorage.setItem('sg_active_doc_id', '${doc.localPdfId}'); location.href='pdf-ai.html';" class="btn btn-outlined btn-sm" style="padding:4px 8px;font-size:12px;">
             Open
           </button>
         </div>
@@ -325,12 +325,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!favoritesModal || !favoritesList) return;
 
     favoritesModal.style.display = 'flex';
-    favoritesList.innerHTML = `
-      <div style="text-align:center;padding:24px 12px;color:var(--text-secondary);">
-        <span class="material-icons-round" style="font-size:48px;color:#f59e0b;opacity:0.8;">star_outline</span>
-        <p style="margin-top:8px;font-size:14px;">No favorite study guides starred yet.</p>
-        <p style="font-size:12px;opacity:0.7;">Star your favorite AI summaries to view them quickly here!</p>
-      </div>`;
+    favoritesList.innerHTML = `<p class="text-body-sm text-secondary text-center py-md">Loading favorites...</p>`;
+
+    try {
+      let favs = [];
+      if (window.LocalPdfDB) {
+        favs = await window.LocalPdfDB.listDocuments({ filterFavorite: true });
+      }
+
+      if (!favs || favs.length === 0) {
+        favoritesList.innerHTML = `
+          <div style="text-align:center;padding:24px 12px;color:var(--text-secondary);">
+            <span class="material-icons-round" style="font-size:48px;color:#f59e0b;opacity:0.8;">star_outline</span>
+            <p style="margin-top:8px;font-size:14px;">No favorite study guides starred yet.</p>
+            <p style="font-size:12px;opacity:0.7;">Star your favorite documents in History to view them quickly here!</p>
+          </div>`;
+        return;
+      }
+
+      favoritesList.innerHTML = favs.map(doc => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg);border-radius:12px;">
+          <div style="display:flex;align-items:center;gap:10px;overflow:hidden;">
+            <span class="material-icons-round" style="color:#f59e0b;">star</span>
+            <span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">
+              ${doc.documentTitle || doc.filename || 'Starred Document'}
+            </span>
+          </div>
+          <button onclick="sessionStorage.setItem('sg_active_doc_id', '${doc.localPdfId}'); location.href='pdf-ai.html';" class="btn btn-outlined btn-sm" style="padding:4px 8px;font-size:12px;">
+            Open
+          </button>
+        </div>
+      `).join('');
+    } catch (err) {
+      favoritesList.innerHTML = `<p class="text-body-sm text-secondary text-center py-md">Failed to load favorites.</p>`;
+    }
   });
 
   if (closeFavoritesModalBtn) closeFavoritesModalBtn.addEventListener('click', () => { favoritesModal.style.display = 'none'; });

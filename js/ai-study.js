@@ -199,8 +199,90 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (downloadPdfBtn) {
     downloadPdfBtn.addEventListener('click', () => {
       try {
-        const docTitle = studyData.documentTitle || 'StudyNotes';
-        const fileContent = `================================================
+        const docTitle = studyData.documentTitle || 'StudyGen AI Notes';
+        const jsPDFClass = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+
+        if (jsPDFClass) {
+          const doc = new jsPDFClass({ unit: 'pt', format: 'a4' });
+          const margin = 40;
+          const pageWidth = doc.internal.pageSize.getWidth();
+          const maxLineWidth = pageWidth - (margin * 2);
+          let y = 50;
+
+          const checkPageBreak = (neededHeight = 30) => {
+            if (y + neededHeight > doc.internal.pageSize.getHeight() - margin) {
+              doc.addPage();
+              y = margin + 10;
+            }
+          };
+
+          // Header Title
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(18);
+          doc.setTextColor(59, 123, 248);
+          doc.text('StudyGen AI — Study Notes', margin, y);
+          y += 22;
+
+          doc.setFontSize(13);
+          doc.setTextColor(30, 41, 59);
+          doc.text(docTitle, margin, y);
+          y += 16;
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(9);
+          doc.setTextColor(100, 116, 139);
+          doc.text(`Generated on ${new Date().toLocaleDateString()} | Smart AI Study Assistant`, margin, y);
+          y += 18;
+
+          // Divider line
+          doc.setDrawColor(226, 232, 240);
+          doc.setLineWidth(1);
+          doc.line(margin, y, pageWidth - margin, y);
+          y += 18;
+
+          const addSection = (title, contentLines) => {
+            if (!contentLines || (Array.isArray(contentLines) && contentLines.length === 0)) return;
+            checkPageBreak(36);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.setTextColor(59, 123, 248);
+            doc.text(title, margin, y);
+            y += 14;
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9.5);
+            doc.setTextColor(51, 65, 85);
+
+            const lines = Array.isArray(contentLines) ? contentLines : [contentLines];
+            lines.forEach(lineText => {
+              if (!lineText) return;
+              const splitLines = doc.splitTextToSize(String(lineText), maxLineWidth);
+              splitLines.forEach(l => {
+                checkPageBreak(14);
+                doc.text(l, margin, y);
+                y += 13;
+              });
+              y += 3;
+            });
+            y += 10;
+          };
+
+          if (derivedSummary) addSection('SUMMARY', derivedSummary);
+          if (derivedKeyPoints && derivedKeyPoints.length > 0) addSection('KEY POINTS', derivedKeyPoints.map(k => `• ${k}`));
+          if (derivedShortNotes) addSection('SHORT NOTES', derivedShortNotes);
+          if (derivedDetailedNotes) addSection('DETAILED NOTES', derivedDetailedNotes);
+          if (derivedQuestions && derivedQuestions.length > 0) {
+            addSection('IMPORTANT QUESTIONS', derivedQuestions.map((q, i) => `Q${i+1}: ${q.question}\nAnswer: ${q.answer}`));
+          }
+          if (derivedFormulas && derivedFormulas.length > 0) {
+            addSection('FORMULAS & KEY CONCEPTS', derivedFormulas.map(f => `${f.title}: ${f.formula}\n${f.explanation || ''}`));
+          }
+
+          doc.save(`${docTitle.replace(/[^a-zA-Z0-9_-]/g, '_')}_Notes.pdf`);
+          StudyGenApp.toast.show('Study notes PDF downloaded! 📄');
+        } else {
+          // Fallback text download
+          const fileContent = `================================================
 ${docTitle.toUpperCase()} — AI STUDY NOTES
 ================================================
 
@@ -215,23 +297,17 @@ ${derivedShortNotes}
 
 DETAILED NOTES:
 ${derivedDetailedNotes}
-
-IMPORTANT QUESTIONS:
-${derivedQuestions.map((q, i) => `Q${i+1}: ${q.question}\nA: ${q.answer}`).join('\n\n')}
-
-FORMULAS / CONCEPTS:
-${derivedFormulas.map(f => `${f.title}: ${f.formula}\n${f.explanation}`).join('\n\n')}
 `;
-
-        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `${docTitle.replace(/[^a-zA-Z0-9_-]/g, '_')}_Notes.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(a.href);
-        StudyGenApp.toast.show('Study notes file downloaded! 📄');
+          const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `${docTitle.replace(/[^a-zA-Z0-9_-]/g, '_')}_Notes.txt`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(a.href);
+          StudyGenApp.toast.show('Study notes file downloaded! 📄');
+        }
       } catch (err) {
         console.error('Download error:', err);
         StudyGenApp.toast.show('Could not download file.');
@@ -262,22 +338,50 @@ ${derivedFormulas.map(f => `${f.title}: ${f.formula}\n${f.explanation}`).join('\
     });
   }
 
-  async function copyToClipboard(text) {
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
+  // More Options Menu Handler
+  const moreMenuBtn = document.getElementById('moreMenuBtn');
+  if (moreMenuBtn) {
+    moreMenuBtn.addEventListener('click', () => {
+      if (window.StudyGenNav && window.StudyGenNav.showActionSheet) {
+        window.StudyGenNav.showActionSheet({
+          title: studyData.documentTitle || 'AI Study Assistant',
+          actions: [
+            {
+              label: '💾 Save Study Notes',
+              onClick: () => {
+                if (saveBtn) saveBtn.click();
+              }
+            },
+            {
+              label: '📄 Download as PDF',
+              onClick: () => {
+                if (downloadPdfBtn) downloadPdfBtn.click();
+              }
+            },
+            {
+              label: '📤 Share Summary',
+              onClick: () => {
+                if (shareBtn) shareBtn.click();
+              }
+            },
+            {
+              label: '🧠 Practice Quiz / Flashcards',
+              onClick: () => {
+                window.location.href = 'ai-learning.html';
+              }
+            },
+            {
+              label: '🏠 Back to Home',
+              onClick: () => {
+                window.location.href = 'home.html';
+              }
+            }
+          ]
+        });
       } else {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
+        StudyGenApp.toast.show('Options: Save, Download PDF, or Practice Quiz');
       }
-      StudyGenApp.toast.show('Study notes text copied to clipboard! 📋');
-    } catch {
-      StudyGenApp.toast.show('Copied to clipboard!');
-    }
+    });
   }
 
 });

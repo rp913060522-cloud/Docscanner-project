@@ -301,19 +301,19 @@
         </div>
       </section>
 
-      <!-- Bottom Action Row -->
-      <div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--screen-max);padding:16px var(--screen-pad);background:var(--bg);border-top:1px solid var(--border);box-shadow:0 -4px 16px rgba(0,0,0,0.06);z-index:90;display:flex;align-items:center;gap:12px;">
-        <button class="btn btn-outlined btn-sm" id="addPageBtn" style="width:auto;min-width:100px;">
-          <span class="material-icons-round">note_add</span>
-          <span>Add Page</span>
-        </button>
-        <button class="btn btn-primary flex-1" id="nextPageDocBtn">
-          <span>Next</span>
-          <span class="material-icons-round">arrow_forward</span>
-        </button>
-      </div>
-
     </main>
+
+    <!-- Bottom Action Row -->
+    <div class="bottom-action-bar">
+      <button class="btn btn-outlined btn-sm" id="addPageBtn" style="width:auto;min-width:100px;">
+        <span class="material-icons-round">note_add</span>
+        <span>Add Page</span>
+      </button>
+      <button class="btn btn-primary flex-1" id="nextPageDocBtn">
+        <span>Next</span>
+        <span class="material-icons-round">arrow_forward</span>
+      </button>
+    </div>
   </div>
 
   <!-- Manual Interactive Crop Modal -->
@@ -336,6 +336,7 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="../js/apiClient.js"></script>
   <script src="../js/db.js"></script>
   <script src="../js/app.js"></script>
@@ -384,13 +385,23 @@
       }
 
       if (pagesData.length === 0 && batchIdStr && window.LocalPdfDB) {
-        // Fallback: load all blobs from IndexedDB using stored IDs
+        // Fallback: load all pages from IndexedDB using stored IDs
         try {
           const ids = JSON.parse(batchIdStr);
           for (const id of ids) {
             const docRecord = await window.LocalPdfDB.getDocument(id);
-            if (docRecord && docRecord.blob) {
-              pagesData.push(URL.createObjectURL(docRecord.blob));
+            if (docRecord) {
+              if (docRecord.thumbnail && docRecord.thumbnail.startsWith('data:')) {
+                pagesData.push(docRecord.thumbnail);
+              } else if (docRecord.blob && docRecord.blob.type && docRecord.blob.type.startsWith('image/')) {
+                const dataUrl = await new Promise((resolve) => {
+                  const reader = new FileReader();
+                  reader.onload = () => resolve(reader.result);
+                  reader.onerror = () => resolve(null);
+                  reader.readAsDataURL(docRecord.blob);
+                });
+                if (dataUrl) pagesData.push(dataUrl);
+              }
             }
           }
         } catch (err) {
@@ -406,9 +417,19 @@
           if (docRecord) {
             currentDocTitle = docRecord.documentTitle || 'Scanned_Document';
             currentBlob     = docRecord.blob;
-            // If still no pages loaded at all, show at least the first page
-            if (pagesData.length === 0 && docRecord.blob) {
-              pagesData = [URL.createObjectURL(docRecord.blob)];
+            // If still no pages loaded at all, show thumbnail or image
+            if (pagesData.length === 0) {
+              if (docRecord.thumbnail && docRecord.thumbnail.startsWith('data:')) {
+                pagesData = [docRecord.thumbnail];
+              } else if (docRecord.blob && docRecord.blob.type && docRecord.blob.type.startsWith('image/')) {
+                const dataUrl = await new Promise((resolve) => {
+                  const reader = new FileReader();
+                  reader.onload = () => resolve(reader.result);
+                  reader.onerror = () => resolve(null);
+                  reader.readAsDataURL(docRecord.blob);
+                });
+                if (dataUrl) pagesData = [dataUrl];
+              }
             }
           }
         } catch (err) {
@@ -774,9 +795,57 @@
           StudyGenApp.toast.show(`Creating PDF document with ${count} ${count === 1 ? 'page' : 'pages'}... 📄`, 4000);
 
           try {
-            // Fetch primary or compiled blob
-            let primaryBlob = currentBlob;
-            if (!primaryBlob && pagesData.length > 0) {
+            // Compile all captured page images into a multi-page PDF blob
+            let primaryBlob = null;
+            const jsPDFClass = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+
+            if (jsPDFClass && pagesData.length > 0) {
+              const doc = new jsPDFClass({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+              const pageWidth = doc.internal.pageSize.getWidth();
+              const pageHeight = doc.internal.pageSize.getHeight();
+
+              for (let i = 0; i < pagesData.length; i++) {
+                if (i > 0) doc.addPage();
+                const imgData = pagesData[i];
+                try {
+                  const img = new Image();
+                  img.crossOrigin = 'anonymous';
+                  await new Promise((resolve) => {
+                    const t = setTimeout(resolve, 3000);
+                    img.onload = () => { clearTimeout(t); resolve(); };
+                    img.onerror = () => { clearTimeout(t); resolve(); };
+                    img.src = imgData;
+                  });
+
+                  const srcW = img.naturalWidth || img.width || 800;
+                  const srcH = img.naturalHeight || img.height || 1100;
+
+                  // High-quality canvas render to normalize JPEG format for jsPDF
+                  const offCanvas = document.createElement('canvas');
+                  offCanvas.width = srcW;
+                  offCanvas.height = srcH;
+                  const offCtx = offCanvas.getContext('2d');
+                  offCtx.fillStyle = '#ffffff';
+                  offCtx.fillRect(0, 0, srcW, srcH);
+                  offCtx.drawImage(img, 0, 0, srcW, srcH);
+
+                  const cleanJpeg = offCanvas.toDataURL('image/jpeg', 0.90);
+
+                  const scale = Math.min(pageWidth / srcW, pageHeight / srcH);
+                  const w = srcW * scale;
+                  const h = srcH * scale;
+                  const x = (pageWidth - w) / 2;
+                  const y = (pageHeight - h) / 2;
+
+                  doc.addImage(cleanJpeg, 'JPEG', x, y, w, h);
+                } catch (imgErr) {
+                  console.warn('Page compile warning:', imgErr);
+                }
+              }
+              primaryBlob = doc.output('blob');
+            } else if (currentBlob) {
+              primaryBlob = currentBlob;
+            } else if (pagesData.length > 0) {
               const res = await fetch(pagesData[0]);
               primaryBlob = await res.blob();
             }
@@ -801,7 +870,11 @@
             }
 
             sessionStorage.setItem('sg_scan_count', count);
-            sessionStorage.setItem('sg_batch_pages', JSON.stringify(pagesData));
+            try {
+              sessionStorage.setItem('sg_batch_pages', JSON.stringify(pagesData));
+            } catch (qErr) {
+              console.warn('Session storage quota note:', qErr.message);
+            }
 
             setTimeout(() => {
               window.location.href = 'pdf-ai.html';

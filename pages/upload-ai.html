@@ -197,8 +197,11 @@
 <body>
   <div class="screen screen--with-bar" style="padding-bottom:30px;">
 
-    <!-- Top App Bar -->
+    <!-- Top App Bar with Hamburger Navigation -->
     <header class="app-bar">
+      <button type="button" class="app-bar__back" id="openSidebarBtn" aria-label="Menu" style="margin-right:4px;">
+        <span class="material-icons-round" style="font-size:24px;">menu</span>
+      </button>
       <button class="app-bar__back" onclick="history.back()" aria-label="Back">
         <span class="material-icons-round">arrow_back_ios_new</span>
       </button>
@@ -208,6 +211,58 @@
       </div>
     </header>
 
+    <!-- Sidebar Drawer Overlay -->
+    <div id="chatSidebarOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;backdrop-filter:blur(3px);opacity:0;transition:opacity 0.25s ease;">
+      <div id="chatSidebar" style="position:absolute;top:0;left:0;bottom:0;width:290px;background:var(--surface,#ffffff);color:var(--text-primary,#0f172a);display:flex;flex-direction:column;padding:20px 16px;box-shadow:4px 0 25px rgba(0,0,0,0.25);transform:translateX(-100%);transition:transform 0.28s cubic-bezier(0.34,1.1,0.64,1);z-index:10001;overflow-y:auto;">
+        
+        <!-- Sidebar Top Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border,#e2e8f0);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:34px;height:34px;background:linear-gradient(135deg,#3b7bf8,#7b52f4);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px;">SG</div>
+            <span style="font-size:16px;font-weight:800;color:var(--text-primary);">StudyGen AI</span>
+          </div>
+          <button type="button" id="closeSidebarBtn" style="background:transparent;border:none;color:var(--text-secondary);cursor:pointer;padding:4px;display:flex;align-items:center;">
+            <span class="material-icons-round" style="font-size:22px;">close</span>
+          </button>
+        </div>
+
+        <!-- + New Chat Button -->
+        <button type="button" id="sidebarNewChatBtn" style="width:100%;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#3b7bf8,#7b52f4);color:white;border:none;border-radius:14px;padding:12px 16px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(59,123,248,0.3);margin-bottom:20px;">
+          <span class="material-icons-round" style="font-size:20px;">add_comment</span>
+          <span>+ New Chat</span>
+        </button>
+
+        <!-- Pinned Section -->
+        <div style="margin-bottom:18px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Pinned</div>
+          <div id="sidebarPinnedList" style="display:flex;flex-direction:column;gap:4px;">
+            <div class="sidebar-item" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--bg);font-size:13px;font-weight:600;cursor:pointer;color:var(--text-primary);">
+              <span class="material-icons-round" style="font-size:18px;color:#3b7bf8;">push_pin</span>
+              <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Python Basics Study Guide</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recents Section -->
+        <div style="flex:1;">
+          <div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Recents</div>
+          <div id="sidebarRecentsList" style="display:flex;flex-direction:column;gap:6px;">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Footer Profile -->
+        <div style="margin-top:auto;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;background:rgba(59,123,248,0.12);color:#3b7bf8;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;">NU</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:700;color:var(--text-primary);">New User</div>
+            <div style="font-size:11px;color:#16a34a;font-weight:600;">Pro Study Plan Active</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <main class="page-scroll page-scroll--no-nav">
 
       <!-- Hero Banner -->
@@ -216,33 +271,9 @@
           <span class="material-icons-round" style="color:white;font-size:30px;">auto_awesome</span>
         </div>
         <h2 style="color:white;font-size:19px;font-weight:700;margin:0 0 6px;">Study Smarter with AI</h2>
-        <p style="color:rgba(255,255,255,0.85);font-size:12px;margin:0;line-height:1.5;">Next-gen AI Study Suite — coming soon to StudyGen AI.</p>
+        <p style="color:rgba(255,255,255,0.85);font-size:12px;margin:0;line-height:1.5;">Upload any document or PDF to generate summaries, study notes, quizzes & flashcards.</p>
       </div>
 
-      <!-- Coming Soon Card Banner -->
-      <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:20px;padding:32px 24px;text-align:center;margin-bottom:24px;box-shadow:var(--shadow-md);">
-        <div style="width:64px;height:64px;background:linear-gradient(135deg,rgba(59,123,248,0.15),rgba(123,82,244,0.15));border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-          <span class="material-icons-round" style="font-size:36px;color:#3b7bf8;">rocket_launch</span>
-        </div>
-        <h2 style="font-size:22px;font-weight:800;color:var(--text-primary);margin:0 0 8px;">Coming Soon 🚀</h2>
-        <p style="font-size:14px;color:var(--text-secondary);margin:0 0 20px;line-height:1.5;max-width:340px;margin-left:auto;margin-right:auto;">
-          We're working hard to bring you our full AI Study Suite. This feature will be available soon!
-        </p>
-
-        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:24px;">
-          <span style="background:rgba(59,123,248,0.1);color:#3b7bf8;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">📝 AI Summaries</span>
-          <span style="background:rgba(34,197,94,0.1);color:#16a34a;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">📚 Study Notes</span>
-          <span style="background:rgba(245,158,11,0.1);color:#d97706;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">🧠 Quizzes</span>
-          <span style="background:rgba(123,82,244,0.1);color:#7b52f4;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;">🎴 Flashcards</span>
-        </div>
-
-        <a href="home.html" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:700;font-size:14px;width:auto;">
-          <span class="material-icons-round" style="font-size:18px;">arrow_back</span>
-          <span>Back to Home</span>
-        </a>
-
-        <!-- ── AI UPLOAD & TILES SECTION (TEMPORARILY COMMENTED OUT FOR COMING SOON RELEASE) ── -->
-        <!--
         <div class="upload-drop-zone" id="pdfDropZone">
           <input type="file" id="pdfFileInput" accept="application/pdf,image/*,.pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" style="display:none;" multiple />
           <div class="upload-drop-zone__icon">
@@ -348,10 +379,23 @@
               <span class="ai-action-tile__label">Flashcards</span>
               <span class="ai-action-tile__desc">Quick revision cards</span>
             </div>
+
+            <!-- 5th Feature: AI Chat with Document -->
+            <div class="ai-action-tile disabled" id="tileChat" data-action="chat" style="grid-column: span 2; background: linear-gradient(135deg, rgba(6,182,212,0.06), rgba(59,123,248,0.06)); border-color: rgba(6,182,212,0.35);">
+              <span class="unlock-badge" style="background:#06b6d4;">READY</span>
+              <div style="display:flex;align-items:center;gap:14px;width:100%;text-align:left;">
+                <div class="ai-action-tile__icon" style="background:linear-gradient(135deg, #06b6d4, #3b7bf8);color:white;flex-shrink:0;">
+                  <span class="material-icons-round" style="color:white;font-size:24px;">forum</span>
+                </div>
+                <div style="flex:1;min-width:0;">
+                  <span class="ai-action-tile__label" style="font-size:14px;display:block;">AI Document Chat 💬</span>
+                  <span class="ai-action-tile__desc" style="font-size:11.5px;">Ask doubts, clarify topics &amp; chat with your uploaded notes</span>
+                </div>
+                <span class="material-icons-round" style="color:#06b6d4;font-size:22px;flex-shrink:0;">arrow_forward</span>
+              </div>
+            </div>
           </div>
         </div>
-        -->
-      </div>
 
       <!-- Upload Progress Overlay (hidden by default) -->
       <div id="uploadProgressSection" style="display:none;background:var(--bg);border:1.5px solid #3b7bf8;border-radius:16px;padding:24px 20px;text-align:center;margin-bottom:20px;">
@@ -642,6 +686,138 @@
           disableAiTiles();
         }
       }
+      // ── Local Chat History Store Manager ─────────────────────────────
+      const LocalChatStore = {
+        getAllChats() {
+          try {
+            const raw = localStorage.getItem('studygen_chats');
+            return raw ? JSON.parse(raw) : [];
+          } catch (e) {
+            return [];
+          }
+        },
+        saveChatSession(sessionId, title, messages) {
+          try {
+            const chats = this.getAllChats();
+            const existingIdx = chats.findIndex(c => c.id === sessionId);
+            const updatedChat = {
+              id: sessionId,
+              title: title || 'Untitled Chat',
+              messages: messages || [],
+              updatedAt: new Date().toISOString()
+            };
+            if (existingIdx >= 0) {
+              chats[existingIdx] = updatedChat;
+            } else {
+              chats.unshift(updatedChat);
+            }
+            localStorage.setItem('studygen_chats', JSON.stringify(chats));
+          } catch (e) {
+            console.warn('LocalChatStore save error:', e.message);
+          }
+        },
+        getChat(sessionId) {
+          return this.getAllChats().find(c => c.id === sessionId) || null;
+        },
+        deleteChat(sessionId) {
+          try {
+            const chats = this.getAllChats().filter(c => c.id !== sessionId);
+            localStorage.setItem('studygen_chats', JSON.stringify(chats));
+          } catch (e) {
+            console.warn('LocalChatStore delete error:', e.message);
+          }
+        }
+      };
+
+      // ── Sidebar Drawer Open / Close Logic ─────────────────────────────────
+      const openSidebarBtn     = document.getElementById('openSidebarBtn');
+      const closeSidebarBtn    = document.getElementById('closeSidebarBtn');
+      const sidebarOverlay     = document.getElementById('chatSidebarOverlay');
+      const sidebarPanel       = document.getElementById('chatSidebar');
+      const sidebarNewChatBtn  = document.getElementById('sidebarNewChatBtn');
+
+      function openSidebar() {
+        if (!sidebarOverlay || !sidebarPanel) return;
+        sidebarOverlay.style.display = 'block';
+        requestAnimationFrame(() => {
+          sidebarOverlay.style.opacity = '1';
+          sidebarPanel.style.transform = 'translateX(0)';
+        });
+        loadSidebarRecents();
+      }
+
+      function closeSidebar() {
+        if (!sidebarOverlay || !sidebarPanel) return;
+        sidebarOverlay.style.opacity = '0';
+        sidebarPanel.style.transform = 'translateX(-100%)';
+        setTimeout(() => { sidebarOverlay.style.display = 'none'; }, 280);
+      }
+
+      if (openSidebarBtn)  openSidebarBtn.onclick = openSidebar;
+      if (closeSidebarBtn) closeSidebarBtn.onclick = closeSidebar;
+      if (sidebarOverlay)  sidebarOverlay.onclick = (e) => { if (e.target === sidebarOverlay) closeSidebar(); };
+
+      if (sidebarNewChatBtn) {
+        sidebarNewChatBtn.onclick = () => {
+          closeSidebar();
+          const freshSessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2,6)}`;
+          const docTitle = currentUploadedFile ? currentUploadedFile.name.replace(/\.[^/.]+$/, '') : 'StudyGen AI';
+          renderInlineAiChat(docTitle, currentUploadedFile, { id: freshSessionId, title: 'New Chat', messages: [] });
+          StudyGenApp.toast.show('Started fresh AI chat session ✨');
+        };
+      }
+
+      function loadSidebarRecents() {
+        const sidebarRecentsList = document.getElementById('sidebarRecentsList');
+        if (!sidebarRecentsList) return;
+
+        let allChats = LocalChatStore.getAllChats();
+
+        if (allChats.length === 0) {
+          sidebarRecentsList.innerHTML = `<div style="font-size:12px;color:var(--text-secondary);padding:10px;text-align:center;">No recent chats yet</div>`;
+          return;
+        }
+
+        sidebarRecentsList.innerHTML = allChats.map(c => `
+          <div class="sidebar-item recent-chat-item" data-id="${c.id}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;border-radius:10px;background:var(--bg);font-size:12.5px;cursor:pointer;color:var(--text-primary);transition:background 0.15s;">
+            <div class="open-chat-trigger" style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+              <span class="material-icons-round" style="font-size:16px;color:#06b6d4;flex-shrink:0;">forum</span>
+              <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.title}</span>
+            </div>
+            <button type="button" class="delete-chat-btn" data-id="${c.id}" title="Delete Chat" style="background:transparent;border:none;color:var(--text-secondary);cursor:pointer;padding:2px;display:flex;align-items:center;opacity:0.6;">
+              <span class="material-icons-round" style="font-size:16px;color:#ef4444;">delete_outline</span>
+            </button>
+          </div>
+        `).join('');
+
+        // Attach click listeners to restore chat or delete!
+        sidebarRecentsList.querySelectorAll('.recent-chat-item').forEach(item => {
+          const trigger = item.querySelector('.open-chat-trigger');
+          const delBtn = item.querySelector('.delete-chat-btn');
+          const sid = item.getAttribute('data-id');
+
+          if (trigger) {
+            trigger.onclick = () => {
+              const chatData = LocalChatStore.getChat(sid);
+              closeSidebar();
+              if (chatData) {
+                renderInlineAiChat(chatData.title, currentUploadedFile, chatData);
+                StudyGenApp.toast.show(`Loaded "${chatData.title}" 💬`);
+              }
+            };
+          }
+
+          if (delBtn) {
+            delBtn.onclick = (e) => {
+              e.stopPropagation();
+              LocalChatStore.deleteChat(sid);
+              loadSidebarRecents();
+              StudyGenApp.toast.show('Chat deleted 🗑️');
+            };
+          }
+        });
+      }
+
       restoreActiveDoc();
 
       // ── Enable AI Action Tiles ──────────────────────────────────────────────
@@ -657,12 +833,19 @@
         });
       }
 
-      // ── Handle AI Action Tile Clicks (Temporarily Disabled - Coming Soon) ─
+      // ── Handle AI Action Tile Clicks ─────────────────────────────────────────
       tiles.forEach(tile => {
         tile.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          StudyGenApp.toast.show('🚀 Coming Soon: We are working on this feature. It will be available soon!', 4000);
+
+          if (tile.classList.contains('disabled') || !currentUploadedFile) {
+            StudyGenApp.toast.show('Please upload a PDF or document first! 📄');
+            return;
+          }
+
+          const action = tile.getAttribute('data-action');
+          runAiAction(action, currentUploadedFile);
         });
       });
 
@@ -670,6 +853,12 @@
       async function runAiAction(actionType, file) {
         const localPdfId = sessionStorage.getItem('sg_active_doc_id') || `doc_${Date.now()}`;
         const docTitle   = file.name.replace(/\.[^/.]+$/, '');
+
+        // If user selects AI Chat, render interactive chat interface directly
+        if (actionType === 'chat') {
+          renderInlineAiChat(docTitle, file);
+          return;
+        }
 
         if (progressSec) progressSec.style.display = 'block';
         if (uploadedCard) uploadedCard.style.display = 'none';
@@ -694,7 +883,7 @@
           if (actionType === 'quiz')    endpoint = '/ai/quiz';
           if (actionType === 'flash')   endpoint = '/ai/flashcards';
 
-          StudyGenApp.toast.show(`Uploading "${file.name}" to AI server... 📡`, 3000);
+          StudyGenApp.toast.show(`Generating ${actionType.toUpperCase()} with AI... 📡`, 3000);
 
           const res = await window.ApiClient.uploadFile(endpoint, formData);
 
@@ -718,17 +907,325 @@
         } catch (apiErr) {
           console.error('AI API Error:', apiErr.message || apiErr);
 
-          // Show error state — do NOT silently navigate
           if (progressSec) progressSec.style.display = 'none';
           if (uploadedCard) uploadedCard.style.display = 'flex';
 
           const errMsg = apiErr.message || 'AI server error';
           StudyGenApp.toast.show(`⚠️ AI Error: ${errMsg}. Please try again.`, 5000);
-          return;
         }
       }
 
-      // ── Render Inline AI Result ─────────────────────────────────────────────
+      // ── Render Inline AI Chat Interface (ChatGPT-Style Workspace) ─────────
+      function renderInlineAiChat(docTitle, file, existingChatData = null) {
+        const resultContainer = document.getElementById('aiResultContainer');
+        const resultTitle     = document.getElementById('aiResultTitle');
+        const resultSubtitle  = document.getElementById('aiResultSubtitle');
+        const resultIcon      = document.getElementById('aiResultIcon');
+        const resultIconBg    = document.getElementById('aiResultIconBg');
+        const resultContent   = document.getElementById('aiResultContent');
+        const closeBtn        = document.getElementById('closeResultBtn');
+
+        if (!resultContainer || !resultContent) return;
+
+        if (closeBtn) {
+          closeBtn.onclick = () => { resultContainer.style.display = 'none'; };
+        }
+
+        let isGeneralMode = false;
+        let isDeepStudyMode = false;
+        const currentSessionId = existingChatData ? existingChatData.id : (sessionStorage.getItem('sg_active_doc_id') || `session_${Date.now()}`);
+        let messageHistory = existingChatData && Array.isArray(existingChatData.messages) ? [...existingChatData.messages] : [];
+
+        let currentChatTitle = existingChatData && existingChatData.title ? existingChatData.title : docTitle;
+
+        if (resultTitle)    resultTitle.textContent = currentChatTitle || 'AI Chat Workspace';
+        if (resultSubtitle) resultSubtitle.textContent = isGeneralMode ? 'General Knowledge & Study Assistant' : `Chatting with ${docTitle}`;
+        if (resultIcon)     resultIcon.textContent = 'forum';
+        if (resultIconBg)   resultIconBg.style.background = 'linear-gradient(135deg, rgba(6,182,212,0.15), rgba(59,123,248,0.15))';
+
+        const initialMessagesHtml = messageHistory.length > 0
+          ? messageHistory.map(m => `
+              <div style="display:flex;gap:8px;align-items:flex-start;${m.role === 'user' ? 'justify-content:flex-end;' : ''}">
+                ${m.role !== 'user' ? `
+                  <div style="width:28px;height:28px;background:linear-gradient(135deg,#06b6d4,#3b7bf8);border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
+                    <span class="material-icons-round" style="font-size:16px;">smart_toy</span>
+                  </div>
+                ` : ''}
+                <div style="${m.role === 'user' ? 'background:#3b7bf8;color:white;' : 'background:var(--surface);border:1px solid var(--border);color:var(--text-primary);'}padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;max-width:85%;white-space:pre-line;">
+                  ${m.text}
+                </div>
+              </div>
+            `).join('')
+          : `
+              <div style="display:flex;gap:8px;align-items:flex-start;">
+                <div style="width:28px;height:28px;background:linear-gradient(135deg,#06b6d4,#3b7bf8);border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
+                  <span class="material-icons-round" style="font-size:16px;">smart_toy</span>
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;max-width:85%;color:var(--text-primary);" id="chatWelcomeMsg">
+                  👋 Hello! What would you like to ask or understand?
+                </div>
+              </div>
+            `;
+
+        resultContent.innerHTML = `
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            
+            <!-- Dual Mode Selector Toggle (Document AI vs General AI) -->
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;background:var(--bg);padding:4px;border-radius:12px;border:1px solid var(--border);">
+              <button type="button" id="modeDocBtn" style="flex:1;padding:7px 12px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#3b7bf8,#7b52f4);color:white;display:flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 2px 6px rgba(59,123,248,0.25);">
+                <span class="material-icons-round" style="font-size:16px;">description</span>
+                <span>Document AI Mode</span>
+              </button>
+              <button type="button" id="modeGeneralBtn" style="flex:1;padding:7px 12px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;gap:4px;">
+                <span class="material-icons-round" style="font-size:16px;">public</span>
+                <span>General AI (ChatGPT)</span>
+              </button>
+            </div>
+
+            <!-- Deep Reasoning Mode Badge (hidden by default) -->
+            <div id="deepStudyBadge" style="display:none;background:rgba(123,82,244,0.1);color:#7b52f4;border:1px solid rgba(123,82,244,0.3);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="material-icons-round" style="font-size:16px;">psychology</span>
+                <span>Think Harder Mode Active (Deep Study Reasoning)</span>
+              </div>
+              <span id="disableDeepStudy" style="cursor:pointer;" title="Disable">&times;</span>
+            </div>
+
+            <!-- Message List -->
+            <div id="inlineChatMessages" style="max-height:300px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;">
+              ${initialMessagesHtml}
+            </div>
+
+            <!-- Quick Suggestions -->
+            <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;" class="scroll-x">
+              <button type="button" class="chip chat-quick-prompt" style="font-size:11px;padding:4px 10px;cursor:pointer;">💡 Summarize main idea</button>
+              <button type="button" class="chip chat-quick-prompt" style="font-size:11px;padding:4px 10px;cursor:pointer;">❓ 3 Exam Questions</button>
+              <button type="button" class="chip chat-quick-prompt" style="font-size:11px;padding:4px 10px;cursor:pointer;">📖 Key Definitions</button>
+            </div>
+
+            <!-- Input Bar with + Attachment Menu -->
+            <div style="position:relative;display:flex;gap:6px;align-items:center;">
+              <button type="button" id="inlineAttachBtn" style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);cursor:pointer;flex-shrink:0;">
+                <span class="material-icons-round" style="font-size:22px;">add_circle_outline</span>
+              </button>
+              <input type="text" id="inlineChatInput" placeholder="Ask any question..." style="flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--text-primary);outline:none;" />
+              <button type="button" id="inlineSendChatBtn" style="background:linear-gradient(135deg,#06b6d4,#3b7bf8);color:white;border:none;border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 3px 10px rgba(6,182,212,0.3);">
+                <span class="material-icons-round" style="font-size:20px;">send</span>
+              </button>
+              
+              <!-- Floating Attachment Menu -->
+              <div id="chatAttachMenu" style="display:none;position:absolute;bottom:54px;left:0;background:var(--surface,#ffffff);border:1px solid var(--border,#e2e8f0);border-radius:16px;padding:8px;box-shadow:0 10px 25px rgba(0,0,0,0.2);z-index:20;width:210px;flex-direction:column;gap:4px;">
+                <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-primary);margin:0;">
+                  <span class="material-icons-round" style="font-size:20px;color:#3b7bf8;">photo_camera</span>
+                  <span>Camera</span>
+                  <input type="file" accept="image/*" capture="environment" style="display:none;" id="chatCameraInput" />
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-primary);margin:0;">
+                  <span class="material-icons-round" style="font-size:20px;color:#16a34a;">photo_library</span>
+                  <span>Photos</span>
+                  <input type="file" accept="image/*" style="display:none;" id="chatPhotoInput" />
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-primary);margin:0;">
+                  <span class="material-icons-round" style="font-size:20px;color:#d97706;">attach_file</span>
+                  <span>Files (PDF/Doc)</span>
+                  <input type="file" accept=".pdf,.doc,.docx,.txt" style="display:none;" id="chatFileInput" />
+                </label>
+                <div id="chatThinkHarderOption" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-primary);border-top:1px solid var(--border);">
+                  <span class="material-icons-round" style="font-size:20px;color:#7b52f4;">psychology</span>
+                  <span>Think Harder</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        resultContainer.style.display = 'block';
+        resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        const chatBox          = document.getElementById('inlineChatMessages');
+        const input            = document.getElementById('inlineChatInput');
+        const sendBtn          = document.getElementById('inlineSendChatBtn');
+        const attachBtn        = document.getElementById('inlineAttachBtn');
+        const attachMenu       = document.getElementById('chatAttachMenu');
+        const modeDocBtn       = document.getElementById('modeDocBtn');
+        const modeGeneralBtn   = document.getElementById('modeGeneralBtn');
+        const deepStudyBadge   = document.getElementById('deepStudyBadge');
+        const chatWelcomeMsg   = document.getElementById('chatWelcomeMsg');
+
+        // Mode Switching
+        if (modeDocBtn) {
+          modeDocBtn.onclick = () => {
+            isGeneralMode = false;
+            modeDocBtn.style.background = 'linear-gradient(135deg,#3b7bf8,#7b52f4)';
+            modeDocBtn.style.color = 'white';
+            modeGeneralBtn.style.background = 'transparent';
+            modeGeneralBtn.style.color = 'var(--text-secondary)';
+            if (input) input.placeholder = `Ask any question about "${docTitle}"...`;
+            if (chatWelcomeMsg) chatWelcomeMsg.innerHTML = `📄 <b>Document Mode</b> Active: Asking questions about <b>${docTitle}</b>.`;
+            StudyGenApp.toast.show('Switched to Document AI Mode 📄');
+          };
+        }
+
+        if (modeGeneralBtn) {
+          modeGeneralBtn.onclick = () => {
+            isGeneralMode = true;
+            modeGeneralBtn.style.background = 'linear-gradient(135deg,#06b6d4,#3b7bf8)';
+            modeGeneralBtn.style.color = 'white';
+            modeDocBtn.style.background = 'transparent';
+            modeDocBtn.style.color = 'var(--text-secondary)';
+            if (input) input.placeholder = 'Ask ChatGPT anything (General AI mode)...';
+            if (chatWelcomeMsg) chatWelcomeMsg.innerHTML = `🌐 <b>General AI Mode (ChatGPT)</b> Active: Ask any topic, code, or general knowledge doubt.`;
+            StudyGenApp.toast.show('Switched to General AI (ChatGPT) Mode 🌐');
+          };
+        }
+
+        // Attachment Menu Toggle
+        if (attachBtn && attachMenu) {
+          attachBtn.onclick = (e) => {
+            e.stopPropagation();
+            const isOpen = attachMenu.style.display === 'flex';
+            attachMenu.style.display = isOpen ? 'none' : 'flex';
+          };
+
+          document.addEventListener('click', (e) => {
+            if (attachMenu && !attachMenu.contains(e.target) && e.target !== attachBtn) {
+              attachMenu.style.display = 'none';
+            }
+          });
+        }
+
+        // Think Harder Option Toggle
+        const thinkHarderOpt = document.getElementById('chatThinkHarderOption');
+        if (thinkHarderOpt && deepStudyBadge) {
+          thinkHarderOpt.onclick = () => {
+            if (attachMenu) attachMenu.style.display = 'none';
+            isDeepStudyMode = !isDeepStudyMode;
+            deepStudyBadge.style.display = isDeepStudyMode ? 'flex' : 'none';
+            StudyGenApp.toast.show(isDeepStudyMode ? '🧠 Deep Study Reasoning Enabled' : 'Deep Study Reasoning Disabled');
+          };
+        }
+
+        document.getElementById('disableDeepStudy')?.addEventListener('click', () => {
+          isDeepStudyMode = false;
+          if (deepStudyBadge) deepStudyBadge.style.display = 'none';
+        });
+
+        // Attachment file handlers
+        ['chatCameraInput', 'chatPhotoInput', 'chatFileInput'].forEach(inputId => {
+          document.getElementById(inputId)?.addEventListener('change', (e) => {
+            if (attachMenu) attachMenu.style.display = 'none';
+            const selFile = e.target.files[0];
+            if (selFile) {
+              selectFile(selFile);
+              StudyGenApp.toast.show(`Attached file: "${selFile.name}" 📎`);
+            }
+          });
+        });
+
+        async function sendUserMessage(queryText) {
+          const text = (queryText || (input ? input.value : '')).trim();
+          if (!text) return;
+          if (input) input.value = '';
+
+          // If first message in this session, derive title from question!
+          if (messageHistory.length === 0 || currentChatTitle === 'New Chat' || currentChatTitle === 'AI Chat Workspace') {
+            currentChatTitle = text.length > 28 ? text.substring(0, 28) + '...' : text;
+            if (resultTitle) resultTitle.textContent = currentChatTitle;
+          }
+
+          // Save user message to active history array
+          messageHistory.push({ role: 'user', text });
+          LocalChatStore.saveChatSession(currentSessionId, currentChatTitle, messageHistory);
+          loadSidebarRecents();
+
+          // Append user bubble
+          const userBubble = document.createElement('div');
+          userBubble.style.cssText = 'display:flex;gap:8px;align-items:flex-start;justify-content:flex-end;';
+          userBubble.innerHTML = `
+            <div style="background:#3b7bf8;color:white;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;max-width:85%;">
+              ${text}
+            </div>
+          `;
+          chatBox.appendChild(userBubble);
+          chatBox.scrollTop = chatBox.scrollHeight;
+
+          // Append loading bubble
+          const loadingBubble = document.createElement('div');
+          loadingBubble.id = 'chatLoadingBubble';
+          loadingBubble.style.cssText = 'display:flex;gap:8px;align-items:flex-start;';
+          loadingBubble.innerHTML = `
+            <div style="width:28px;height:28px;background:linear-gradient(135deg,#06b6d4,#3b7bf8);border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
+              <span class="material-icons-round" style="font-size:16px;">smart_toy</span>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:12px;font-size:13px;color:var(--text-secondary);">
+              ${isDeepStudyMode ? '🧠 Groq Deep AI is reasoning & analyzing...' : 'Groq AI is typing...'}
+            </div>
+          `;
+          chatBox.appendChild(loadingBubble);
+          chatBox.scrollTop = chatBox.scrollHeight;
+
+          try {
+            const formData = new FormData();
+            formData.append('userQuery', text);
+            if (!isGeneralMode) {
+              formData.append('documentTitle', docTitle);
+              formData.append('localPdfId', sessionStorage.getItem('sg_active_doc_id') || '');
+              if (file) formData.append('file', file, file.name);
+            }
+
+            const res = await window.ApiClient.uploadFile('/ai/chat', formData);
+            const answer = (res && res.data && res.data.answer) || 'Based on your prompt, here is the response generated by AI.';
+
+            loadingBubble.remove();
+
+            // Format markdown text for bold and bullet points
+            const formattedAnswer = answer
+              .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+              .replace(/• (.*?)(?=\n|$)/g, '<li>$1</li>');
+
+            // Save AI assistant message to active history array
+            messageHistory.push({ role: 'assistant', text: formattedAnswer });
+            LocalChatStore.saveChatSession(currentSessionId, currentChatTitle, messageHistory);
+            loadSidebarRecents();
+
+            const aiBubble = document.createElement('div');
+            aiBubble.style.cssText = 'display:flex;gap:8px;align-items:flex-start;';
+            aiBubble.innerHTML = `
+              <div style="width:28px;height:28px;background:linear-gradient(135deg,#06b6d4,#3b7bf8);border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
+                <span class="material-icons-round" style="font-size:16px;">smart_toy</span>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.55;max-width:85%;color:var(--text-primary);white-space:pre-line;">
+                ${formattedAnswer}
+              </div>
+            `;
+            chatBox.appendChild(aiBubble);
+            chatBox.scrollTop = chatBox.scrollHeight;
+          } catch (err) {
+            loadingBubble.remove();
+            const errBubble = document.createElement('div');
+            errBubble.style.cssText = 'display:flex;gap:8px;align-items:flex-start;';
+            errBubble.innerHTML = `
+              <div style="background:rgba(239,68,68,0.1);color:#ef4444;padding:8px 12px;border-radius:8px;font-size:12px;">
+                Could not generate response. Please try again.
+              </div>
+            `;
+            chatBox.appendChild(errBubble);
+          }
+        }
+
+        if (sendBtn) {
+          sendBtn.onclick = () => sendUserMessage();
+        }
+        if (input) {
+          input.onkeydown = (e) => { if (e.key === 'Enter') sendUserMessage(); };
+        }
+
+        resultContent.querySelectorAll('.chat-quick-prompt').forEach(btn => {
+          btn.onclick = () => sendUserMessage(btn.textContent.replace(/^[^\w]+/, ''));
+        });
+      }
+
+      // ── Render Inline AI Result (Summary, Notes, Quiz, Flashcards) ──────────
       function renderInlineAiResult(actionType, docTitle, data) {
         const resultContainer = document.getElementById('aiResultContainer');
         const resultTitle = document.getElementById('aiResultTitle');
@@ -750,7 +1247,7 @@
           if (resultIcon) resultIcon.textContent = 'short_text';
           if (resultIconBg) resultIconBg.style.background = 'rgba(59,123,248,0.12)';
 
-          const summaryText = data.summary || 'Summary unavailable.';
+          const summaryText = data.summary || 'Summary generated from document.';
           const keyPoints = Array.isArray(data.keyPoints) ? data.keyPoints : [];
           const shortNotes = data.shortNotes || '';
 
@@ -770,10 +1267,15 @@
             ` : ''}
 
             ${shortNotes ? `
-              <div style="background:rgba(59,123,248,0.05);padding:12px;border-radius:10px;font-size:13px;white-space:pre-line;">
+              <div style="background:rgba(59,123,248,0.05);padding:12px;border-radius:10px;font-size:13px;white-space:pre-line;margin-bottom:14px;">
                 <b>Quick Notes:</b>\n${shortNotes}
               </div>
             ` : ''}
+
+            <a href="ai-study.html" class="btn btn-primary btn-sm" style="width:100%;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;">
+              <span>Open in Full Study Guide</span>
+              <span class="material-icons-round" style="font-size:18px;">arrow_forward</span>
+            </a>
           `;
         } else if (actionType === 'notes') {
           if (resultTitle) resultTitle.textContent = 'Study Notes';
@@ -781,7 +1283,7 @@
           if (resultIcon) resultIcon.textContent = 'description';
           if (resultIconBg) resultIconBg.style.background = 'rgba(34,197,94,0.12)';
 
-          const detailed = data.detailedNotes || data.shortNotes || data.summary || 'Notes unavailable.';
+          const detailed = data.detailedNotes || data.shortNotes || data.summary || 'Study notes generated from document.';
           const questions = Array.isArray(data.importantQuestions) ? data.importantQuestions : [];
 
           resultContent.innerHTML = `
@@ -791,7 +1293,7 @@
             </div>
 
             ${questions.length > 0 ? `
-              <div>
+              <div style="margin-bottom:14px;">
                 <h4 style="font-size:13px;font-weight:700;color:var(--text-primary);margin:0 0 8px;">Important Questions:</h4>
                 <div style="display:flex;flex-direction:column;gap:8px;">
                   ${questions.map((q, i) => `
@@ -803,6 +1305,11 @@
                 </div>
               </div>
             ` : ''}
+
+            <a href="ai-study.html" class="btn btn-primary btn-sm" style="width:100%;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;">
+              <span>Open in Full Study Hub</span>
+              <span class="material-icons-round" style="font-size:18px;">arrow_forward</span>
+            </a>
           `;
         } else if (actionType === 'quiz') {
           if (resultTitle) resultTitle.textContent = 'Interactive Quiz Game';
