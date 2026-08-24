@@ -385,36 +385,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? originalFilename.replace(/\.[^/.]+$/, '')
         : `Scan_${dateStr}_${count}P`;
 
-      const savedIds = [];
-      for (let i = 0; i < capturedPageBlobs.length; i++) {
-        const blob = capturedPageBlobs[i];
-        const dataUrl = capturedPageDataUrls[i] || null;
-        const localPdfId = window.LocalPdfDB
-          ? window.LocalPdfDB.generateLocalPdfId()
-          : `doc_${Date.now()}_${i}`;
-        const pageTitle = count === 1 ? baseTitle : `${baseTitle}_p${i + 1}`;
+      const primaryId = window.LocalPdfDB
+        ? window.LocalPdfDB.generateLocalPdfId()
+        : `doc_${Date.now()}`;
 
-        if (window.LocalPdfDB) {
-          await window.LocalPdfDB.saveDocument({
-            localPdfId,
-            documentTitle: pageTitle,
-            filename: originalFilename || `${pageTitle}.jpg`,
-            mimeType: blob.type || 'image/jpeg',
-            blob,
-            thumbnail: dataUrl,
-            pageCount: 1,
-            lastOpenedAt: new Date().toISOString(),
-          });
-        }
-        savedIds.push(localPdfId);
-      }
-
-      sessionStorage.setItem('sg_active_doc_id',    savedIds[0]);
+      sessionStorage.setItem('sg_active_doc_id',    primaryId);
       sessionStorage.setItem('sg_active_doc_title', baseTitle);
       sessionStorage.setItem('sg_scan_count',        count);
-      sessionStorage.setItem('sg_batch_page_ids',  JSON.stringify(savedIds));
 
-      if (count <= 10) {
+      if (count <= 25) {
         try {
           sessionStorage.setItem('sg_batch_pages', JSON.stringify(capturedPageDataUrls));
         } catch (e) {

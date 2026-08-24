@@ -72,8 +72,14 @@ document.addEventListener('DOMContentLoaded', async () => {
           filterFavorite: filterFav,
           sortBy: sortBy,
         });
-        totalCount = await window.LocalPdfDB.getDocumentCount();
       }
+
+      // Filter out individual page clutter items (_p1, _p2...) so only compiled PDFs show
+      docs = docs.filter(d => {
+        const title = d.documentTitle || d.filename || '';
+        return !/_p\d+$/i.test(title);
+      });
+      totalCount = docs.length;
 
       // Check backend history for any saved items
       try {
@@ -83,13 +89,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (item.localPdfId) {
               const exists = await window.LocalPdfDB.documentExists(item.localPdfId);
               if (!exists && !docs.some(d => d.localPdfId === item.localPdfId)) {
-                docs.push({
-                  localPdfId: item.localPdfId,
-                  documentTitle: item.documentTitle || item.title || 'Untitled Document',
-                  filename: item.filename || 'document.pdf',
-                  isDeletedLocally: true,
-                  updatedAt: item.updatedAt || item.createdAt,
-                });
+                const title = item.documentTitle || item.title || '';
+                if (!/_p\d+$/i.test(title)) {
+                  docs.push({
+                    localPdfId: item.localPdfId,
+                    documentTitle: title || 'Untitled Document',
+                    filename: item.filename || 'document.pdf',
+                    isDeletedLocally: true,
+                    updatedAt: item.updatedAt || item.createdAt,
+                  });
+                }
               }
             }
           }

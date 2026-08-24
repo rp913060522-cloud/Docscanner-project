@@ -202,7 +202,7 @@
       <button type="button" class="app-bar__back" id="openSidebarBtn" aria-label="Menu" style="margin-right:4px;">
         <span class="material-icons-round" style="font-size:24px;">menu</span>
       </button>
-      <button class="app-bar__back" onclick="history.back()" aria-label="Back">
+      <button type="button" class="app-bar__back" id="backBtn" onclick="if (document.referrer && document.referrer.includes(window.location.host) && history.length > 1) { history.back(); } else { window.location.href = 'home.html'; }" aria-label="Back">
         <span class="material-icons-round">arrow_back_ios_new</span>
       </button>
       <span class="app-bar__center">Start Study with AI</span>
@@ -991,8 +991,8 @@
               <span id="disableDeepStudy" style="cursor:pointer;" title="Disable">&times;</span>
             </div>
 
-            <!-- Message List -->
-            <div id="inlineChatMessages" style="max-height:300px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;">
+            <!-- Message List (Full Height Spacious Workspace) -->
+            <div id="inlineChatMessages" style="height:520px;max-height:62vh;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:14px;">
               ${initialMessagesHtml}
             </div>
 
@@ -1175,6 +1175,49 @@
           });
         });
 
+        function formatAiMarkdownResponse(rawText) {
+          if (!rawText) return '';
+          let str = rawText;
+
+          // Format Markdown Tables into clean HTML Tables
+          const tableRegex = /((?:\|[^\n]+\|\r?\n)+)/g;
+          str = str.replace(tableRegex, (match) => {
+            const lines = match.trim().split('\n').map(l => l.trim()).filter(Boolean);
+            if (lines.length < 2) return match;
+
+            let html = '<div style="overflow-x:auto;margin:8px 0;"><table class="ai-chat-table" style="width:100%;border-collapse:collapse;margin:8px 0;font-size:12.5px;background:var(--surface,#f8fafc);border-radius:10px;overflow:hidden;border:1px solid var(--border,#e2e8f0);">';
+            let isHeader = true;
+
+            lines.forEach(line => {
+              if (/^\|[\s\-:|]+\|$/.test(line)) {
+                isHeader = false;
+                return;
+              }
+              const cells = line.split('|').slice(1, -1).map(c => c.trim());
+              if (cells.length === 0) return;
+
+              if (isHeader) {
+                html += '<thead><tr style="background:linear-gradient(135deg,#3b7bf8,#7b52f4);color:white;">' + cells.map(c => `<th style="padding:8px 10px;text-align:left;font-weight:700;">${c}</th>`).join('') + '</tr></thead><tbody>';
+                isHeader = false;
+              } else {
+                html += '<tr>' + cells.map(c => `<td style="padding:8px 10px;border-bottom:1px solid var(--border,#e2e8f0);color:var(--text-primary);">${c}</td>`).join('') + '</tr>';
+              }
+            });
+
+            html += '</tbody></table></div>';
+            return html;
+          });
+
+          // Format bold text
+          str = str.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+          // Format inline code
+          str = str.replace(/`([^`]+)`/g, '<code style="background:rgba(59,123,248,0.12);color:#3b7bf8;padding:2px 6px;border-radius:6px;font-family:monospace;font-size:12px;">$1</code>');
+          // Format bullet lists
+          str = str.replace(/^[\s]*[•\-*]\s+(.*?)(?=\n|$)/gm, '<li style="margin-left:14px;">$1</li>');
+
+          return str;
+        }
+
         async function sendUserMessage(queryText) {
           const text = (queryText || (input ? input.value : '')).trim();
           if (!text && !activeChatAttachmentFile) return;
@@ -1241,10 +1284,8 @@
 
             loadingBubble.remove();
 
-            // Format markdown text for bold and bullet points
-            const formattedAnswer = answer
-              .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-              .replace(/• (.*?)(?=\n|$)/g, '<li>$1</li>');
+            // Format markdown text and tables cleanly
+            const formattedAnswer = formatAiMarkdownResponse(answer);
 
             // Save AI assistant message to active history array
             messageHistory.push({ role: 'assistant', text: formattedAnswer });
@@ -1257,7 +1298,7 @@
               <div style="width:28px;height:28px;background:linear-gradient(135deg,#06b6d4,#3b7bf8);border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
                 <span class="material-icons-round" style="font-size:16px;">smart_toy</span>
               </div>
-              <div style="background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.55;max-width:85%;color:var(--text-primary);white-space:pre-line;">
+              <div style="background:var(--surface);border:1px solid var(--border);padding:12px 16px;border-radius:14px;font-size:13px;line-height:1.6;max-width:88%;color:var(--text-primary);white-space:pre-line;">
                 ${formattedAnswer}
               </div>
             `;
