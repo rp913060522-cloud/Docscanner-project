@@ -146,7 +146,7 @@ async function callGroq(contents) {
   ];
 
   try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const apiRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${config.groqApiKey}`,
@@ -159,13 +159,13 @@ async function callGroq(contents) {
       }),
     });
 
-    if (!res.ok) {
-      const errBody = await res.text();
-      console.warn(`⚠️ Groq API responded with status ${res.status}:`, errBody);
+    if (!apiRes.ok) {
+      const errBody = await apiRes.text();
+      console.warn(`⚠️ Groq API responded with status ${apiRes.status}:`, errBody);
       return null;
     }
 
-    const data = await res.json();
+    const data = await apiRes.json();
     const reply = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
     if (reply && reply.trim()) {
       return reply.trim();
