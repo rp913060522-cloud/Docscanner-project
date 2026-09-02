@@ -885,9 +885,12 @@
 }
 
 .flashcard__text {
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.4;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.55;
+  white-space: pre-line;
+  max-height: 280px;
+  overflow-y: auto;
 }
 
 

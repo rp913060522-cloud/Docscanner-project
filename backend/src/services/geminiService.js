@@ -82,13 +82,28 @@ function getMockResponse(contents) {
 
   if (promptStr.includes('flashcard') || promptStr.includes('flashcards')) {
     return JSON.stringify({
-      docTitle: 'Document Flashcards',
+      docTitle: 'Document Revision Flashcards',
       cards: [
-        { front: 'Primary Subject', back: 'Core document concepts and fundamental definitions.' },
-        { front: 'Key Metric', back: 'Quantifiable measures and performance indicators.' },
-        { front: 'Central Principle', back: 'The governing rule or foundational law described.' },
-        { front: 'Important Formula', back: 'Mathematical or logical model used for analysis.' },
-        { front: 'Main Conclusion', back: 'Final takeaway and practical application of results.' }
+        {
+          front: '1. What is Artificial Intelligence?',
+          back: 'AI enables machines to think, learn, reason, solve problems and make decisions.\n\nApplications:\n• Chatbots & Voice Assistants\n• Self-driving Cars\n• Recommendation Systems & Robots\n\n💡 Hindi: Machine ko intelligent banana.'
+        },
+        {
+          front: '2. What is meant by PEAS? Explain Agent Programs.',
+          back: 'PEAS Framework:\n• P: Performance Measure\n• E: Environment\n• A: Actuators\n• S: Sensors\n\nAgent Programs:\n• Simple Reflex, Model-Based, Goal-Based, Utility-Based, Learning Agent.\n\n💡 Hindi: PEAS = Agent ke 4 parts.'
+        },
+        {
+          front: '3. Explain BFS and DFS Algorithms with respect to AI.',
+          back: 'BFS (Breadth First Search):\n• Level by level search | Queue (FIFO)\n\nDFS (Depth First Search):\n• Deep path search before backtrack | Stack (LIFO)\n\n💡 Hindi: BFS = Level by level, DFS = Deep search.'
+        },
+        {
+          front: '4. Explain the Different Types of Environment w.r.t. AI.',
+          back: 'Environment Types:\n• Fully Observable vs Partially Observable\n• Deterministic vs Stochastic\n• Episodic vs Sequential\n• Static vs Dynamic\n• Discrete vs Continuous\n• Single-Agent vs Multi-Agent\n\n💡 Hindi: 6 pairs yaad rakho.'
+        },
+        {
+          front: '5. What are Informed Search Techniques? Explain UCS with Example.',
+          back: 'Informed Search Techniques:\n• Greedy Best First Search, A* Search, Hill Climbing, Beam Search\n\nUniform Cost Search (UCS):\n• Expands node with lowest path cost g(n).\n• Example: Path A → B → D (cost 5) is selected over A → C → D (cost 6).\n\n💡 Hindi: Sabse kam cost wala path choose hota hai.'
+        }
       ]
     });
   }
@@ -386,14 +401,24 @@ Return ONLY valid JSON in the following exact format:
 
 async function generateFlashcards(textContext, imageContent) {
   const prompt = `You are an expert AI study assistant.
-Generate flashcards (front question/term and back answer/definition) from the provided document.
+Generate high-yield, structured revision flashcards from the provided document.
+
+CRITICAL RULES FOR CARD GENERATION:
+1. QUESTION-WISE 1:1 MAPPING: If the document contains numbered questions or distinct topic headings (e.g., "1.", "2.", "3.", "Q1", "Q2", "Question 1", etc.), you MUST create EXACTLY ONE comprehensive flashcard for each main question.
+   - DO NOT break individual bullet points, sub-items, or small examples into separate flashcards.
+   - The 'front' must be the exact Question/Topic Title (e.g., "1. What is Artificial Intelligence?" or "2. What is meant by PEAS? Explain different kinds of Agent Program").
+   - The 'back' must contain the full, concise revision answer covering the core definition, key points/applications/types as bullet points, formulas/examples, and any memory hints/Hindi summary if present in the document.
+   - Ensure ALL questions from the document are covered sequentially without skipping or omitting any question.
+2. UNSTRUCTURED / GENERAL TEXT: If the document is general prose without numbered questions, generate 5 to 10 comprehensive key concept cards covering the whole document evenly from start to finish.
+3. FORMATTING: Use clean, well-spaced text with bullet points (•) and line breaks (\n) in the 'back' field for clear reading.
+
 Return ONLY valid JSON in the following exact format:
 {
   "docTitle": "Flashcard Deck Title",
   "cards": [
     {
-      "front": "Term or Question 1",
-      "back": "Definition or Answer 1"
+      "front": "1. What is Artificial Intelligence?",
+      "back": "Definition:\nAI enables machines to think, learn, reason, solve problems and make decisions.\n\nApplications:\n• Chatbots — interact with users\n• Voice Assistants — respond to voice\n• Self-driving Cars — driving decisions\n• Recommendation Systems & Robots\n\n💡 Hindi Tip: Machine ko intelligent banana."
     }
   ]
 }`;
@@ -403,12 +428,12 @@ Return ONLY valid JSON in the following exact format:
   const result = cleanAndParseJSON(rawResponse);
 
   const cards = (result.cards || []).map((c) => ({
-    front: c.front || 'Term',
-    back: c.back || 'Definition',
+    front: c.front || 'Question / Concept',
+    back: c.back || 'Answer / Definition',
   }));
 
   return {
-    docTitle: result.docTitle || 'Flashcards',
+    docTitle: result.docTitle || 'Revision Flashcards',
     cards,
   };
 }

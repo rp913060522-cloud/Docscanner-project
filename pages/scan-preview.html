@@ -336,6 +336,9 @@
     </div>
   </div>
 
+  <!-- Hidden Input for Direct Gallery / File Selection on Preview Screen -->
+  <input type="file" id="addPageFileInput" accept="image/*" multiple style="display:none;" />
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="../js/apiClient.js"></script>
   <script src="../js/db.js"></script>
@@ -373,14 +376,60 @@
       let cropPoints = [];
       let draggingPointIndex = -1;
 
+      // Helper to convert blob or file to DataURL safely
+      function blobToDataUrl(blob) {
+        return new Promise((resolve) => {
+          if (!blob) return resolve(null);
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => resolve(null);
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      function optimizeImageDataUrl(dataUrl) {
+        return new Promise((resolve) => {
+          if (!dataUrl) return resolve(null);
+          const img = new Image();
+          img.onload = () => {
+            const MAX_DIM = 1400;
+            let w = img.width;
+            let h = img.height;
+            if (w > MAX_DIM || h > MAX_DIM) {
+              if (w > h) {
+                h = Math.round((h * MAX_DIM) / w);
+                w = MAX_DIM;
+              } else {
+                w = Math.round((w * MAX_DIM) / h);
+                h = MAX_DIM;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            try {
+              resolve(canvas.toDataURL('image/jpeg', 0.88));
+            } catch {
+              resolve(dataUrl);
+            }
+          };
+          img.onerror = () => resolve(dataUrl);
+          img.src = dataUrl;
+        });
+      }
+
       // Load batch pages: prefer dataURLs in sessionStorage, fallback to IndexedDB IDs
       const batchStr   = sessionStorage.getItem('sg_batch_pages');
       const batchIdStr = sessionStorage.getItem('sg_batch_page_ids');
 
       if (batchStr) {
-        // DataURLs available (≤10 images, within quota)
         try {
-          pagesData = JSON.parse(batchStr);
+          const parsed = JSON.parse(batchStr);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            pagesData = parsed;
+          }
         } catch {}
       }
 
@@ -393,13 +442,8 @@
             if (docRecord) {
               if (docRecord.thumbnail && docRecord.thumbnail.startsWith('data:')) {
                 pagesData.push(docRecord.thumbnail);
-              } else if (docRecord.blob && docRecord.blob.type && docRecord.blob.type.startsWith('image/')) {
-                const dataUrl = await new Promise((resolve) => {
-                  const reader = new FileReader();
-                  reader.onload = () => resolve(reader.result);
-                  reader.onerror = () => resolve(null);
-                  reader.readAsDataURL(docRecord.blob);
-                });
+              } else if (docRecord.blob) {
+                const dataUrl = await blobToDataUrl(docRecord.blob);
                 if (dataUrl) pagesData.push(dataUrl);
               }
             }
@@ -421,13 +465,8 @@
             if (pagesData.length === 0) {
               if (docRecord.thumbnail && docRecord.thumbnail.startsWith('data:')) {
                 pagesData = [docRecord.thumbnail];
-              } else if (docRecord.blob && docRecord.blob.type && docRecord.blob.type.startsWith('image/')) {
-                const dataUrl = await new Promise((resolve) => {
-                  const reader = new FileReader();
-                  reader.onload = () => resolve(reader.result);
-                  reader.onerror = () => resolve(null);
-                  reader.readAsDataURL(docRecord.blob);
-                });
+              } else if (docRecord.blob) {
+                const dataUrl = await blobToDataUrl(docRecord.blob);
                 if (dataUrl) pagesData = [dataUrl];
               }
             }
@@ -438,7 +477,11 @@
       }
 
       function savePagesToSession() {
-        sessionStorage.setItem('sg_batch_pages', JSON.stringify(pagesData));
+        try {
+          sessionStorage.setItem('sg_batch_pages', JSON.stringify(pagesData));
+        } catch (e) {
+          console.warn('SessionStorage quota warning:', e);
+        }
         sessionStorage.setItem('sg_scan_count', pagesData.length);
       }
 
@@ -449,10 +492,13 @@
         if (prevPageBtn) prevPageBtn.disabled = currentPageIndex <= 0;
         if (nextPageBtn) nextPageBtn.disabled = currentPageIndex >= total - 1;
 
-        if (pagesData.length > 0 && realCapturedImage) {
+        if (pagesData.length > 0 && pagesData[currentPageIndex] && realCapturedImage) {
           realCapturedImage.src = pagesData[currentPageIndex];
           realCapturedImage.style.display = 'block';
           if (scannedImageSim) scannedImageSim.style.display = 'none';
+        } else {
+          if (realCapturedImage) realCapturedImage.style.display = 'none';
+          if (scannedImageSim) scannedImageSim.style.display = 'flex';
         }
       }
 
@@ -766,11 +812,32 @@
       if (brightnessRange) brightnessRange.addEventListener('input', updateImageFilters);
       if (contrastRange) contrastRange.addEventListener('input', updateImageFilters);
 
-      // Add Page button
+      // Add Page button & file picker
       const addPageBtn = document.getElementById('addPageBtn');
-      if (addPageBtn) {
+      const addPageFileInput = document.getElementById('addPageFileInput');
+
+      if (addPageBtn && addPageFileInput) {
         addPageBtn.addEventListener('click', () => {
-          window.location.href = 'scanner.html?mode=add_page';
+          addPageFileInput.value = '';
+          addPageFileInput.click();
+        });
+
+        addPageFileInput.addEventListener('change', async (e) => {
+          const files = Array.from(e.target.files || []);
+          if (files.length === 0) return;
+
+          StudyGenApp.toast.show(`Adding ${files.length} page(s)... 📄`);
+          for (const file of files) {
+            const rawUrl = await blobToDataUrl(file);
+            const optimized = await optimizeImageDataUrl(rawUrl);
+            if (optimized) {
+              pagesData.push(optimized);
+            }
+          }
+          currentPageIndex = pagesData.length - 1;
+          savePagesToSession();
+          updateCarouselPage();
+          StudyGenApp.toast.show('New page(s) added successfully! ✨');
         });
       }
 

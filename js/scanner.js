@@ -393,14 +393,50 @@ document.addEventListener('DOMContentLoaded', async () => {
       sessionStorage.setItem('sg_active_doc_title', baseTitle);
       sessionStorage.setItem('sg_scan_count',        count);
 
-      if (count <= 25) {
+      // Save each page and primary doc in LocalPdfDB
+      const pageIds = [];
+      if (window.LocalPdfDB) {
+        try {
+          for (let i = 0; i < capturedPageBlobs.length; i++) {
+            const pageId = `${primaryId}_p${i + 1}`;
+            pageIds.push(pageId);
+            await window.LocalPdfDB.saveDocument({
+              localPdfId: pageId,
+              documentTitle: `${baseTitle} (Page ${i + 1})`,
+              filename: `${baseTitle}_p${i + 1}.jpg`,
+              mimeType: 'image/jpeg',
+              blob: capturedPageBlobs[i],
+              thumbnail: capturedPageDataUrls[i] || '',
+              pageCount: 1,
+            });
+          }
+
+          await window.LocalPdfDB.saveDocument({
+            localPdfId: primaryId,
+            documentTitle: baseTitle,
+            filename: `${baseTitle}.jpg`,
+            mimeType: 'image/jpeg',
+            blob: capturedPageBlobs[0],
+            thumbnail: capturedPageDataUrls[0] || '',
+            pageCount: count,
+            lastOpenedAt: new Date().toISOString(),
+          });
+        } catch (e) {
+          console.warn('Could not save to LocalPdfDB:', e);
+        }
+      }
+
+      if (pageIds.length > 0) {
+        sessionStorage.setItem('sg_batch_page_ids', JSON.stringify(pageIds));
+      }
+
+      if (count <= 25 && capturedPageDataUrls.length > 0) {
         try {
           sessionStorage.setItem('sg_batch_pages', JSON.stringify(capturedPageDataUrls));
         } catch (e) {
+          console.warn('SessionStorage quota warning, relying on IndexedDB:', e);
           sessionStorage.removeItem('sg_batch_pages');
         }
-      } else {
-        sessionStorage.removeItem('sg_batch_pages');
       }
 
       stopCameraStream();
@@ -500,18 +536,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     StudyGenApp.toast.show(`Page ${index + 1} removed.`);
   }
 
+  function createOptimizedDataUrl(fileOrBlob) {
+    return new Promise((resolve) => {
+      if (!fileOrBlob) return resolve(null);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const rawUrl = e.target.result;
+        const img = new Image();
+        img.onload = () => {
+          const MAX_DIM = 1400;
+          let w = img.width;
+          let h = img.height;
+          if (w > MAX_DIM || h > MAX_DIM) {
+            if (w > h) {
+              h = Math.round((h * MAX_DIM) / w);
+              w = MAX_DIM;
+            } else {
+              w = Math.round((w * MAX_DIM) / h);
+              h = MAX_DIM;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          try {
+            const compressed = canvas.toDataURL('image/jpeg', 0.88);
+            resolve(compressed);
+          } catch {
+            resolve(rawUrl);
+          }
+        };
+        img.onerror = () => resolve(rawUrl);
+        img.src = rawUrl;
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(fileOrBlob);
+    });
+  }
+
   async function addCapturedPage(blob, dataUrl = null, showNotification = true) {
     if (!blob) return;
     capturedPageBlobs.push(blob);
 
     let finalDataUrl = dataUrl;
     if (!finalDataUrl) {
-      finalDataUrl = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => resolve(null);
-        reader.readAsDataURL(blob);
-      });
+      finalDataUrl = await createOptimizedDataUrl(blob);
     }
 
     capturedPageDataUrls.push(finalDataUrl);
@@ -567,6 +638,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
       await addCapturedPage(file);
+      if (currentScanMode === 'single') {
+        await finalizeDocumentAndNavigate(file.name);
+      }
     });
   }
 
@@ -587,9 +661,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const files = Array.from(e.target.files || []);
       if (files.length === 0) return;
 
-      StudyGenApp.toast.show(`Importing ${files.length} ${files.length === 1 ? 'file' : 'files'}...`);
+      StudyGenApp.toast.show(`Importing ${files.length} ${files.length === 1 ? 'file' : 'files'}... 🖼️`);
       for (const file of files) {
-        addCapturedPage(file, null, false);
+        await addCapturedPage(file, null, false);
       }
       await finalizeDocumentAndNavigate(files[0].name);
     });
@@ -608,7 +682,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ctx.font = '20px Inter, sans-serif';
         ctx.fillText(`Scanned Document`, 50, 100);
         const blob = await new Promise(resolve => dummyCanvas.toBlob(resolve, 'image/jpeg', 0.80));
-        addCapturedPage(blob, null, false);
+        await addCapturedPage(blob, null, false);
       }
       await finalizeDocumentAndNavigate();
     });

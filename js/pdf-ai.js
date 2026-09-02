@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         docRecord = await window.LocalPdfDB.getDocument(activeDocId);
         if (docRecord) {
           window.LocalPdfDB.touchLastOpened(activeDocId);
-          if (docRecord.blob && docRecord.blob.type === 'application/pdf') {
+          if (docRecord.blob) {
             cachedPdfBlob = docRecord.blob;
           }
         }
@@ -54,34 +54,56 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    const rawTitle = (docRecord && docRecord.documentTitle) || sessionStorage.getItem('sg_active_doc_title') || `Scanned_PDF_${new Date().toLocaleDateString('en-IN').replace(/\//g, '-')}`;
+    const rawTitle = (docRecord && docRecord.documentTitle) || sessionStorage.getItem('sg_active_doc_title') || `Document`;
     const docTitle = rawTitle.endsWith('.pdf') ? rawTitle : `${rawTitle}.pdf`;
 
-    // Filter valid base64 data URLs from batch pages
-    const validDataImages = (pagesData || []).filter(p => typeof p === 'string' && p.startsWith('data:image'));
-    const totalPages = validDataImages.length || (docRecord && docRecord.pageCount) || 1;
+    // Fetch this document's child pages if it is a multi-page scan
+    let docPages = [];
+    if (activeDocId && window.LocalPdfDB) {
+      try {
+        const allDocs = await window.LocalPdfDB.getAllDocuments();
+        const childPages = allDocs.filter(d => d.localPdfId && d.localPdfId.startsWith(`${activeDocId}_p`));
+        if (childPages.length > 0) {
+          for (const cp of childPages) {
+            const fullDoc = await window.LocalPdfDB.getDocument(cp.localPdfId);
+            if (fullDoc && fullDoc.thumbnail) docPages.push(fullDoc.thumbnail);
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Only fallback to sessionStorage sg_batch_pages if no docRecord in IndexedDB
+    if (docPages.length === 0 && (!docRecord || (docRecord.source === 'scanner' && docRecord.pageCount > 1))) {
+      const batchPagesStr = sessionStorage.getItem('sg_batch_pages');
+      if (batchPagesStr) {
+        try {
+          const parsed = JSON.parse(batchPagesStr);
+          if (Array.isArray(parsed)) docPages = parsed.filter(p => typeof p === 'string' && p.startsWith('data:image'));
+        } catch (e) {}
+      }
+    }
+
+    const totalPages = docPages.length || (docRecord && docRecord.pageCount) || 1;
 
     if (scannedPdfTitle) scannedPdfTitle.textContent = docTitle;
     if (scannedPdfMeta) scannedPdfMeta.textContent = `${totalPages} ${totalPages === 1 ? 'Page' : 'Pages'} • PDF Ready`;
 
     scannedPdfPagesContainer.innerHTML = '';
 
-    if (validDataImages.length > 0) {
-      validDataImages.forEach((dataUrl, idx) => {
+    if (docPages.length > 0) {
+      docPages.forEach((dataUrl, idx) => {
         const pageFrame = document.createElement('div');
         pageFrame.className = 'pdf-page-frame';
 
         const img = document.createElement('img');
         img.src = dataUrl;
-        img.alt = `Scanned PDF Page ${idx + 1}`;
-        img.onerror = () => {
-          img.style.display = 'none';
-        };
+        img.alt = `Page ${idx + 1}`;
+        img.onerror = () => { img.style.display = 'none'; };
         pageFrame.appendChild(img);
 
         const numBadge = document.createElement('div');
         numBadge.className = 'pdf-page-num-badge';
-        numBadge.textContent = `Page ${idx + 1} of ${validDataImages.length}`;
+        numBadge.textContent = `Page ${idx + 1} of ${docPages.length}`;
         pageFrame.appendChild(numBadge);
 
         scannedPdfPagesContainer.appendChild(pageFrame);
@@ -92,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const img = document.createElement('img');
       img.src = docRecord.thumbnail;
-      img.alt = `Scanned Document Preview`;
+      img.alt = `Document Preview`;
       pageFrame.appendChild(img);
 
       const numBadge = document.createElement('div');
@@ -108,11 +130,11 @@ document.addEventListener('DOMContentLoaded', () => {
       frame.style.textAlign = 'center';
       frame.style.background = '#0f0f18';
       frame.style.color = 'white';
-      const sizeMb = docRecord && docRecord.blob ? (docRecord.blob.size / (1024 * 1024)).toFixed(2) : '1.0';
+      const sizeStr = docRecord && docRecord.sizeBytes ? (docRecord.sizeBytes > 1024 * 1024 ? (docRecord.sizeBytes / (1024 * 1024)).toFixed(1) + ' MB' : (docRecord.sizeBytes / 1024).toFixed(1) + ' KB') : 'Document Ready';
       frame.innerHTML = `
         <span class="material-icons-round" style="font-size:56px;color:#ef4444;margin-bottom:10px;display:block;">picture_as_pdf</span>
-        <div style="font-size:14px;font-weight:700;margin-bottom:4px;color:#ffffff;">${docTitle}</div>
-        <div style="font-size:12px;color:#94a3b8;">${sizeMb} MB &bull; ${totalPages} ${totalPages === 1 ? 'Page' : 'Pages'} &bull; PDF Ready</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;color:#ffffff;word-break:break-word;">${docTitle}</div>
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:12px;">${sizeStr} &bull; ${totalPages} ${totalPages === 1 ? 'Page' : 'Pages'} &bull; Ready</div>
       `;
       scannedPdfPagesContainer.appendChild(frame);
     }
@@ -256,6 +278,21 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         console.error('View as PDF error:', err);
         StudyGenApp.toast.show('Could not open PDF viewer.');
+      }
+    });
+  }
+
+  // ── "STUDY WITH AI" Action Handler ──────────────────────────────────────────
+  const studyWithAiBtn = document.getElementById('studyWithAiBtn');
+  if (studyWithAiBtn) {
+    studyWithAiBtn.addEventListener('click', () => {
+      const activeDocId = sessionStorage.getItem('sg_active_doc_id');
+      if (activeDocId) {
+        sessionStorage.removeItem('sg_batch_pages');
+        sessionStorage.removeItem('sg_batch_page_ids');
+        window.location.href = 'upload-ai.html';
+      } else {
+        window.location.href = 'upload-ai.html';
       }
     });
   }

@@ -176,9 +176,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (e.target.closest('.fav-btn') || e.target.closest('.doc-options-btn')) return;
 
         const id = el.getAttribute('data-id');
+        const title = el.getAttribute('data-title');
         if (id && window.LocalPdfDB) {
           await window.LocalPdfDB.touchLastOpened(id);
           sessionStorage.setItem('sg_active_doc_id', id);
+          if (title) sessionStorage.setItem('sg_active_doc_title', title);
+          // Purge stale batch session from previous scan
+          sessionStorage.removeItem('sg_batch_pages');
+          sessionStorage.removeItem('sg_batch_page_ids');
+          sessionStorage.removeItem('sg_study_output');
           window.location.href = 'pdf-ai.html';
         }
       });
@@ -197,7 +203,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     });
 
-    // Options Menu (Rename / Delete / Open)
+    // Options Menu (Rename / Delete / Open / Study with AI)
     document.querySelectorAll('.doc-options-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -213,7 +219,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                 onClick: async () => {
                   if (window.LocalPdfDB) await window.LocalPdfDB.touchLastOpened(id);
                   sessionStorage.setItem('sg_active_doc_id', id);
+                  if (title) sessionStorage.setItem('sg_active_doc_title', title);
+                  sessionStorage.removeItem('sg_batch_pages');
+                  sessionStorage.removeItem('sg_batch_page_ids');
+                  sessionStorage.removeItem('sg_study_output');
                   window.location.href = 'pdf-ai.html';
+                }
+              },
+              {
+                label: '🤖 Study with AI (Summary, Quiz, Flashcards)',
+                onClick: async () => {
+                  if (window.LocalPdfDB) await window.LocalPdfDB.touchLastOpened(id);
+                  sessionStorage.setItem('sg_active_doc_id', id);
+                  if (title) sessionStorage.setItem('sg_active_doc_title', title);
+                  sessionStorage.removeItem('sg_batch_pages');
+                  sessionStorage.removeItem('sg_batch_page_ids');
+                  sessionStorage.removeItem('sg_study_output');
+                  window.location.href = 'upload-ai.html';
                 }
               },
               {
@@ -238,7 +260,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             ]
           });
         } else {
-          // Fallback confirmation dialog (Requirement 4)
+          // Fallback confirmation dialog
           _confirmDeleteDoc(id, title);
         }
       });
