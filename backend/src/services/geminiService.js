@@ -61,7 +61,7 @@ function cleanAndParseJSON(rawText) {
 function getMockResponse(contents) {
   const promptStr = typeof contents[0] === 'string' ? contents[0] : '';
 
-  if (promptStr.includes('StudyGen AI') || promptStr.includes('USER QUESTION:')) {
+  if (promptStr.includes('EasyScan') || promptStr.includes('StudyGen AI') || promptStr.includes('USER QUESTION:')) {
     const questionMatch = promptStr.match(/USER QUESTION:\s*"([^"]+)"/i);
     const q = questionMatch ? questionMatch[1] : 'your question';
     return `Based on your document analysis, here is the explanation for "${q}":\n\n• Core Overview: The document covers essential principles, structured section notes, and practical definitions.\n• Key Takeaways: Review the formulas and key takeaways to solidify your understanding.\n\nFeel free to ask for specific section explanations or practice questions!`;
@@ -151,8 +151,8 @@ async function callGroq(contents) {
     {
       role: 'system',
       content: isJsonExpected
-        ? 'You are StudyGen AI, an expert educational AI assistant. Always return valid, clean JSON with no extra conversational preamble or markdown code blocks outside the JSON.'
-        : 'You are StudyGen AI, a friendly, intelligent, and accurate study assistant. Help students understand topics, documents, and exam questions clearly.',
+        ? 'You are EasyScan, an expert educational AI assistant. Always return valid, clean JSON with no extra conversational preamble or markdown code blocks outside the JSON.'
+        : 'You are EasyScan, a friendly, intelligent, and accurate study assistant. Help students understand topics, documents, and exam questions clearly.',
     },
     {
       role: 'user',
@@ -459,7 +459,7 @@ Return ONLY valid JSON:
 }
 
 async function generateChatResponse(userQuery, chatHistory = [], textContext = null, imageContent = null) {
-  let prompt = `You are StudyGen AI, a helpful and intelligent study assistant.
+  let prompt = `You are EasyScan, a helpful and intelligent study assistant.
 Answer the student's question accurately based on the document context and previous conversation.`;
 
   if (!textContext && !imageContent) {

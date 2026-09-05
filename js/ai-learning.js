@@ -334,8 +334,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const shareFeatBtn = document.getElementById('shareFeatBtn');
   if (shareFeatBtn) {
     shareFeatBtn.addEventListener('click', async () => {
-      const shareTitle = 'StudyGen AI Interactive Learning';
-      const shareText = `🧠 Check out this interactive StudyGen AI quiz, flashcard deck, and AI tutor!`;
+      const shareTitle = 'EasyScan Interactive Learning';
+      const shareText = `🧠 Check out this interactive EasyScan quiz, flashcard deck, and AI tutor!`;
       if (navigator.share) {
         try {
           await navigator.share({ title: shareTitle, text: shareText, url: window.location.href });

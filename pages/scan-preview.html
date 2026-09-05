@@ -4,7 +4,7 @@
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Scan Preview & Crop — StudyGen AI</title>
+  <title>Scan Preview & Crop — EasyScan</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
@@ -845,7 +845,11 @@
       const saveDoneBtn = document.getElementById('saveDoneBtn');
       if (saveDoneBtn) {
         saveDoneBtn.addEventListener('click', () => {
-          StudyGenApp.toast.show('Document edits saved! 📁');
+          if (nextPageDocBtn) {
+            nextPageDocBtn.click();
+          } else {
+            StudyGenApp.toast.show('Document edits saved! 📁');
+          }
         });
       }
 
@@ -898,17 +902,24 @@
 
                   const cleanJpeg = offCanvas.toDataURL('image/jpeg', 0.90);
 
-                  const scale = Math.min(pageWidth / srcW, pageHeight / srcH);
+                  const bottomClearance = 32;
+                  const scale = Math.min(pageWidth / srcW, (pageHeight - bottomClearance) / srcH);
                   const w = srcW * scale;
                   const h = srcH * scale;
                   const x = (pageWidth - w) / 2;
-                  const y = (pageHeight - h) / 2;
+                  const y = (pageHeight - bottomClearance - h) / 2 + 4;
 
                   doc.addImage(cleanJpeg, 'JPEG', x, y, w, h);
                 } catch (imgErr) {
                   console.warn('Page compile warning:', imgErr);
                 }
               }
+
+              // Embed EasyScan watermark on every page of the generated PDF
+              if (window.StudyGenApp && window.StudyGenApp.watermark) {
+                window.StudyGenApp.watermark.applyToDoc(doc);
+              }
+
               primaryBlob = doc.output('blob');
             } else if (currentBlob) {
               primaryBlob = currentBlob;
@@ -917,9 +928,11 @@
               primaryBlob = await res.blob();
             }
 
-            const localPdfId = window.LocalPdfDB ? window.LocalPdfDB.generateLocalPdfId() : `doc_${Date.now()}`;
+            const existingDocId = sessionStorage.getItem('sg_active_doc_id');
+            const localPdfId = existingDocId || (window.LocalPdfDB ? window.LocalPdfDB.generateLocalPdfId() : `doc_${Date.now()}`);
             const dateStr = new Date().toLocaleDateString('en-IN').replace(/\//g, '-');
-            const docTitle = `Scanned_PDF_${dateStr}_${count}P`;
+            const storedTitle = sessionStorage.getItem('sg_active_doc_title');
+            const docTitle = storedTitle || `Scanned_PDF_${dateStr}_${count}P`;
 
             if (window.LocalPdfDB && primaryBlob) {
               const savedDoc = await window.LocalPdfDB.saveDocument({

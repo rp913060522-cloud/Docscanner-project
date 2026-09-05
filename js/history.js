@@ -239,6 +239,53 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
               },
               {
+                label: '📤 Share PDF Document',
+                onClick: async () => {
+                  try {
+                    if (!window.LocalPdfDB) return;
+                    const docRecord = await window.LocalPdfDB.getDocument(id);
+                    if (!docRecord) {
+                      StudyGenApp.toast.show('Document not found.');
+                      return;
+                    }
+                    const cleanTitle = (title || 'document').replace(/\.pdf$/i, '');
+                    const filename = `${cleanTitle}.pdf`;
+
+                    let blobToShare = docRecord.blob;
+                    if (!blobToShare && docRecord.thumbnail && window.jspdf) {
+                      const jsPDFClass = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+                      const doc = new jsPDFClass({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+                      doc.addImage(docRecord.thumbnail, 'JPEG', 20, 20, 555, 750);
+                      if (window.StudyGenApp && window.StudyGenApp.watermark) {
+                        window.StudyGenApp.watermark.applyToDoc(doc);
+                      }
+                      blobToShare = doc.output('blob');
+                    }
+
+                    if (blobToShare && window.StudyGenApp && window.StudyGenApp.share) {
+                      await window.StudyGenApp.share.sharePdf({
+                        blob: blobToShare,
+                        filename,
+                        title: cleanTitle,
+                      });
+                    } else if (blobToShare) {
+                      const a = document.createElement('a');
+                      a.href = URL.createObjectURL(blobToShare);
+                      a.download = filename;
+                      a.click();
+                      StudyGenApp.toast.show('Document saved to device! 💾');
+                    } else {
+                      StudyGenApp.toast.show('Document file not available.');
+                    }
+                  } catch (err) {
+                    if (err.name !== 'AbortError') {
+                      console.warn('Share error:', err);
+                      StudyGenApp.toast.show('Could not share document.');
+                    }
+                  }
+                }
+              },
+              {
                 label: '✏️ Rename Document',
                 onClick: () => _openRenameModal(id, title)
               },

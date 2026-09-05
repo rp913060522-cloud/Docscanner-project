@@ -51,6 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnHelp')?.addEventListener('click', (e) => { e.preventDefault(); StudyGenApp.toast.show('Opening Help Center...'); });
   document.getElementById('btnPrivacy')?.addEventListener('click', (e) => { e.preventDefault(); StudyGenApp.toast.show('Opening Privacy Policy...'); });
   document.getElementById('btnTerms')?.addEventListener('click', (e) => { e.preventDefault(); StudyGenApp.toast.show('Opening Terms of Service...'); });
-  document.getElementById('btnContact')?.addEventListener('click', (e) => { e.preventDefault(); StudyGenApp.toast.show('Support email: support@studygenai.com'); });
+  document.getElementById('btnContact')?.addEventListener('click', (e) => { e.preventDefault(); StudyGenApp.toast.show('Support email: support@easyscan.com'); });
 
 });

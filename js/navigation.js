@@ -25,7 +25,7 @@ const StudyGenNav = (() => {
 
   // Helper to compute initials from full name
   function getInitials(name) {
-    if (!name) return 'SG';
+    if (!name) return 'ES';
     const parts = name.trim().split(/\s+/);
     if (parts.length >= 2) {
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
@@ -147,7 +147,7 @@ const StudyGenNav = (() => {
         </button>
         <span class="app-bar__center">${title}</span>
         <div class="app-bar__actions">
-          <div class="app-bar__avatar avatar-placeholder" id="avatarBtn" role="button" aria-label="Profile">SG</div>
+          <div class="app-bar__avatar avatar-placeholder" id="avatarBtn" role="button" aria-label="Profile">ES</div>
         </div>
       </header>
     `;
@@ -160,13 +160,13 @@ const StudyGenNav = (() => {
           <div class="app-bar__logo-icon">
             <span class="material-icons-round" style="font-size:20px;color:white">menu_book</span>
           </div>
-          <span class="app-bar__title">StudyGen AI</span>
+          <span class="app-bar__title">EasyScan</span>
         </div>
         <div class="app-bar__actions">
           <button class="app-bar__action-btn" id="notifBtn" aria-label="Notifications">
             <span class="material-icons-round">notifications_none</span>
           </button>
-          <div class="app-bar__avatar avatar-placeholder" id="avatarBtn" role="button" aria-label="Profile">SG</div>
+          <div class="app-bar__avatar avatar-placeholder" id="avatarBtn" role="button" aria-label="Profile">ES</div>
         </div>
       </header>
     `;
@@ -437,3 +437,4 @@ const StudyGenNav = (() => {
 })();
 
 window.StudyGenNav = StudyGenNav;
+window.EasyScanNav = StudyGenNav;

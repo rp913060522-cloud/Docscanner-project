@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   StudyGen AI — Reusable Component Library
+   EasyScan — Reusable Component Library
    All UI components used across the 13 screens.
    Uses design tokens defined in style.css.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -1268,3 +1268,175 @@
   gap: 10px;
   padding: 16px var(--screen-pad);
 }
+
+/* ── 26. UNIVERSAL PDF SHARE MODAL SHEET ─────────────────────────────────── */
+.sg-share-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.sg-share-modal-overlay.sg-share-modal--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sg-share-modal-card {
+  width: 100%;
+  max-width: 480px;
+  background: #181825;
+  color: #ffffff;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+  padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  transform: translateY(100%);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  .sg-share-modal-overlay {
+    align-items: center;
+    padding: 20px;
+  }
+  .sg-share-modal-card {
+    border-radius: 20px;
+    transform: scale(0.92);
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .sg-share-modal-overlay.sg-share-modal--visible .sg-share-modal-card {
+    transform: scale(1);
+  }
+}
+
+.sg-share-modal-overlay.sg-share-modal--visible .sg-share-modal-card {
+  transform: translateY(0);
+}
+
+.sg-share-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.sg-share-icon-wrap {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: rgba(59, 123, 248, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sg-share-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.sg-share-subtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+.sg-share-close-btn {
+  margin-left: auto;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: #94a3b8;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.sg-share-close-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.sg-share-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sg-share-opt-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.sg-share-opt-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.sg-share-opt-btn:active {
+  transform: scale(0.99);
+}
+
+.sg-share-opt-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sg-share-opt-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sg-share-opt-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.sg-share-opt-desc {
+  font-size: 12px;
+  color: #94a3b8;
+}
+

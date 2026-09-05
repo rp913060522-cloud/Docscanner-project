@@ -31,7 +31,7 @@ router.get('/', (req, res) => {
     : dbState === 2 ? 'connecting'
     : 'disconnected';
 
-  return sendSuccess(res, 200, 'StudyGen AI backend is running.', {
+  return sendSuccess(res, 200, 'EasyScan backend is running.', {
     status: 'ok',
     environment: process.env.NODE_ENV,
     database: dbStatus,

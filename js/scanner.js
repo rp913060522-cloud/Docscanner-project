@@ -392,50 +392,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       sessionStorage.setItem('sg_active_doc_id',    primaryId);
       sessionStorage.setItem('sg_active_doc_title', baseTitle);
       sessionStorage.setItem('sg_scan_count',        count);
-
-      // Save each page and primary doc in LocalPdfDB
-      const pageIds = [];
-      if (window.LocalPdfDB) {
-        try {
-          for (let i = 0; i < capturedPageBlobs.length; i++) {
-            const pageId = `${primaryId}_p${i + 1}`;
-            pageIds.push(pageId);
-            await window.LocalPdfDB.saveDocument({
-              localPdfId: pageId,
-              documentTitle: `${baseTitle} (Page ${i + 1})`,
-              filename: `${baseTitle}_p${i + 1}.jpg`,
-              mimeType: 'image/jpeg',
-              blob: capturedPageBlobs[i],
-              thumbnail: capturedPageDataUrls[i] || '',
-              pageCount: 1,
-            });
-          }
-
-          await window.LocalPdfDB.saveDocument({
-            localPdfId: primaryId,
-            documentTitle: baseTitle,
-            filename: `${baseTitle}.jpg`,
-            mimeType: 'image/jpeg',
-            blob: capturedPageBlobs[0],
-            thumbnail: capturedPageDataUrls[0] || '',
-            pageCount: count,
-            lastOpenedAt: new Date().toISOString(),
-          });
-        } catch (e) {
-          console.warn('Could not save to LocalPdfDB:', e);
-        }
-      }
-
-      if (pageIds.length > 0) {
-        sessionStorage.setItem('sg_batch_page_ids', JSON.stringify(pageIds));
-      }
+      sessionStorage.removeItem('sg_batch_page_ids');
 
       if (count <= 25 && capturedPageDataUrls.length > 0) {
         try {
           sessionStorage.setItem('sg_batch_pages', JSON.stringify(capturedPageDataUrls));
         } catch (e) {
-          console.warn('SessionStorage quota warning, relying on IndexedDB:', e);
-          sessionStorage.removeItem('sg_batch_pages');
+          console.warn('SessionStorage quota warning:', e);
         }
       }
 

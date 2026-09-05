@@ -1,4 +1,4 @@
-# StudyGen AI — Web Frontend
+# EasyScan — Web Frontend
 
 > **AI Powered Study Scanner & Smart Learning App**
 > Scan · Learn · Revise · Succeed
@@ -66,7 +66,7 @@ studygen-ai/
 └── assets/
     ├── images/             ← App illustrations & screenshots
     ├── icons/              ← Custom icon SVGs
-    └── logo/               ← StudyGen AI logo files
+    └── logo/               ← EasyScan logo files
 ```
 
 ## Design System

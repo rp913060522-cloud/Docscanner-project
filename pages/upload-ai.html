@@ -4,7 +4,7 @@
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Start Study with AI — StudyGen AI</title>
+  <title>Start Study with AI — EasyScan</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
@@ -218,8 +218,8 @@
         <!-- Sidebar Top Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border,#e2e8f0);">
           <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:34px;height:34px;background:linear-gradient(135deg,#3b7bf8,#7b52f4);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px;">SG</div>
-            <span style="font-size:16px;font-weight:800;color:var(--text-primary);">StudyGen AI</span>
+            <div style="width:34px;height:34px;background:linear-gradient(135deg,#3b7bf8,#7b52f4);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px;">ES</div>
+            <span style="font-size:16px;font-weight:800;color:var(--text-primary);">EasyScan</span>
           </div>
           <button type="button" id="closeSidebarBtn" style="background:transparent;border:none;color:var(--text-secondary);cursor:pointer;padding:4px;display:flex;align-items:center;">
             <span class="material-icons-round" style="font-size:22px;">close</span>
@@ -761,7 +761,7 @@
         sidebarNewChatBtn.onclick = () => {
           closeSidebar();
           const freshSessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2,6)}`;
-          const docTitle = currentUploadedFile ? currentUploadedFile.name.replace(/\.[^/.]+$/, '') : 'StudyGen AI';
+          const docTitle = currentUploadedFile ? currentUploadedFile.name.replace(/\.[^/.]+$/, '') : 'EasyScan';
           renderInlineAiChat(docTitle, currentUploadedFile, { id: freshSessionId, title: 'New Chat', messages: [] });
           StudyGenApp.toast.show('Started fresh AI chat session ✨');
         };

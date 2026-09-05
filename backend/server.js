@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * StudyGen AI — Server Entry Point
+ * EasyScan — Server Entry Point
  *
  * Startup sequence:
  *   1. Load and validate environment variables
@@ -39,7 +39,7 @@ async function startServer() {
   // ── Step 5: Start HTTP server ───────────────────────────────────────────────
   const server = app.listen(config.port, () => {
     console.log('╔══════════════════════════════════════════════════╗');
-    console.log(`║   StudyGen AI Backend — ${config.nodeEnv.padEnd(24)}║`);
+    console.log(`║   EasyScan Backend — ${config.nodeEnv.padEnd(28)}║`);
     console.log(`║   Listening on port ${String(config.port).padEnd(29)}║`);
     console.log('╚══════════════════════════════════════════════════╝');
   });
