@@ -48,9 +48,30 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Support items
-  document.getElementById('btnHelp')?.addEventListener('click', (e) => { e.preventDefault(); StudyGenApp.toast.show('Opening Help Center...'); });
-  document.getElementById('btnPrivacy')?.addEventListener('click', (e) => { e.preventDefault(); StudyGenApp.toast.show('Opening Privacy Policy...'); });
-  document.getElementById('btnTerms')?.addEventListener('click', (e) => { e.preventDefault(); StudyGenApp.toast.show('Opening Terms of Service...'); });
-  document.getElementById('btnContact')?.addEventListener('click', (e) => { e.preventDefault(); StudyGenApp.toast.show('Support email: support@easyscan.com'); });
+  document.getElementById('btnHelp')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (window.StudyGenNav && StudyGenNav.navigate) {
+      StudyGenNav.navigate('help-center.html');
+    } else {
+      window.location.href = 'help-center.html';
+    }
+  });
+  document.getElementById('btnPrivacy')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (window.StudyGenNav && StudyGenNav.navigate) {
+      StudyGenNav.navigate('privacy-policy.html');
+    } else {
+      window.location.href = 'privacy-policy.html';
+    }
+  });
+  document.getElementById('btnTerms')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (window.StudyGenNav && StudyGenNav.navigate) {
+      StudyGenNav.navigate('terms-of-service.html');
+    } else {
+      window.location.href = 'terms-of-service.html';
+    }
+  });
+  document.getElementById('btnContact')?.addEventListener('click', (e) => { e.preventDefault(); StudyGenApp.toast.show('Support email: rp960522@gmail.com'); });
 
 });

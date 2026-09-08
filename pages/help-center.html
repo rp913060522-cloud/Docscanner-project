@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Help Center & FAQ — EasyScan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="screen screen--with-nav screen--with-bar">
+    
+    <!-- Top App Bar -->
+    <header class="app-bar">
+      <button class="app-bar__back" onclick="StudyGenNav.goBack('settings.html')" aria-label="Back to Settings">
+        <span class="material-icons-round">arrow_back_ios_new</span>
+      </button>
+      <span class="app-bar__center">Help Center</span>
+      <div class="app-bar__actions">
+        <div class="app-bar__avatar avatar-placeholder" id="avatarBtn" role="button" aria-label="Profile">ES</div>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Content -->
+    <main class="page-scroll">
+      
+      <!-- Intro Hero Banner -->
+      <section class="faq-header-card">
+        <div class="faq-stats-badge">
+          <span class="material-icons-round" style="font-size:14px;">help_center</span>
+          <span>Knowledge Base</span>
+        </div>
+        <h1 class="text-title-lg" style="margin:0 0 6px 0;color:var(--text-primary);">Help Center & FAQ</h1>
+        <p class="text-body-sm text-secondary" style="margin:0 0 10px 0;">Find answers to common questions about EasyScan.</p>
+        <div class="text-label-sm text-muted" id="faqMatchCount" style="font-weight:600;">36 answers</div>
+      </section>
+
+      <!-- Instant Search Input -->
+      <section class="mb-md">
+        <div class="search-bar">
+          <span class="material-icons-round" aria-hidden="true">search</span>
+          <input
+            type="search"
+            id="faqSearch"
+            placeholder="Search help... (e.g. scan, crop, PDF, Groq, storage)"
+            aria-label="Search help"
+            autocomplete="off"
+          />
+          <button class="btn-icon" id="clearFaqSearch" style="width:28px;height:28px;display:none;" title="Clear search" aria-label="Clear search">
+            <span class="material-icons-round" style="font-size:18px;">close</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 8 Category Filter Chips (Horizontally scrollable) -->
+      <section class="mb-lg">
+        <div class="faq-filter-chips" id="faqCategoryChips" role="tablist" aria-label="FAQ Categories">
+          <button type="button" class="chip active" data-category="all" role="tab" aria-selected="true">All</button>
+          <button type="button" class="chip" data-category="getting-started" role="tab" aria-selected="false">Getting Started</button>
+          <button type="button" class="chip" data-category="scanning" role="tab" aria-selected="false">Scanning</button>
+          <button type="button" class="chip" data-category="documents" role="tab" aria-selected="false">Documents</button>
+          <button type="button" class="chip" data-category="storage" role="tab" aria-selected="false">Storage</button>
+          <button type="button" class="chip" data-category="pdf" role="tab" aria-selected="false">PDF</button>
+          <button type="button" class="chip" data-category="ai" role="tab" aria-selected="false">AI Learning Tools</button>
+          <button type="button" class="chip" data-category="privacy" role="tab" aria-selected="false">Data & Privacy</button>
+          <button type="button" class="chip" data-category="account" role="tab" aria-selected="false">Account & Settings</button>
+        </div>
+      </section>
+
+      <!-- Dynamic Accordion Group Container -->
+      <section class="mb-xl">
+        <div class="faq-accordion-group" id="faqAccordionGroup" role="region" aria-label="Frequently Asked Questions">
+          <!-- Rendered dynamically by js/help-center.js -->
+        </div>
+
+        <!-- Empty Search State -->
+        <div class="empty-state" id="faqEmptyState" style="display:none;">
+          <div class="empty-state__icon">
+            <span class="material-icons-round">search_off</span>
+          </div>
+          <h2 class="empty-state__title">No matching answers found</h2>
+          <p class="empty-state__subtitle">
+            We couldn't find any questions matching <span id="emptyQueryText" style="font-weight:600;color:var(--text-primary);">your search</span>. Try searching for terms like "scan", "PDF", "camera", "crop", "Groq", or "storage".
+          </p>
+          <button class="btn btn-primary btn-sm" id="resetSearchBtn" style="margin-top:var(--sp-md);width:auto;padding:8px 20px;">
+            Reset Search
+          </button>
+        </div>
+      </section>
+
+      <!-- Contact Support Callout Card -->
+      <section class="faq-contact-card">
+        <div class="icon-container ic-info icon-container--md" style="margin:0 auto var(--sp-sm) auto;">
+          <span class="material-icons-round">support_agent</span>
+        </div>
+        <h3 class="text-title-md" style="margin:0 0 4px 0;color:var(--text-primary);">Still need assistance?</h3>
+        <p class="text-body-sm text-secondary" style="margin:0 0 var(--sp-md) 0;">
+          If your question isn't answered above, reach out to our team via Contact Support in Settings.
+        </p>
+        <button class="btn btn-outlined btn-sm" onclick="location.href='settings.html'" style="margin:0 auto;width:auto;padding:8px 18px;">
+          Return to Settings
+        </button>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="../js/apiClient.js"></script>
+  <script src="../js/db.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script src="../js/help-center.js"></script>
+</body>
+</html>

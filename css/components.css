@@ -1440,3 +1440,308 @@
   color: #94a3b8;
 }
 
+/* ── 22. HELP CENTER & FAQ ACCORDION ───────────────────────────────────────── */
+
+.faq-header-card {
+  background: linear-gradient(135deg, rgba(59, 123, 248, 0.08) 0%, rgba(99, 102, 241, 0.04) 100%);
+  border: 1px solid rgba(59, 123, 248, 0.15);
+  border-radius: var(--r-xl);
+  padding: var(--sp-lg);
+  margin-bottom: var(--sp-lg);
+}
+
+.faq-stats-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(59, 123, 248, 0.12);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+  margin-bottom: var(--sp-sm);
+}
+
+.faq-filter-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.faq-filter-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.faq-accordion-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.faq-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.faq-item:hover {
+  border-color: rgba(59, 123, 248, 0.3);
+}
+
+.faq-item.is-expanded {
+  border-color: var(--primary);
+  box-shadow: 0 4px 16px rgba(59, 123, 248, 0.08);
+}
+
+.faq-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: background-color 0.15s ease;
+}
+
+.faq-trigger:hover {
+  background: rgba(59, 123, 248, 0.03);
+}
+
+.faq-trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.faq-trigger__question {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.faq-item__cat-pill {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--primary);
+}
+
+.faq-trigger__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-full);
+  background: rgba(59, 123, 248, 0.08);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, color 0.2s ease;
+}
+
+.faq-item.is-expanded .faq-trigger__icon {
+  transform: rotate(180deg);
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.faq-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.faq-item.is-expanded .faq-content {
+  grid-template-rows: 1fr;
+}
+
+.faq-content__inner {
+  overflow: hidden;
+  padding: 0 16px;
+  transition: padding 0.25s ease;
+}
+
+.faq-item.is-expanded .faq-content__inner {
+  padding: 0 16px 16px 16px;
+}
+
+.faq-answer-text {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.faq-answer-text strong {
+  color: var(--text-primary);
+}
+
+.faq-answer-text ul, .faq-answer-text ol {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.faq-answer-text li {
+  margin-bottom: 4px;
+}
+
+.faq-highlight {
+  background: rgba(250, 204, 21, 0.35);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.faq-contact-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: var(--sp-lg);
+  text-align: center;
+  margin-top: var(--sp-xl);
+  margin-bottom: var(--sp-xl);
+}
+
+/* ── 23. PRIVACY POLICY STYLES ─────────────────────────────────────────────── */
+
+.policy-hero-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(59, 123, 248, 0.05) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: var(--r-xl);
+  padding: var(--sp-lg);
+  margin-bottom: var(--sp-lg);
+}
+
+.policy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+  margin-bottom: var(--sp-sm);
+}
+
+.policy-toc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  margin-bottom: var(--sp-xl);
+}
+
+.policy-toc__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  margin: 12px 0 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.policy-toc__item a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--primary);
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  transition: background 0.15s ease;
+}
+
+.policy-toc__item a:hover {
+  background: rgba(59, 123, 248, 0.08);
+}
+
+.policy-section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-lg);
+  margin-bottom: var(--sp-lg);
+  scroll-margin-top: 75px;
+}
+
+.policy-section-card h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.policy-section-card p {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  margin: 0 0 10px 0;
+}
+
+.policy-section-card p:last-child {
+  margin-bottom: 0;
+}
+
+.policy-section-card ul, .policy-section-card ol {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  margin: 8px 0 12px 0;
+  padding-left: 22px;
+}
+
+.policy-section-card li {
+  margin-bottom: 6px;
+}
+
+.policy-section-card strong {
+  color: var(--text-primary);
+}
+
+.policy-callout {
+  border-left: 3px solid var(--primary);
+  background: rgba(59, 123, 248, 0.05);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.55;
+}
+
+.policy-callout--success {
+  border-left-color: #10b981;
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.policy-callout--warning {
+  border-left-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.06);
+}
+
+
+

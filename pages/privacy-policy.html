@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Privacy Policy — EasyScan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="screen screen--with-nav screen--with-bar">
+    
+    <!-- Top App Bar -->
+    <header class="app-bar">
+      <button class="app-bar__back" onclick="StudyGenNav.goBack('settings.html')" aria-label="Back to Settings">
+        <span class="material-icons-round">arrow_back_ios_new</span>
+      </button>
+      <span class="app-bar__center">Privacy Policy</span>
+      <div class="app-bar__actions">
+        <div class="app-bar__avatar avatar-placeholder" id="avatarBtn" role="button" aria-label="Profile">ES</div>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Content -->
+    <main class="page-scroll">
+      
+      <!-- Hero Header Card -->
+      <section class="policy-hero-card">
+        <div class="policy-badge">
+          <span class="material-icons-round" style="font-size:14px;">verified_user</span>
+          <span>Privacy & Data Architecture</span>
+        </div>
+        <h1 class="text-title-lg" style="margin:0 0 6px 0;color:var(--text-primary);">Privacy Policy</h1>
+        <p class="text-body-sm text-secondary" style="margin:0 0 8px 0;">
+          Transparent, accurate disclosure of how EasyScan manages your data, local storage, and AI processing.
+        </p>
+        <div class="text-label-sm text-muted" style="font-weight:600;">Last Updated: September 8, 2026</div>
+      </section>
+
+      <!-- Table of Contents Card -->
+      <nav class="policy-toc" aria-label="Privacy Policy Table of Contents">
+        <div class="text-label-sm text-secondary" style="letter-spacing:0.5px;font-weight:700;">TABLE OF CONTENTS</div>
+        <ul class="policy-toc__list">
+          <li class="policy-toc__item"><a href="#sec-intro"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>1. Introduction</a></li>
+          <li class="policy-toc__item"><a href="#sec-collect"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>2. Information We Collect</a></li>
+          <li class="policy-toc__item"><a href="#sec-guest"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>3. Guest Mode</a></li>
+          <li class="policy-toc__item"><a href="#sec-account"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>4. Account Information</a></li>
+          <li class="policy-toc__item"><a href="#sec-storage"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>5. Document & Local Storage</a></li>
+          <li class="policy-toc__item"><a href="#sec-metadata"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>6. Study & AI Metadata</a></li>
+          <li class="policy-toc__item"><a href="#sec-use"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>7. How We Use Information</a></li>
+          <li class="policy-toc__item"><a href="#sec-ai"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>8. AI Features & Groq AI</a></li>
+          <li class="policy-toc__item"><a href="#sec-temp"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>9. Temporary Document Processing</a></li>
+          <li class="policy-toc__item"><a href="#sec-cookies"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>10. Authentication & Cookies</a></li>
+          <li class="policy-toc__item"><a href="#sec-thirdparty"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>11. Third-Party Services</a></li>
+          <li class="policy-toc__item"><a href="#sec-retention"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>12. Data Retention</a></li>
+          <li class="policy-toc__item"><a href="#sec-deletion"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>13. Data Deletion Requests</a></li>
+          <li class="policy-toc__item"><a href="#sec-security"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>14. Security</a></li>
+          <li class="policy-toc__item"><a href="#sec-children"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>15. Children's Privacy</a></li>
+          <li class="policy-toc__item"><a href="#sec-rights"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>16. User Rights & Privacy Requests</a></li>
+          <li class="policy-toc__item"><a href="#sec-changes"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>17. Changes to This Policy</a></li>
+          <li class="policy-toc__item"><a href="#sec-contact"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>18. Contact Us</a></li>
+        </ul>
+      </nav>
+
+      <!-- 1. Introduction -->
+      <article class="policy-section-card" id="sec-intro">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">info</span>1. Introduction</h2>
+        <p>
+          Welcome to <strong>EasyScan</strong>. EasyScan is a smart document scanner, PDF management tool, and AI study companion built with a privacy-first architectural approach.
+        </p>
+        <p>
+          This Privacy Policy explains how information is handled when you access or use EasyScan on mobile devices or desktop browsers. We believe in complete technical transparency: our architecture is deliberately designed so that your personal scanned documents remain on your own device rather than being stored in our cloud databases.
+        </p>
+        <div class="policy-callout policy-callout--success">
+          <strong>Key Architecture Principle:</strong> Your scanned document photos and PDF files are stored locally on your device in your browser's IndexedDB. We do not store your document binary files in our cloud database.
+        </div>
+      </article>
+
+      <!-- 2. Information We Collect -->
+      <article class="policy-section-card" id="sec-collect">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">folder_shared</span>2. Information We Collect</h2>
+        <p>The information handled by EasyScan depends on how you choose to interact with the application:</p>
+        <ul>
+          <li>
+            <strong>Camera & Image Frames:</strong> When you scan documents using your camera, live video frames and captured snapshots are processed in memory client-side for edge detection, manual cropping, and perspective adjustment. Raw camera streams are never transmitted to our backend.
+          </li>
+          <li>
+            <strong>Account Credentials (Optional):</strong> If you choose to register an account, we collect your name, email address, and a salted cryptographic password hash. If you sign in via Google, we receive basic public profile information (name, email, avatar URL) via Google OAuth.
+          </li>
+          <li>
+            <strong>Extracted Document Text & Prompts (AI Features):</strong> When you request AI study assistance (summaries, notes, quizzes, flashcards, or chat), document text extracted from your upload or prompt text is sent securely to our AI inference provider.
+          </li>
+          <li>
+            <strong>Saved Study Materials (Optional):</strong> When registered users explicitly choose to save generated study notes, quizzes, flashcards, or chat messages, that structured text is saved in MongoDB linked to your account ID.
+          </li>
+          <li>
+            <strong>Technical Connection Data:</strong> Standard network headers (such as IP address, request method, and user-agent string) are temporarily received by our web server during API requests to enforce rate limits, ensure CORS compliance, and prevent malicious attacks.
+          </li>
+        </ul>
+      </article>
+
+      <!-- 3. Guest Mode -->
+      <article class="policy-section-card" id="sec-guest">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">no_accounts</span>3. Guest Mode</h2>
+        <p>
+          EasyScan is fully functional in <strong>Guest Mode</strong> without requiring account creation or user login:
+        </p>
+        <ul>
+          <li>You can capture multiple pages, detect document edges, crop, rotate, apply color or grayscale filters, and generate standardized PDF files without an account.</li>
+          <li>In Guest Mode, no personal identifying information (name, email, or credentials) is collected, transmitted, or stored on our servers.</li>
+          <li>All scanned documents and generated PDFs remain stored strictly inside your browser's local storage.</li>
+          <li>Guest Mode does not support cloud synchronization of study aids between different devices.</li>
+        </ul>
+      </article>
+
+      <!-- 4. Account Information -->
+      <article class="policy-section-card" id="sec-account">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">account_circle</span>4. Account Information</h2>
+        <p>
+          Creating an account allows you to persist AI study notes, flashcards, and quizzes across sessions. When an account is created:
+        </p>
+        <ul>
+          <li><strong>Email & Password:</strong> We store your display name, email address, and a securely salted password hash. Passwords are never stored in plain text; we use <strong>bcrypt with 12 salt rounds</strong> before saving to MongoDB.</li>
+          <li><strong>Google Sign-In:</strong> If you authenticate via Google Identity Services, Google validates your credentials and shares your Google account identifier, email address, display name, and avatar image URL. We store this profile metadata in our <code>User</code> collection.</li>
+          <li><strong>Timestamps:</strong> Standard account creation and update timestamps (<code>createdAt</code>, <code>updatedAt</code>) are recorded.</li>
+          <li><strong>No Payment Details:</strong> EasyScan does not collect credit card numbers, bank details, or billing information. The application is currently free.</li>
+        </ul>
+      </article>
+
+      <!-- 5. Document & Local Storage -->
+      <article class="policy-section-card" id="sec-storage">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">phone_iphone</span>5. Document & Local Storage</h2>
+        <p>
+          EasyScan adopts a decentralized, client-side approach for document storage:
+        </p>
+        <ul>
+          <li>
+            <strong>Browser IndexedDB (<code>studygen_pdf_db</code>):</strong> All captured document pages, cropped images, and generated PDF binary blobs are saved directly in your browser's IndexedDB database under the <code>documents</code> store.
+          </li>
+          <li>
+            <strong>Browser LocalStorage:</strong> Used exclusively to store basic interface preferences:
+            <ul>
+              <li><code>studygen_theme</code>: Stores your theme preference (<code>"light"</code> or <code>"dark"</code>).</li>
+              <li><code>studygen_lang</code>: Stores your language preference (<code>"en"</code> or <code>"hi"</code>).</li>
+            </ul>
+          </li>
+          <li>
+            <strong>Browser SessionStorage:</strong> Not used to store documents, credentials, or authentication tokens.
+          </li>
+        </ul>
+        <div class="policy-callout policy-callout--success">
+          <strong>Storage Segregation:</strong> Scanned camera photos, page images, and PDF binaries reside exclusively inside your device's browser IndexedDB. EasyScan does <strong>NOT</strong> upload or store your PDF files in our MongoDB database or on permanent server storage.
+        </div>
+      </article>
+
+      <!-- 6. Study & AI Metadata -->
+      <article class="policy-section-card" id="sec-metadata">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">dataset</span>6. Study & AI Metadata</h2>
+        <p>
+          For registered users who choose to save AI study aids, MongoDB stores structured textual metadata:
+        </p>
+        <ul>
+          <li><code>Note</code>: Saved study notes and summaries (title, note content, tags, source document name).</li>
+          <li><code>Quiz</code>: Saved multiple-choice quizzes (title, questions, option sets, correct answer index, explanations).</li>
+          <li><code>Flashcard</code>: Saved flashcard decks (title, card array with front and back text).</li>
+          <li><code>Chat</code>: Saved document conversations (title, message history with user and AI model roles, timestamps).</li>
+          <li><code>History</code>: Study activity log referencing study resource actions.</li>
+        </ul>
+        <p>
+          Saving is strictly user-controlled: generating an AI summary or quiz does not auto-save to MongoDB unless you click the "Save" action in the interface.
+        </p>
+      </article>
+
+      <!-- 7. How We Use Information -->
+      <article class="policy-section-card" id="sec-use">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">build</span>7. How We Use Information</h2>
+        <p>We process information solely to provide and improve EasyScan's core functionality:</p>
+        <ul>
+          <li><strong>Document Scanning:</strong> Processing camera frames, auto-detecting document boundaries, cropping, and assembling multi-page PDFs.</li>
+          <li><strong>AI Study Generation:</strong> Transmitting extracted document text to Groq AI API to generate study summaries, revision notes, practice quizzes, flashcards, and answers.</li>
+          <li><strong>Account Management:</strong> Authenticating registered users, securing accounts, and syncing user-saved study aids.</li>
+          <li><strong>Security & Abuse Prevention:</strong> Rate limiting API endpoints, preventing denial-of-service, and protecting server integrity.</li>
+          <li><strong>No Monetization of Personal Data:</strong> We do not sell, rent, lease, or trade your personal data or document content to data brokers or third-party marketing companies.</li>
+        </ul>
+      </article>
+
+      <!-- 8. AI Features & Groq AI -->
+      <article class="policy-section-card" id="sec-ai">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">smart_toy</span>8. AI Features & Groq AI</h2>
+        <p>
+          EasyScan provides artificial intelligence features to assist your study and revision:
+        </p>
+        <ul>
+          <li><strong>Current AI Provider:</strong> All AI features are powered exclusively by the <strong>Groq AI API</strong> (<code>https://api.groq.com/openai/v1/chat/completions</code>).</li>
+          <li><strong>Active AI Model:</strong> EasyScan currently utilizes the <code>openai/gpt-oss-120b</code> language model hosted on Groq's high-speed inference platform.</li>
+          <li><strong>Provider Status:</strong> Gemini is <strong>NOT</strong> the active AI provider in EasyScan.</li>
+          <li><strong>Data Transmitted:</strong> When you generate study notes, quizzes, flashcards, or use document chat, only the extracted text of the document and your prompts are transmitted securely over HTTPS to Groq.</li>
+          <li><strong>No Binary Uploads to AI:</strong> Document binary files (PDFs, raw camera photos) are not uploaded to Groq; text is extracted locally or on our server prior to the API request.</li>
+          <li><strong>Output Accuracy Disclaimer:</strong> AI-generated summaries, quiz answers, and flashcards are generated probabilistically for educational guidance. They may occasionally contain factual errors or omissions and should be independently verified.</li>
+        </ul>
+      </article>
+
+      <!-- 9. Temporary Document Processing -->
+      <article class="policy-section-card" id="sec-temp">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">timer</span>9. Temporary Document Processing</h2>
+        <p>
+          When you upload a PDF or image file for server-side text extraction (to produce AI study aids):
+        </p>
+        <ul>
+          <li><strong>Temporary Directory:</strong> The uploaded file is temporarily stored in <code>backend/temp_uploads/</code> on the server.</li>
+          <li><strong>Upload Limit:</strong> Maximum upload size is strictly capped at <strong>25 MB</strong> (26,214,400 bytes).</li>
+          <li><strong>Text Extraction:</strong> Text content is parsed from the temporary document using secure server-side extraction utilities.</li>
+          <li><strong>Immediate File Deletion:</strong> As soon as text extraction completes (or if an error occurs), the temporary file is deleted immediately in a <code>finally { deleteFile(filePath); }</code> execution block.</li>
+          <li><strong>Automated TTL Cleanup Cron:</strong> As a fail-safe against orphaned files, an automated cleanup cron job runs every <strong>15 minutes</strong> to purge any temporary upload older than <strong>10 minutes</strong> (600,000 ms), with an additional purge performed at server startup.</li>
+        </ul>
+      </article>
+
+      <!-- 10. Authentication & Cookies -->
+      <article class="policy-section-card" id="sec-cookies">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">cookie</span>10. Authentication & Cookies</h2>
+        <p>
+          EasyScan uses a single, strictly functional authentication cookie for registered users:
+        </p>
+        <ul>
+          <li><strong>Cookie Name:</strong> <code>sg_jwt</code></li>
+          <li><strong>Purpose:</strong> Stores a cryptographically signed JSON Web Token (JWT) identifying your authenticated session.</li>
+          <li><strong>HttpOnly:</strong> Set to <code>true</code>. Client-side JavaScript cannot read or modify this cookie, protecting against Cross-Site Scripting (XSS) attacks.</li>
+          <li><strong>SameSite:</strong> Set to <code>Strict</code>. Prevents the cookie from being sent in cross-site requests, mitigating Cross-Site Request Forgery (CSRF).</li>
+          <li><strong>Secure:</strong> Set to <code>true</code> in production environments, ensuring the cookie is only transmitted over encrypted HTTPS connections.</li>
+          <li><strong>Expiration:</strong> The cookie expires automatically after <strong>7 days</strong> unless renewed.</li>
+          <li><strong>Sign Out:</strong> Tapping <strong>Sign Out</strong> calls <code>POST /api/auth/logout</code>, which immediately instructs your browser to clear the <code>sg_jwt</code> cookie. Local documents stored in IndexedDB remain safely on your device.</li>
+        </ul>
+        <p>EasyScan does not use third-party tracking cookies, advertising beacons, or analytics identifiers.</p>
+      </article>
+
+      <!-- 11. Third-Party Services -->
+      <article class="policy-section-card" id="sec-thirdparty">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">hub</span>11. Third-Party Services</h2>
+        <p>
+          EasyScan connects with only three verified third-party infrastructure providers:
+        </p>
+        <ul>
+          <li><strong>Groq, Inc. (Groq AI API):</strong> Provides cloud AI inference. Extracted document text and study queries are transmitted to Groq for analysis.</li>
+          <li><strong>Google LLC (Google Identity Services):</strong> Used optionally to verify user credentials when you choose "Sign in with Google" via Google OAuth 2.0.</li>
+          <li><strong>MongoDB, Inc. (MongoDB Atlas):</strong> Provides encrypted cloud database infrastructure to store user account records and user-saved study resources.</li>
+        </ul>
+        <p>
+          EasyScan does <strong>NOT</strong> integrate or share data with Google Analytics, Firebase, Stripe, PayPal, Razorpay, Sentry, Facebook, or any advertising networks.
+        </p>
+      </article>
+
+      <!-- 12. Data Retention -->
+      <article class="policy-section-card" id="sec-retention">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">schedule</span>12. Data Retention</h2>
+        <p>Data retention is strictly segregated by storage tier:</p>
+        <ul>
+          <li><strong>Local Scanned Documents:</strong> Stored on your device in browser IndexedDB indefinitely until you choose to delete them in the app or clear your browser's site data.</li>
+          <li><strong>Registered Account & Study Records:</strong> Stored in MongoDB for active registered users as long as your account exists.</li>
+          <li><strong>Temporary Server Files:</strong> Deleted immediately in controller <code>finally</code> blocks, with a maximum 10-minute lifetime enforced by background cron jobs.</li>
+          <li><strong>Authentication Sessions:</strong> The <code>sg_jwt</code> cookie expires after 7 days, or immediately upon user logout.</li>
+          <li><strong>Ephemeral Server Logs:</strong> Standard request logs are transient and retained only during active server execution for diagnostic monitoring.</li>
+        </ul>
+      </article>
+
+      <!-- 13. Data Deletion Requests -->
+      <article class="policy-section-card" id="sec-deletion">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">delete_sweep</span>13. Data Deletion Requests</h2>
+        <p>EasyScan provides direct methods to delete your data:</p>
+        <ul>
+          <li><strong>Deleting Local Documents (Direct Self-Service):</strong> You can permanently delete any document at any time by tapping the three-dot menu (⋮) on the document card in Home or My Documents and selecting <strong>Delete</strong>. This immediately removes the document and its binary pages from your browser's IndexedDB.</li>
+          <li><strong>Wiping All Local Storage:</strong> You can clear all local documents, settings, and cached data at any time by clearing site data/storage for EasyScan in your browser settings.</li>
+          <li><strong>Account & Cloud Data Deletion:</strong> An automated self-service account deletion button is not currently implemented in the user interface. If you wish to delete your registered account and server-stored study records, you may submit an account deletion request by emailing our support team at <a href="mailto:rp960522@gmail.com" style="color:var(--primary);font-weight:600;">rp960522@gmail.com</a>.</li>
+        </ul>
+      </article>
+
+      <!-- 14. Security -->
+      <article class="policy-section-card" id="sec-security">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">shield</span>14. Security</h2>
+        <p>We implement robust, defense-in-depth technical safeguards to protect your information:</p>
+        <ul>
+          <li><strong>Encrypted Transmission:</strong> In production environments, all communication between your browser and our backend is encrypted using Transport Layer Security (HTTPS).</li>
+          <li><strong>Password Hashing:</strong> Passwords are cryptographically hashed using bcrypt with 12 salt rounds before database storage.</li>
+          <li><strong>HttpOnly Cookies:</strong> Authentication tokens are stored exclusively in HttpOnly, SameSite cookies to protect against token theft via XSS and CSRF.</li>
+          <li><strong>NoSQL Injection Sanitization:</strong> All incoming request bodies and query parameters pass through sanitization middleware that strips MongoDB query operators (such as <code>$gt</code>, <code>$where</code>, and dot notation).</li>
+          <li><strong>Rate Limiting:</strong> Express rate limiting protects API routes (600 requests / 15 minutes) and authentication endpoints (60 requests / 15 minutes) against brute-force attacks and abuse.</li>
+          <li><strong>Security Headers:</strong> Responses include defensive HTTP headers (<code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options: DENY</code>, <code>X-XSS-Protection</code>, <code>Referrer-Policy: same-origin</code>).</li>
+          <li><strong>Temporary File Purging:</strong> Files uploaded for AI text extraction are immediately purged via <code>finally</code> blocks and scheduled TTL cron jobs.</li>
+        </ul>
+        <div class="policy-callout policy-callout--warning">
+          <strong>Realistic Security Notice:</strong> While we maintain rigorous, industry-standard administrative and technical safeguards, no electronic transmission over the Internet or computer storage system can be guaranteed to be 100% secure.
+        </div>
+      </article>
+
+      <!-- 15. Children's Privacy -->
+      <article class="policy-section-card" id="sec-children">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">escalator_warning</span>15. Children's Privacy</h2>
+        <p>
+          EasyScan is designed as an educational document scanner and study utility for students and general audiences. We do not knowingly collect personal identifiable information directly from children under the age of 13 without appropriate parental, guardian, or educational institution consent.
+        </p>
+        <p>
+          If you are a parent or guardian and believe that a child under 13 has created an account and provided personal information without consent, please contact us at <a href="mailto:rp960522@gmail.com" style="color:var(--primary);font-weight:600;">rp960522@gmail.com</a> so we can take appropriate steps to investigate and remove the account records.
+        </p>
+      </article>
+
+      <!-- 16. User Rights & Privacy Requests -->
+      <article class="policy-section-card" id="sec-rights">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">manage_accounts</span>16. User Rights & Privacy Requests</h2>
+        <p>Depending on your location and usage, you possess several rights regarding your information:</p>
+        <ul>
+          <li><strong>Right to Use Anonymously:</strong> You may use EasyScan in Guest Mode without creating an account or providing personal details.</li>
+          <li><strong>Right to Access & Edit Profile:</strong> Registered users can review and update their display name or change their password directly in the Profile screen.</li>
+          <li><strong>Right to Control Local Files:</strong> You have complete autonomy to export, share, rename, or delete any scanned document from your device at any time.</li>
+          <li><strong>Right to Request Deletion:</strong> You may request deletion of your account and server-stored study records by contacting our support team.</li>
+          <li><strong>Inquiries & Privacy Requests:</strong> For any privacy inquiries, data access requests, or questions about our practices, contact us at <a href="mailto:rp960522@gmail.com" style="color:var(--primary);font-weight:600;">rp960522@gmail.com</a>.</li>
+        </ul>
+      </article>
+
+      <!-- 17. Changes to This Policy -->
+      <article class="policy-section-card" id="sec-changes">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">update</span>17. Changes to This Privacy Policy</h2>
+        <p>
+          We may update this Privacy Policy from time to time to reflect enhancements to EasyScan's features, storage architecture, or relevant legal standards. When updates are published, the "Last Updated" date at the top of this page will be revised accordingly.
+        </p>
+        <p>
+          We encourage you to review this Privacy Policy periodically to stay informed about how your information is safeguarded.
+        </p>
+      </article>
+
+      <!-- 18. Contact Us -->
+      <article class="policy-section-card" id="sec-contact">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">contact_support</span>18. Contact Us</h2>
+        <p>
+          If you have any questions, concerns, feedback, or privacy requests regarding this Privacy Policy or EasyScan's data handling practices, please reach out to us:
+        </p>
+        <div class="card p-md flex-col gap-sm" style="margin-top:12px;background:var(--surface);">
+          <div class="flex items-center gap-md">
+            <div class="icon-container ic-info icon-container--sm">
+              <span class="material-icons-round">email</span>
+            </div>
+            <div>
+              <div class="text-body-sm text-secondary">Official Support & Privacy Email</div>
+              <div class="text-title-sm" style="color:var(--text-primary);font-weight:600;">
+                <a href="mailto:rp960522@gmail.com" style="color:inherit;text-decoration:none;">rp960522@gmail.com</a>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-md">
+            <div class="icon-container ic-pdf icon-container--sm">
+              <span class="material-icons-round">settings</span>
+            </div>
+            <div>
+              <div class="text-body-sm text-secondary">In-App Support</div>
+              <div class="text-body-sm" style="color:var(--text-primary);">Settings &rarr; Contact Support</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cross-Links -->
+        <div class="card p-md" style="margin-top:12px;background:var(--surface);">
+          <div class="text-label-sm text-secondary" style="font-weight:700;margin-bottom:8px;">RELATED RESOURCES</div>
+          <div class="flex flex-col gap-xs">
+            <a href="help-center.html" class="flex items-center gap-sm" style="color:var(--primary);text-decoration:none;font-size:13.5px;padding:4px 0;">
+              <span class="material-icons-round" style="font-size:18px;">help_outline</span>
+              <span>Help Center & FAQ</span>
+            </a>
+            <a href="terms-of-service.html" class="flex items-center gap-sm" style="color:var(--primary);text-decoration:none;font-size:13.5px;padding:4px 0;">
+              <span class="material-icons-round" style="font-size:18px;">description</span>
+              <span>Terms of Service</span>
+            </a>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:var(--sp-xl);">
+          <button class="btn btn-outlined btn-sm" onclick="location.href='settings.html'" style="width:auto;padding:8px 24px;">
+            Return to Settings
+          </button>
+        </div>
+      </article>
+
+    </main>
+  </div>
+
+  <script src="../js/apiClient.js"></script>
+  <script src="../js/db.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.StudyGenNav && StudyGenNav.init) {
+        StudyGenNav.init({ activePage: 'settings', requireAuth: false });
+      }
+    });
+  </script>
+</body>
+</html>

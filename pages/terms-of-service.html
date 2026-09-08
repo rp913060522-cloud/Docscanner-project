@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Terms of Service — EasyScan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/components.css" />
+  <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+<body>
+  <div class="screen screen--with-nav screen--with-bar">
+    
+    <!-- Top App Bar -->
+    <header class="app-bar">
+      <button class="app-bar__back" onclick="StudyGenNav.goBack('settings.html')" aria-label="Back to Settings">
+        <span class="material-icons-round">arrow_back_ios_new</span>
+      </button>
+      <span class="app-bar__center">Terms of Service</span>
+      <div class="app-bar__actions">
+        <div class="app-bar__avatar avatar-placeholder" id="avatarBtn" role="button" aria-label="Profile">ES</div>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Content -->
+    <main class="page-scroll">
+      
+      <!-- Hero Header Card -->
+      <section class="policy-hero-card">
+        <div class="policy-badge" style="background:rgba(59,123,248,0.12);color:var(--primary);">
+          <span class="material-icons-round" style="font-size:14px;">gavel</span>
+          <span>Legal Agreement</span>
+        </div>
+        <h1 class="text-title-lg" style="margin:0 0 6px 0;color:var(--text-primary);">Terms of Service</h1>
+        <p class="text-body-sm text-secondary" style="margin:0 0 8px 0;">
+          Please read these Terms carefully before using EasyScan. They govern your access and use of our application, scanner, and AI features.
+        </p>
+        <div class="text-label-sm text-muted" style="font-weight:600;">Last Updated: September 8, 2026</div>
+      </section>
+
+      <!-- Table of Contents Card -->
+      <nav class="policy-toc" aria-label="Terms of Service Table of Contents">
+        <div class="text-label-sm text-secondary" style="letter-spacing:0.5px;font-weight:700;">TABLE OF CONTENTS</div>
+        <ul class="policy-toc__list">
+          <li class="policy-toc__item"><a href="#sec-acceptance"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>1. Acceptance of Terms</a></li>
+          <li class="policy-toc__item"><a href="#sec-eligibility"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>2. Eligibility and Account Registration</a></li>
+          <li class="policy-toc__item"><a href="#sec-accounts"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>3. Guest and Registered Accounts</a></li>
+          <li class="policy-toc__item"><a href="#sec-permitted"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>4. Permitted Use and User Responsibilities</a></li>
+          <li class="policy-toc__item"><a href="#sec-prohibited"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>5. Prohibited Activities</a></li>
+          <li class="policy-toc__item"><a href="#sec-storage"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>6. Documents, Files, and Local Storage</a></li>
+          <li class="policy-toc__item"><a href="#sec-ai"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>7. AI Features and AI Output Disclaimer</a></li>
+          <li class="policy-toc__item"><a href="#sec-usercontent"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>8. User Content and Intellectual Property</a></li>
+          <li class="policy-toc__item"><a href="#sec-easyscanip"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>9. EasyScan Intellectual Property</a></li>
+          <li class="policy-toc__item"><a href="#sec-thirdparty"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>10. Third-Party Services</a></li>
+          <li class="policy-toc__item"><a href="#sec-fees"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>11. Fees and Subscriptions</a></li>
+          <li class="policy-toc__item"><a href="#sec-termination"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>12. Account Suspension and Termination</a></li>
+          <li class="policy-toc__item"><a href="#sec-disclaimers"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>13. Disclaimers</a></li>
+          <li class="policy-toc__item"><a href="#sec-liability"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>14. Limitation of Liability</a></li>
+          <li class="policy-toc__item"><a href="#sec-indemnification"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>15. Indemnification</a></li>
+          <li class="policy-toc__item"><a href="#sec-privacy"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>16. Privacy</a></li>
+          <li class="policy-toc__item"><a href="#sec-export"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>17. Export Controls and Lawful Use</a></li>
+          <li class="policy-toc__item"><a href="#sec-severability"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>18. Severability and Entire Agreement</a></li>
+          <li class="policy-toc__item"><a href="#sec-governing"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>19. Governing Law and Dispute Resolution</a></li>
+          <li class="policy-toc__item"><a href="#sec-changes"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>20. Changes to These Terms</a></li>
+          <li class="policy-toc__item"><a href="#sec-contact"><span class="material-icons-round" style="font-size:16px;">arrow_forward</span>21. Contact Information</a></li>
+        </ul>
+      </nav>
+
+      <!-- 1. Acceptance of Terms -->
+      <article class="policy-section-card" id="sec-acceptance">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">check_circle</span>1. Acceptance of Terms</h2>
+        <p>
+          Welcome to <strong>EasyScan</strong>. EasyScan is a smart document scanning, PDF management, and AI study companion application.
+        </p>
+        <p>
+          These Terms of Service ("Terms") constitute a legally binding agreement between you ("User", "you", or "your") and the operators of EasyScan ("we", "us", or "our"). By accessing, browsing, or using EasyScan—whether in Guest Mode or via a registered account—you acknowledge that you have read, understood, and agree to be bound by these Terms and our <a href="privacy-policy.html" style="color:var(--primary);font-weight:600;">Privacy Policy</a>.
+        </p>
+        <p>
+          If you do not agree with these Terms, you must immediately discontinue using EasyScan.
+        </p>
+      </article>
+
+      <!-- 2. Eligibility and Account Registration -->
+      <article class="policy-section-card" id="sec-eligibility">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">person_outline</span>2. Eligibility and Account Registration</h2>
+        <p>
+          EasyScan is intended for general audiences, students, and educators. If you are under the legal age of majority in your jurisdiction, you may only use EasyScan under the guidance and consent of a parent, legal guardian, or educational institution that agrees to these Terms.
+        </p>
+        <p>
+          Account creation is optional. If you register an account:
+        </p>
+        <ul>
+          <li>You may register using your email and password or via Google Sign-In (Google OAuth 2.0).</li>
+          <li>You agree to provide accurate registration information.</li>
+          <li>You are responsible for maintaining the confidentiality of your credentials and all activity conducted through your account.</li>
+        </ul>
+      </article>
+
+      <!-- 3. Guest and Registered Accounts -->
+      <article class="policy-section-card" id="sec-accounts">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">switch_account</span>3. Guest and Registered Accounts</h2>
+        <p>EasyScan provides two usage modes based on the actual application implementation:</p>
+        <ul>
+          <li>
+            <strong>Guest Mode:</strong> You can capture documents via camera or image upload, detect page edges, crop, rotate, apply visual filters, compile multi-page PDFs, and store them locally. In Guest Mode, no account is created, no personal identifying information is transmitted to our server, and no cloud synchronization across devices is performed.
+          </li>
+          <li>
+            <strong>Registered Accounts:</strong> In addition to all Guest Mode features, registered accounts can save and cloud-synchronize generated AI study notes, practice quizzes, flashcard decks, and document chat history across browser sessions.
+          </li>
+        </ul>
+      </article>
+
+      <!-- 4. Permitted Use and User Responsibilities -->
+      <article class="policy-section-card" id="sec-permitted">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">task_alt</span>4. Permitted Use and User Responsibilities</h2>
+        <p>
+          EasyScan is designed for lawful personal, educational, and professional document scanning and learning assistance. You agree to:
+        </p>
+        <ul>
+          <li>Use the application strictly in compliance with all applicable local, national, and international laws.</li>
+          <li>Only scan, process, or upload documents that you own, have created, or have express permission to use.</li>
+          <li>Maintain personal responsibility for academic integrity and ethical use of study materials.</li>
+          <li>Review and verify all generated PDF files and AI outputs for correctness.</li>
+        </ul>
+      </article>
+
+      <!-- 5. Prohibited Activities -->
+      <article class="policy-section-card" id="sec-prohibited">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">block</span>5. Prohibited Activities</h2>
+        <p>When using EasyScan, you agree NOT to:</p>
+        <ul>
+          <li>Attempt to reverse engineer, decompile, disassemble, or extract source code from the application or backend APIs.</li>
+          <li>Bypass or attempt to circumvent security controls, authentication mechanisms, or rate-limiting thresholds.</li>
+          <li>Scan, upload, or transmit malicious software, viruses, corrupted files, or data designed to impair system integrity.</li>
+          <li>Scan or process illegal, infringing, defamatory, or harmful materials.</li>
+          <li>Use automated bots, spiders, or scrapers to access or harvest data from the service.</li>
+          <li>Interfere with or disrupt server networks, MongoDB clusters, or AI provider endpoints.</li>
+        </ul>
+      </article>
+
+      <!-- 6. Documents, Files, and Local Storage -->
+      <article class="policy-section-card" id="sec-storage">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">folder</span>6. Documents, Files, and Local Storage</h2>
+        <p>
+          Our application implements a decentralized, client-first document storage architecture:
+        </p>
+        <ul>
+          <li>
+            <strong>Browser IndexedDB (<code>studygen_pdf_db</code>):</strong> Your scanned camera photos, page crops, and generated PDF binary files are saved directly on your local device in browser IndexedDB under the <code>documents</code> store.
+          </li>
+          <li>
+            <strong>No Cloud PDF Storage:</strong> EasyScan does <strong>NOT</strong> upload, host, or store your PDF files or raw document images in our MongoDB cloud database.
+          </li>
+          <li>
+            <strong>Local Document Deletion:</strong> You have full control over your local documents. You can delete any document at any time using the in-app three-dot menu (⋮) -> Delete action, which immediately erases the document and its binary pages from your device.
+          </li>
+        </ul>
+      </article>
+
+      <!-- 7. AI Features and AI Output Disclaimer -->
+      <article class="policy-section-card" id="sec-ai">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">smart_toy</span>7. AI Features and AI Output Disclaimer</h2>
+        <p>
+          EasyScan includes artificial intelligence features to assist with document revision and study:
+        </p>
+        <ul>
+          <li><strong>AI Provider & Model:</strong> AI functionality is powered exclusively by the <strong>Groq AI API</strong> using the <code>openai/gpt-oss-120b</code> language model. Gemini is <strong>NOT</strong> the active AI provider in EasyScan.</li>
+          <li><strong>Text-Only Processing:</strong> When AI features are invoked, only extracted document text and user prompts are transmitted to Groq over HTTPS. Binary PDF files are not uploaded to the AI provider.</li>
+          <li><strong>Temporary Processing:</strong> Files uploaded for server-side text extraction are temporarily held in <code>backend/temp_uploads/</code> (max 25 MB) and deleted immediately upon extraction in a <code>finally</code> block, supported by a 15-minute cron with 10-minute TTL cleanup.</li>
+          <li><strong>AI Output Disclaimer:</strong> AI-generated summaries, study notes, quiz questions, flashcards, and chat responses are generated algorithmically. They are provided solely on an "AS IS" basis for study assistance. AI outputs may occasionally contain inaccuracies, hallucinations, or incomplete explanations. You are solely responsible for independently verifying all AI output before relying upon it. EasyScan does not provide certified legal, medical, financial, or professional advice.</li>
+        </ul>
+      </article>
+
+      <!-- 8. User Content and Intellectual Property -->
+      <article class="policy-section-card" id="sec-usercontent">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">content_paste</span>8. User Content and Intellectual Property</h2>
+        <p>
+          You retain complete ownership of, and all intellectual property rights in, the documents, images, text, and materials you scan, crop, or process using EasyScan.
+        </p>
+        <p>
+          EasyScan claims <strong>zero ownership</strong> over your personal documents. By using our on-demand AI features, you grant us only the limited, temporary right to extract text and transmit it to our AI inference provider (Groq) solely as necessary to generate your requested study aids.
+        </p>
+      </article>
+
+      <!-- 9. EasyScan Intellectual Property -->
+      <article class="policy-section-card" id="sec-easyscanip">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">verified</span>9. EasyScan Intellectual Property</h2>
+        <p>
+          All rights, title, and interest in and to the EasyScan application—including but not limited to the user interface, styling, code, scripts, algorithms, logos, trademarks, and documentation—are and remain the exclusive property of EasyScan and its operators.
+        </p>
+        <p>
+          You are granted a personal, revocable, non-exclusive, non-transferable license to access and use the EasyScan web application in accordance with these Terms.
+        </p>
+      </article>
+
+      <!-- 10. Third-Party Services -->
+      <article class="policy-section-card" id="sec-thirdparty">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">hub</span>10. Third-Party Services</h2>
+        <p>
+          EasyScan connects with a select set of third-party infrastructure services to deliver core functionality:
+        </p>
+        <ul>
+          <li><strong>Groq, Inc. (Groq AI API):</strong> Provides high-speed cloud AI inference using extracted document text.</li>
+          <li><strong>Google LLC (Google Identity Services):</strong> Provides optional user authentication via Google OAuth 2.0.</li>
+          <li><strong>MongoDB, Inc. (MongoDB Atlas):</strong> Provides encrypted cloud database hosting for user accounts and saved study metadata.</li>
+        </ul>
+        <p>
+          Third-party services are subject to their respective terms and privacy documentation. EasyScan does not use third-party payment gateways, tracking analytics, or advertising networks.
+        </p>
+      </article>
+
+      <!-- 11. Fees and Subscriptions -->
+      <article class="policy-section-card" id="sec-fees">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">payments</span>11. Fees and Subscriptions</h2>
+        <p>
+          EasyScan is currently provided to users <strong>free of charge</strong>.
+        </p>
+        <ul>
+          <li>There is currently no active payment gateway, credit card processing, or subscription billing integration in the application.</li>
+          <li>Unused database flags (such as <code>isPremium</code>) exist solely for architectural readiness and do not represent active paid subscription plans.</li>
+          <li>If optional paid features or premium tiers are introduced in the future, clear notice and transparent pricing terms will be provided before any charges apply.</li>
+        </ul>
+      </article>
+
+      <!-- 12. Account Suspension and Termination -->
+      <article class="policy-section-card" id="sec-termination">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">cancel</span>12. Account Suspension and Termination</h2>
+        <p>
+          We reserve the right to suspend or terminate user accounts, restrict access to features, or revoke API access if a user:
+        </p>
+        <ul>
+          <li>Violates these Terms or engages in prohibited activities.</li>
+          <li>Attempts to breach server security or abuse rate limits.</li>
+          <li>Causes harm, legal liability, or disruption to EasyScan or third parties.</li>
+        </ul>
+        <p>
+          You may cease using EasyScan at any time. If you wish to request deletion of your registered account and cloud study records, you may email our support team at <a href="mailto:rp960522@gmail.com" style="color:var(--primary);font-weight:600;">rp960522@gmail.com</a>.
+        </p>
+      </article>
+
+      <!-- 13. Disclaimers -->
+      <article class="policy-section-card" id="sec-disclaimers">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">warning_amber</span>13. Disclaimers</h2>
+        <p>
+          EasyScan is provided on an <strong>"AS IS"</strong> and <strong>"AS AVAILABLE"</strong> basis without warranties of any kind, whether express, implied, statutory, or otherwise.
+        </p>
+        <ul>
+          <li>We do not warrant that the application will operate uninterrupted, secure, or completely error-free.</li>
+          <li>We do not warrant that AI-generated study aids will be 100% accurate, complete, or suitable for certified examinations.</li>
+          <li>Because document files are stored locally in your browser's IndexedDB, we cannot recover local documents if you clear your browser cache, wipe website data, or lose access to your device.</li>
+        </ul>
+      </article>
+
+      <!-- 14. Limitation of Liability -->
+      <article class="policy-section-card" id="sec-liability">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">gavel</span>14. Limitation of Liability</h2>
+        <p>
+          To the maximum extent permitted by applicable law, EasyScan and its operators, contributors, and service providers shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, data, goodwill, or study records arising from or related to your use of or inability to use EasyScan.
+        </p>
+      </article>
+
+      <!-- 15. Indemnification -->
+      <article class="policy-section-card" id="sec-indemnification">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">shield</span>15. Indemnification</h2>
+        <p>
+          You agree to defend, indemnify, and hold harmless EasyScan and its operators from and against any third-party claims, damages, obligations, losses, liabilities, costs, or expenses arising from:
+        </p>
+        <ul>
+          <li>Your violation of these Terms.</li>
+          <li>Your violation of any third-party right, including copyright, trademark, or privacy rights.</li>
+          <li>Any unlawful content scanned, uploaded, or processed through your account.</li>
+        </ul>
+      </article>
+
+      <!-- 16. Privacy -->
+      <article class="policy-section-card" id="sec-privacy">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">security</span>16. Privacy</h2>
+        <p>
+          Our data handling practices, cookie policies, and storage architecture are documented in our dedicated <a href="privacy-policy.html" style="color:var(--primary);font-weight:600;">Privacy Policy</a>.
+        </p>
+        <p>
+          By using EasyScan, you acknowledge and agree that your data is handled in accordance with the Privacy Policy.
+        </p>
+      </article>
+
+      <!-- 17. Export Controls and Lawful Use -->
+      <article class="policy-section-card" id="sec-export">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">public</span>17. Export Controls and Lawful Use</h2>
+        <p>
+          You represent and warrant that you will access and use EasyScan in compliance with all applicable local, national, and international trade, export control, and economic sanctions regulations.
+        </p>
+      </article>
+
+      <!-- 18. Severability and Entire Agreement -->
+      <article class="policy-section-card" id="sec-severability">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">layers</span>18. Severability and Entire Agreement</h2>
+        <p>
+          If any provision of these Terms is found to be unlawful, void, or unenforceable by a court of competent jurisdiction, that provision shall be deemed severable and shall not affect the validity and enforceability of any remaining provisions.
+        </p>
+        <p>
+          These Terms, together with our Privacy Policy, constitute the entire agreement between you and EasyScan regarding the use of the application.
+        </p>
+      </article>
+
+      <!-- 19. Governing Law and Dispute Resolution -->
+      <article class="policy-section-card" id="sec-governing">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">balance</span>19. Governing Law and Dispute Resolution</h2>
+        <div class="policy-callout" style="margin-bottom:12px;">
+          <strong>[Governing law and jurisdiction to be finalized before public launch.]</strong>
+        </div>
+        <p>
+          In the event of any controversy, claim, or dispute arising out of or relating to these Terms or your use of EasyScan, the parties agree to first attempt in good faith to resolve the dispute informally by contacting support prior to initiating any formal legal or arbitration proceedings.
+        </p>
+      </article>
+
+      <!-- 20. Changes to These Terms -->
+      <article class="policy-section-card" id="sec-changes">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">update</span>20. Changes to These Terms</h2>
+        <p>
+          We may modify or update these Terms periodically to reflect changes in our software, architecture, or applicable legal standards. When modifications occur, the "Last Updated" date at the top of this document will be revised accordingly.
+        </p>
+        <p>
+          Your continued use of EasyScan following the publication of updated Terms signifies your acceptance of the revised Terms.
+        </p>
+      </article>
+
+      <!-- 21. Contact Information -->
+      <article class="policy-section-card" id="sec-contact">
+        <h2><span class="material-icons-round" style="color:var(--primary);font-size:20px;">contact_support</span>21. Contact Information</h2>
+        <p>
+          If you have questions, inquiries, or feedback regarding these Terms of Service, please contact us:
+        </p>
+        <div class="card p-md flex-col gap-sm" style="margin-top:12px;background:var(--surface);">
+          <div class="flex items-center gap-md">
+            <div class="icon-container ic-info icon-container--sm">
+              <span class="material-icons-round">email</span>
+            </div>
+            <div>
+              <div class="text-body-sm text-secondary">Official Support & Legal Inquiries</div>
+              <div class="text-title-sm" style="color:var(--text-primary);font-weight:600;">
+                <a href="mailto:rp960522@gmail.com" style="color:inherit;text-decoration:none;">rp960522@gmail.com</a>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-md">
+            <div class="icon-container ic-pdf icon-container--sm">
+              <span class="material-icons-round">settings</span>
+            </div>
+            <div>
+              <div class="text-body-sm text-secondary">In-App Support</div>
+              <div class="text-body-sm" style="color:var(--text-primary);">Settings &rarr; Contact Support</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cross-Links -->
+        <div class="card p-md" style="margin-top:12px;background:var(--surface);">
+          <div class="text-label-sm text-secondary" style="font-weight:700;margin-bottom:8px;">RELATED RESOURCES</div>
+          <div class="flex flex-col gap-xs">
+            <a href="privacy-policy.html" class="flex items-center gap-sm" style="color:var(--primary);text-decoration:none;font-size:13.5px;padding:4px 0;">
+              <span class="material-icons-round" style="font-size:18px;">security</span>
+              <span>Privacy Policy</span>
+            </a>
+            <a href="help-center.html" class="flex items-center gap-sm" style="color:var(--primary);text-decoration:none;font-size:13.5px;padding:4px 0;">
+              <span class="material-icons-round" style="font-size:18px;">help_outline</span>
+              <span>Help Center & FAQ</span>
+            </a>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:var(--sp-xl);">
+          <button class="btn btn-outlined btn-sm" onclick="location.href='settings.html'" style="width:auto;padding:8px 24px;">
+            Return to Settings
+          </button>
+        </div>
+      </article>
+
+    </main>
+  </div>
+
+  <script src="../js/apiClient.js"></script>
+  <script src="../js/db.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/navigation.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.StudyGenNav && StudyGenNav.init) {
+        StudyGenNav.init({ activePage: 'settings', requireAuth: false });
+      }
+    });
+  </script>
+</body>
+</html>
