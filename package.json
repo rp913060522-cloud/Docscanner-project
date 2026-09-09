@@ -1,0 +1,20 @@
+{
+  "name": "easyscan",
+  "version": "1.0.0",
+  "description": "EasyScan — Smart Document Scanner & AI Study Companion",
+  "private": true,
+  "scripts": {
+    "sync:assets": "node sync-assets.js",
+    "cap:sync": "node sync-assets.js && cap sync android",
+    "cap:open": "cap open android",
+    "test:unit": "npm run --prefix backend test:unit"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/app": "^6.0.2",
+    "@capacitor/core": "^6.2.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0"
+  }
+}

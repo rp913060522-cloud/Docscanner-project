@@ -1,0 +1,8 @@
+{
+	"appId": "com.easyscan.app",
+	"appName": "EasyScan",
+	"webDir": "www",
+	"server": {
+		"androidScheme": "https"
+	}
+}

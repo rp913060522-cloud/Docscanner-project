@@ -14,6 +14,19 @@ desktop.ini
 .tempmediaStorage/
 scratch/
 
+# Secrets & Environment
+.env
+.env.*
+*.env
+*.pem
+*.key
+
+# Android Local & Keystore files
+*.keystore
+*.jks
+local.properties
+.gradle/
+
 # Node / Build (if added later)
 node_modules/
 dist/
